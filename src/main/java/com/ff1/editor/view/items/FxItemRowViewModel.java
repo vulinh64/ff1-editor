@@ -2,13 +2,19 @@ package com.ff1.editor.view.items;
 
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemSnapshot;
+import com.ff1.editor.data.WeaponCastSpellEdit;
+import com.ff1.editor.service.SkillDiscoveryService;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 
 public final class FxItemRowViewModel {
 
   private final ItemSnapshot item;
+  private final IntegerProperty castSpellId;
 
   public FxItemRowViewModel(ItemSnapshot item) {
     this.item = item;
+    this.castSpellId = new SimpleIntegerProperty(originalCastSpellId());
   }
 
   public int id() {
@@ -68,7 +74,19 @@ public final class FxItemRowViewModel {
   }
 
   public String castSpell() {
-    return item.castSpellLabel();
+    return castSpellId.get() == 0 ? "" : castSpellLabel(castSpellId.get());
+  }
+
+  public IntegerProperty castSpellIdProperty() {
+    return castSpellId;
+  }
+
+  public boolean weaponCastChanged() {
+    return category() == ItemCategory.WEAPON && castSpellId.get() != originalCastSpellId();
+  }
+
+  public WeaponCastSpellEdit toWeaponCastSpellEdit() {
+    return WeaponCastSpellEdit.builder().weaponItemId(id()).castSpellId(castSpellId.get()).build();
   }
 
   public String resistanceMask() {
@@ -110,5 +128,19 @@ public final class FxItemRowViewModel {
 
   private static String format(Integer value) {
     return value == null ? "" : String.valueOf(value);
+  }
+
+  private int originalCastSpellId() {
+    return item.castSpellId() == null ? 0 : item.castSpellId();
+  }
+
+  public static String castSpellLabel(int id) {
+    if (id == 0) {
+      return "0 - None";
+    }
+    String name = SkillDiscoveryService.skillName(id);
+    return name == null || name.isBlank()
+        ? "%d - Effect %d".formatted(id, id)
+        : "%d - %s".formatted(id, name);
   }
 }

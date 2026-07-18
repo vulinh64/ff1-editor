@@ -27,10 +27,12 @@ This is the quick landing page for the FF1 J2ME editor project.
   - exposes each spell permission mask as class checkboxes;
   - writes masks back to `cp0`.
 - Items tab:
-  - read-only discovery view split into Weapons, Armor, and Items;
+  - discovery/edit view split into Weapons, Armor, and Items;
   - shows item names/descriptions/prices from `PACK0_3` and `cp0` chunk 0;
   - shows weapon damage/accuracy/cast spell/equip classes from `cp0` chunk 3;
-  - shows armor subtype/absorb/evasion/cast spell/resistance/equip classes from
+  - edits weapon cast spell ids with a skill dropdown and writes them back to
+    `cp0` chunk 3;
+  - shows armor subtype/absorb/evasion lower/cast spell/resistance/equip classes from
     `cp0` chunk 2.
 - Skills tab:
   - discovery/edit view for all 94 `cp0` chunk 1 spell/effect records;
@@ -117,6 +119,7 @@ This is the quick landing page for the FF1 J2ME editor project.
   documented in `SHOP-INVENTORY.md`.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Runtime weapon item
   ids are offset by 7, so `Knife` is item id `9` and `Masamune` is item id `47`.
+  Record byte `6` is editable as the battle cast skill id.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Runtime armor item
   ids are offset by 48 and split into body armor, shields, helms, and gloves.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first

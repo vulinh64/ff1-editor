@@ -105,7 +105,7 @@ public final class SkillDiscoveryService {
     invokers.computeIfAbsent(spellId, _ -> new ArrayList<>()).add(invoker);
   }
 
-  private static String skillName(int id) {
+  public static String skillName(int id) {
     String spellName = MagicMatrixDiscoveryService.spellName(id);
     if (!spellName.isBlank()) {
       return spellName;

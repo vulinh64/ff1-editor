@@ -28,8 +28,10 @@ descriptionTextId = nameTextId + 1
 ```
 
 The JavaFX Items tab reads these layouts through `ItemEquipmentDiscoveryService`
-and displays the decoded records in three read-only tables: Weapons, Armor, and
-Items. The same discovery path can be smoke-tested with:
+and displays the decoded records in three tables: Weapons, Armor, and Items.
+Weapon cast-on-use skill ids are editable with a dropdown whose options use
+`ID - Skill name` labels. Armor and shared item metadata remain read-only. The
+same discovery path can be smoke-tested with:
 
 ```cmd
 java -jar target\ff1-data-editor-0.1.0.jar items ff1-jar
@@ -123,7 +125,10 @@ hitRate = AGI + weaponAccuracy
 
 Unarmed Monk/Master are special-cased elsewhere and use level-based attack.
 Weapon critical chance is not a separate record field; battle code uses the
-equipped weapon id/index as the critical threshold.
+equipped weapon record index as the critical threshold. Visible weapon item ids
+are `weaponIndex + 7`, so Masamune item id `47` uses crit threshold `40`.
+The attack roll is `0..200`, so with enough hit rate to cover that threshold,
+Masamune crits on `41 / 201` hit attempts, about `20.4%`.
 
 ### Weapon Permissions
 
@@ -188,9 +193,15 @@ The equip mask uses the same class bits as spell permissions:
 | 47 | Masamune | 56 | 50 | - | All |
 
 The nonzero cast spell ids are confirmed in the battle command path: weapon use
-assigns `g.j = j.a[j.c[itemId - 7][5]][1]` before target selection. The field
-remains read-only until the surrounding use restrictions and target behavior are
-fully mapped.
+assigns `g.j = j.a[j.c[itemId - 7][5]][1]` before target selection. The editor
+writes this one-byte field from the Weapons table `Casts` dropdown.
+
+Battle execution also confirms that weapon casts use the same spell/effect
+helper as learned magic. In stock bytecode, that helper does not read the acting
+hero's INT, so weapon-cast damage does not naturally scale with INT. If the
+optional `INT-scaled spell damage` patch is selected, positive enemy-target
+weapon-cast damage from a player actor does scale with that actor's INT because
+the patch keys off the active hero slot `g.C[g.Y]`.
 
 ## Armor Records
 
@@ -208,11 +219,11 @@ Current confirmed record shape:
 |------:|---------------------------------------|
 |   0-1 | equip class mask, big-endian unsigned |
 |     2 | absorb / defense contribution         |
-|     3 | evasion penalty contribution          |
+|     3 | evasion lower / penalty contribution  |
 |     4 | spell id cast when used, `0` for none |
 |     5 | resistance/special mask               |
 
-Defense and evasion are confirmed by `j.b(hero, slot, armorId)` and
+Defense and evasion lowering are confirmed by `j.b(hero, slot, armorId)` and
 `j.a(hero, slot, armorId)`:
 
 ```text
@@ -220,9 +231,12 @@ defense = sum equippedArmor[1]
 evasion = baseEvasion - sum equippedArmor[2]
 ```
 
+The table labels this byte as `Evasion Lower` because larger values reduce the
+hero's evasion; heavy armor such as Knight's Armor carries a large penalty.
+
 ### Armor Permissions
 
-| ID | Type | Armor | Absorb | Evasion | Casts | Resistance | Allowed Classes |
+| ID | Type | Armor | Absorb | Evasion Lower | Casts | Resistance | Allowed Classes |
 |---:|------|-------|-------:|--------:|-------|------------|-----------------|
 | 49 | Body | Clothes | 1 | 2 | - | - | All |
 | 50 | Body | Leather Armor | 4 | 8 | - | - | Warrior, Thief, Monk, Red Mage, Knight, Ninja, Master, Red Wizard |
@@ -281,9 +295,9 @@ patch notes. Current shop category mapping:
 
 ## Open Checks
 
-- Trace the runtime path that casts item/equipment spells when used from a menu
-  or battle. The battle command path is confirmed; field/menu restrictions still
-  need a fuller pass before editing.
+- Trace the field/menu path for item/equipment spells. The battle command and
+  battle execution path are confirmed; field/menu restrictions still need a
+  fuller pass before editing.
 - Name the unknown weapon bytes `0`, `1`, `7`, and `8`.
 - Name the shared item metadata bytes `2` and `3`.
 - Decode resistance/special mask bits for armor and elemental/effective-family

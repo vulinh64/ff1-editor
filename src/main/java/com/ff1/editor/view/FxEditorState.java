@@ -4,6 +4,7 @@ import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.SkillEffectEdit;
+import com.ff1.editor.data.WeaponCastSpellEdit;
 import java.util.List;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
@@ -30,6 +31,7 @@ public final class FxEditorState {
   private Supplier<List<HeroClassStatsEdit>> heroStatsEditSupplier = List::of;
   private Supplier<List<MagicMatrixEdit>> magicMatrixEditSupplier = List::of;
   private Supplier<List<SkillEffectEdit>> skillEffectEditSupplier = List::of;
+  private Supplier<List<WeaponCastSpellEdit>> weaponCastSpellEditSupplier = List::of;
 
   public ObjectProperty<EditorWorkspace> workspaceProperty() {
     return workspace;
@@ -173,6 +175,14 @@ public final class FxEditorState {
 
   public List<SkillEffectEdit> skillEffectEdits() {
     return skillEffectEditSupplier.get();
+  }
+
+  public void weaponCastSpellEditSupplier(Supplier<List<WeaponCastSpellEdit>> supplier) {
+    weaponCastSpellEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<WeaponCastSpellEdit> weaponCastSpellEdits() {
+    return weaponCastSpellEditSupplier.get();
   }
 
   public StringProperty statusProperty() {

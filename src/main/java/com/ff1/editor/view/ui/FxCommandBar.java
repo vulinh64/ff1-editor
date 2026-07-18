@@ -6,6 +6,7 @@ import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.PatchState;
 import com.ff1.editor.data.SkillEffectEdit;
+import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.service.AirshipLandingClassPatcher;
 import com.ff1.editor.service.AlwaysSuccessfulRunClassPatcher;
 import com.ff1.editor.service.CorneliaWeaponShopPatcher;
@@ -19,6 +20,7 @@ import com.ff1.editor.service.FifteenSpellChargeRecoveryClassPatcher;
 import com.ff1.editor.service.HeroClassStatsPatcher;
 import com.ff1.editor.service.HeroLevelGrowthClassPatcher;
 import com.ff1.editor.service.IntelligenceSpellDamageClassPatcher;
+import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.MagicMatrixDiscoveryService;
 import com.ff1.editor.service.MagicMatrixPatcher;
 import com.ff1.editor.service.PartyActionOrderClassPatcher;
@@ -26,6 +28,7 @@ import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.service.SkillEffectPatcher;
 import com.ff1.editor.service.UniversalSpellChargeClassPatcher;
 import com.ff1.editor.service.UniversalSpellChargeGrowthPatcher;
+import com.ff1.editor.service.WeaponCastSpellPatcher;
 import com.ff1.editor.view.FxEditorState;
 import java.io.File;
 import java.nio.file.Files;
@@ -383,7 +386,8 @@ public final class FxCommandBar extends VBox {
     boolean hasDataEdits =
         !state.heroStatsEdits().isEmpty()
             || !state.magicMatrixEdits().isEmpty()
-            || !state.skillEffectEdits().isEmpty();
+            || !state.skillEffectEdits().isEmpty()
+            || !state.weaponCastSpellEdits().isEmpty();
     BooleanBinding hasBuildSelection =
         Bindings.createBooleanBinding(
             () ->
@@ -456,6 +460,7 @@ public final class FxCommandBar extends VBox {
     List<HeroClassStatsEdit> heroEdits = state.heroStatsEdits();
     List<MagicMatrixEdit> magicEdits = state.magicMatrixEdits();
     List<SkillEffectEdit> skillEdits = state.skillEffectEdits();
+    List<WeaponCastSpellEdit> weaponCastEdits = state.weaponCastSpellEdits();
     boolean growthPatch =
         state.forceStrongLevelUps() && workspace.strongLevelUpsState() == PatchState.ORIGINAL;
     boolean universalChargesPatch =
@@ -479,6 +484,7 @@ public final class FxCommandBar extends VBox {
     if (heroEdits.isEmpty()
         && magicEdits.isEmpty()
         && skillEdits.isEmpty()
+        && weaponCastEdits.isEmpty()
         && !growthPatch
         && !universalChargesPatch
         && !fifteenChargesPatch
@@ -500,6 +506,7 @@ public final class FxCommandBar extends VBox {
             if (!heroEdits.isEmpty()
                 || !magicEdits.isEmpty()
                 || !skillEdits.isEmpty()
+                || !weaponCastEdits.isEmpty()
                 || universalChargesPatch
                 || fifteenChargesPatch
                 || corneliaMasamunePatch) {
@@ -520,6 +527,14 @@ public final class FxCommandBar extends VBox {
                 int chunkOffset = table.chunkOffset(SkillDiscoveryService.SPELL_CHUNK_INDEX);
                 for (SkillEffectEdit edit : skillEdits) {
                   SkillEffectPatcher.apply(cp0, chunkOffset, edit);
+                }
+              }
+              if (!weaponCastEdits.isEmpty()) {
+                Cp0ChunkTable table = new Cp0ChunkTable(cp0);
+                int chunkOffset =
+                    table.chunkOffset(ItemEquipmentDiscoveryService.WEAPON_CHUNK_INDEX);
+                for (WeaponCastSpellEdit edit : weaponCastEdits) {
+                  WeaponCastSpellPatcher.apply(cp0, chunkOffset, edit);
                 }
               }
               if (universalChargesPatch) {
@@ -587,11 +602,13 @@ public final class FxCommandBar extends VBox {
     build.disableProperty().bind(task.runningProperty());
     load.disableProperty().bind(task.runningProperty());
     state.status(
-        "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), %d skill edit(s)%s%s%s%s%s%s%s%s%s..."
+        "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
+            + "%d skill edit(s), %d weapon cast edit(s)%s%s%s%s%s%s%s%s%s..."
             .formatted(
                 heroEdits.size(),
                 magicEdits.size(),
                 skillEdits.size(),
+                weaponCastEdits.size(),
                 growthPatch ? ", strong level-ups" : "",
                 universalChargesPatch ? ", universal spell-charge growth" : "",
                 fifteenChargesPatch ? ", 15 max spell charges" : "",

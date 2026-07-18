@@ -57,6 +57,12 @@ weapon use:    g.j = j.a[j.c[itemId - 7][5]][1]
 armor use:     g.j = j.a[j.d[itemId - 48][3]][1]
 ```
 
+The battle execution path then resolves item/equipment casts through the same
+effect helper as learned spells. For hero actions, command type `1` is learned
+magic and command type `2` is item/equipment use; both call
+`g.class`, private static `a(byte targetSide, int targetIndex, int spellId)`,
+while `g.C[g.Y]` still identifies the acting hero.
+
 Consumables in the same command path point at internal records:
 
 | Item ID | Item        | Effect Record |
@@ -71,6 +77,17 @@ Consumables in the same command path point at internal records:
 switches on `j.a[spellId][4]` to compute result values such as damage, healing,
 status success/failure, and sentinel values. Follow-up mutation is handled in
 the neighboring `a(byte,int,int)` helper and related battle animation states.
+
+Stock bytecode inspection shows this helper reads spell metadata, target defense
+and resistance fields, target status, HP, and RNG, but does not read the acting
+hero's Intelligence. That means stock learned spells and stock item/equipment
+casts do not scale with INT.
+
+The optional INT-scaled spell damage patch wraps this helper's integer returns.
+Because item/equipment casts use the same helper while `g.C[g.Y]` is still the
+active hero slot, positive enemy-target damage from player item/equipment casts
+is scaled by the acting hero's INT in the same way as learned spell damage.
+Party-target healing and non-damage/sentinel results remain unscaled.
 
 Known field uses from that helper:
 

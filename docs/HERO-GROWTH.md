@@ -177,11 +177,20 @@ For hero attackers:
 - hit rate is `battleHitBonus + j.e(hero)`;
 - `j.e(hero)` is `AGI + weaponAccuracy`;
 - hit count is `hitRate / 32 + 1`, doubled for unarmed Monk/Master;
-- the critical-hit threshold is the equipped weapon id/index
-  `j.a.a[hero].h`, not a separate weapon crit field.
+- the critical-hit threshold is the equipped weapon record index
+  `j.a.a[hero].h`, not a separate weapon crit field or class field;
+- visible weapon item ids are `weaponIndex + 7`, so Masamune item id `47`
+  uses crit threshold `40`.
 
 That last point means this port appears to preserve the classic FF1 weapon-index
-critical chance behavior.
+critical chance behavior, but with the local `0..40` weapon record index rather
+than the visible `7..47` item id.
+
+Each hit attempt rolls one value in `0..200`. The swing misses when the roll is
+above the hit threshold. If it hits, the same roll is compared to the crit
+threshold. Agility therefore affects hit chance and hit count, but it does not
+add to the crit threshold. If a weapon crit threshold is higher than the current
+hit threshold, the crit threshold is clipped to the hit threshold.
 
 ## Universal Spell-Charge Hybrid Patch
 

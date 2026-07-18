@@ -105,11 +105,12 @@ It is split into White Magic and Black Magic sub-tabs. Each row is a spell, each
 class column is one permission bit, and the patched jar writes the resulting
 16-bit mask back into `cp0`.
 
-The Items tab is a read-only discovery surface for item/equipment data. It is
-split into Weapons, Armor, and Items tables and currently exposes names,
-descriptions, prices, equipment class masks, damage/accuracy, absorb/evasion,
-cast-on-use spell ids, resistance/special bytes, and source offsets. Keep it
-read-only until the remaining unknown item bytes are named or bounded.
+The Items tab is a discovery/edit surface for item/equipment data. It is split
+into Weapons, Armor, and Items tables and currently exposes names, descriptions,
+prices, equipment class masks, damage/accuracy, absorb/evasion lower, cast-on-use
+spell ids, resistance/special bytes, and source offsets. Weapon cast-on-use
+skill ids are editable with a dropdown. Keep other item/equipment bytes
+read-only until the remaining unknown bytes are named or bounded.
 
 The current global patch modal supports:
 

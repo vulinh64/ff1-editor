@@ -24,8 +24,10 @@ public final class ItemEquipmentDiscoveryService {
   public static final int ARMOR_RECORD_SIZE = 6;
   public static final int WEAPON_RECORD_SIZE = 9;
   public static final int ITEM_COUNT = 106;
+  public static final int WEAPON_COUNT = 41;
   public static final int WEAPON_ITEM_ID_OFFSET = 7;
   public static final int ARMOR_ITEM_ID_OFFSET = 48;
+  public static final int WEAPON_CAST_SPELL_OFFSET_IN_RECORD = 6;
 
   private static final String ITEM_TEXT_ENTRY = "PACK0_3";
   private static final int ITEM_TEXT_FIRST_ID = 346;
@@ -119,7 +121,7 @@ public final class ItemEquipmentDiscoveryService {
       int itemId = weaponIndex + WEAPON_ITEM_ID_OFFSET;
       int recordOffset = Short.BYTES + weaponIndex * WEAPON_RECORD_SIZE;
       int equipMask = readBigEndianUnsignedShort(chunk, recordOffset + 2);
-      int castSpellId = chunk[recordOffset + 6] & 0xff;
+      int castSpellId = chunk[recordOffset + WEAPON_CAST_SPELL_OFFSET_IN_RECORD] & 0xff;
       items.set(
           itemId,
           items

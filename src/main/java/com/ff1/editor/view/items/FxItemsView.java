@@ -5,7 +5,10 @@ import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.ItemCategory;
+import com.ff1.editor.data.SkillSnapshot;
+import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
+import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -13,13 +16,16 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.util.StringConverter;
 
 public final class FxItemsView extends BorderPane {
 
@@ -30,6 +36,7 @@ public final class FxItemsView extends BorderPane {
   private final FilteredList<FxItemRowViewModel> weapons = new FilteredList<>(items);
   private final FilteredList<FxItemRowViewModel> armor = new FilteredList<>(items);
   private final FilteredList<FxItemRowViewModel> otherItems = new FilteredList<>(items);
+  private final ObservableList<Integer> skillIds = FXCollections.observableArrayList();
   private final TextField search = new TextField();
 
   public FxItemsView(FxEditorState state) {
@@ -38,6 +45,7 @@ public final class FxItemsView extends BorderPane {
     setCenter(itemTabs());
     search.textProperty().addListener((_, _, _) -> refilter());
     state.workspaceProperty().addListener((_, _, workspace) -> load(workspace));
+    state.weaponCastSpellEditSupplier(this::weaponCastSpellEdits);
     refilter();
   }
 
@@ -56,8 +64,24 @@ public final class FxItemsView extends BorderPane {
             ? List.of()
             : new ItemEquipmentDiscoveryService(workspace.workDir())
                 .discover().stream().map(FxItemRowViewModel::new).toList();
+    List<Integer> skillOptions =
+        workspace == null
+            ? List.of()
+            : new SkillDiscoveryService(workspace.workDir()).discover().stream()
+                .map(SkillSnapshot::id)
+                .filter(id -> id > 0)
+                .toList();
+    skillIds.setAll(0);
+    skillIds.addAll(skillOptions);
     items.setAll(rows);
     refilter();
+  }
+
+  private List<WeaponCastSpellEdit> weaponCastSpellEdits() {
+    return items.stream()
+        .filter(FxItemRowViewModel::weaponCastChanged)
+        .map(FxItemRowViewModel::toWeaponCastSpellEdit)
+        .toList();
   }
 
   private void refilter() {
@@ -87,6 +111,7 @@ public final class FxItemsView extends BorderPane {
 
   private TableView<FxItemRowViewModel> weaponTable() {
     TableView<FxItemRowViewModel> table = baseTable(weapons);
+    table.setEditable(true);
     table
         .getColumns()
         .setAll(
@@ -96,13 +121,40 @@ public final class FxItemsView extends BorderPane {
                 intColumn(PRICE_TITLE, FxItemRowViewModel::price, 82),
                 textColumn("Damage", FxItemRowViewModel::damage, 78),
                 textColumn("Accuracy", FxItemRowViewModel::accuracy, 82),
-                textColumn("Casts", FxItemRowViewModel::castSpell, 122),
+                weaponCastSpellColumn(),
                 textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
                 textColumn("Special", FxItemRowViewModel::weaponSpecialBytes, 92),
                 textColumn(DESCRIPTION_TITLE, FxItemRowViewModel::description, 360),
                 textColumn(SOURCE_TITLE, FxItemRowViewModel::source, 170)));
     return table;
+  }
+
+  private TableColumn<FxItemRowViewModel, Integer> weaponCastSpellColumn() {
+    TableColumn<FxItemRowViewModel, Integer> column = new TableColumn<>("Casts");
+    column.setCellValueFactory(cell -> cell.getValue().castSpellIdProperty().asObject());
+    column.setCellFactory(
+        ComboBoxTableCell.forTableColumn(
+            new StringConverter<>() {
+              @Override
+              public String toString(Integer id) {
+                return id == null ? "" : FxItemRowViewModel.castSpellLabel(id);
+              }
+
+              @Override
+              public Integer fromString(String value) {
+                return 0;
+              }
+            },
+            skillIds));
+    column.setOnEditCommit(
+        event ->
+            event
+                .getRowValue()
+                .castSpellIdProperty()
+                .set(event.getNewValue() == null ? 0 : event.getNewValue()));
+    column.setPrefWidth(150);
+    return column;
   }
 
   private TableView<FxItemRowViewModel> armorTable() {
@@ -116,7 +168,7 @@ public final class FxItemsView extends BorderPane {
                 textColumn("Armor", FxItemRowViewModel::name, 150),
                 intColumn(PRICE_TITLE, FxItemRowViewModel::price, 82),
                 textColumn("Absorb", FxItemRowViewModel::absorb, 78),
-                textColumn("Evasion", FxItemRowViewModel::evasionPenalty, 82),
+                textColumn("Evasion Lower", FxItemRowViewModel::evasionPenalty, 112),
                 textColumn("Casts", FxItemRowViewModel::castSpell, 122),
                 textColumn("Resist", FxItemRowViewModel::resistanceMask, 82),
                 textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),

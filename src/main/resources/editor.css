@@ -1,4 +1,6 @@
-.app-root {
+.root,
+.app-root,
+.dialog-pane {
   -ff1-bg: #1b1b1d;
   -ff1-bg-alt: #202124;
   -ff1-surface: #242526;
