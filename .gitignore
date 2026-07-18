@@ -1,0 +1,11 @@
+target/
+build/
+decompiled/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+.idea/
+.vscode/
+/ff1-jar/
+/ff1.jar
+/tools/cfr.jar
