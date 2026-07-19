@@ -7,8 +7,12 @@ import com.ff1.editor.data.EditorWorkspace;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public final class EditorPatchService {
 
@@ -21,6 +25,7 @@ public final class EditorPatchService {
       throw new IllegalArgumentException("No replacement entries were provided.");
     }
 
+    validateReplacementEntries(workspace.inputJar(), replacements.keySet());
     Files.createDirectories(workspace.outputJar().toAbsolutePath().getParent());
     Path outputJar = nextAvailableOutputJar(workspace.outputJar());
     replaceJarEntries(workspace.inputJar(), outputJar, replacements);
@@ -29,6 +34,23 @@ public final class EditorPatchService {
         .replacedEntries(List.copyOf(replacements.keySet()))
         .summary("replaced " + replacements.size() + " jar entries")
         .build();
+  }
+
+  private static void validateReplacementEntries(Path inputJar, Set<String> replacementNames)
+      throws IOException {
+    Set<String> entries = new HashSet<>();
+    try (ZipInputStream in = new ZipInputStream(Files.newInputStream(inputJar))) {
+      ZipEntry entry;
+      while ((entry = in.getNextEntry()) != null) {
+        entries.add(entry.getName());
+      }
+    }
+    for (String replacementName : replacementNames) {
+      if (!entries.contains(replacementName)) {
+        throw new IllegalArgumentException(
+            "Replacement entry does not exist in input jar: " + replacementName);
+      }
+    }
   }
 
   static Path nextAvailableOutputJar(Path firstCandidate) {

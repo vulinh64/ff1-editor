@@ -1,5 +1,6 @@
 package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.utils.CldcStackMapStripper;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeBuilder;
@@ -14,8 +15,6 @@ import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.ff1.editor.utils.CldcStackMapStripper;
 import lombok.extern.slf4j.Slf4j;
 
 /**

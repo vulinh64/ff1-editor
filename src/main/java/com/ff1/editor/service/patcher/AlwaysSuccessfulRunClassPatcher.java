@@ -1,5 +1,6 @@
 package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.utils.CldcStackMapStripper;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeBuilder;
@@ -10,8 +11,6 @@ import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.InvokeInstruction;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.ff1.editor.utils.CldcStackMapStripper;
 import lombok.extern.slf4j.Slf4j;
 
 /** Patches g.class so normal Run commands always escape while preserving no-run encounter gates. */
