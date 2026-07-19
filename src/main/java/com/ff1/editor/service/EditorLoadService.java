@@ -56,6 +56,8 @@ public final class EditorLoadService {
             PatchState.from(FifteenSpellChargeRecoveryClassPatcher.state(iClass)));
     PatchState intelligenceSpellDamageState =
         PatchState.from(IntelligenceSpellDamageClassPatcher.state(gClass));
+    PatchState intelligenceSpellHealingState =
+        PatchState.from(IntelligenceSpellHealingClassPatcher.state(gClass));
     PatchState corneliaMasamuneState = PatchState.from(CorneliaWeaponShopPatcher.state(cp0));
     PatchState corneliaExcaliburState = PatchState.from(CorneliaExcaliburShopPatcher.state(cp0));
     PatchState alwaysSuccessfulRunState =
@@ -74,6 +76,7 @@ public final class EditorLoadService {
         .universalSpellChargesState(universalSpellChargesState)
         .fifteenSpellChargesState(fifteenSpellChargesState)
         .intelligenceSpellDamageState(intelligenceSpellDamageState)
+        .intelligenceSpellHealingState(intelligenceSpellHealingState)
         .corneliaMasamuneState(corneliaMasamuneState)
         .corneliaExcaliburState(corneliaExcaliburState)
         .alwaysSuccessfulRunState(alwaysSuccessfulRunState)

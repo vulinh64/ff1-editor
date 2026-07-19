@@ -23,7 +23,8 @@ categories:
 Names and descriptions are in `PACK0_3`:
 
 ```text
-nameTextId = 346 + 2 * itemId
+firstTextId = minimum text id read from the PACK0_3 table header
+nameTextId = firstTextId + 2 * itemId
 descriptionTextId = nameTextId + 1
 ```
 
@@ -202,7 +203,7 @@ writes this one-byte field from the Weapons table `Casts` dropdown.
 Battle execution also confirms that weapon casts use the same spell/effect
 helper as learned magic. In stock bytecode, that helper does not read the acting
 hero's INT, so weapon-cast damage does not naturally scale with INT. If the
-optional `INT-scaled spell damage` patch is selected, positive enemy-target
+optional `Damage-causing spells scale with INT` patch is selected, positive enemy-target
 weapon-cast damage from a player actor does scale with that actor's INT because
 the patch keys off the active hero slot `g.C[g.Y]`.
 

@@ -45,12 +45,26 @@ Default paths:
 - Startup launches JavaFX and opens a JAR chooser.
 - Manifest validation expects the Namco Bandai `Final Fantasy` MIDlet.
 - Heroes tab edits base-class starting HP/STR/AGL/INT/STA/LCK from `cp0`.
-- Magic Matrix tab edits class permission masks for learnable spells.
+- Magic Matrix tab edits class permission masks for learnable spells and reads
+  spell names from `PACK0_4`.
+- Equipment Matrix tab edits weapon and armor equip permission masks.
+- Items tab shows decoded item/equipment names, descriptions, prices,
+  equipment stats, equip masks, and cast spell ids. Shared item prices and
+  weapon cast spell ids are editable.
+- Skills tab shows all 94 spell/effect records and edits price,
+  `power/status`, and `accuracy`.
 - The command bar `Build Patched JAR` button opens a VDDOH-style modal for
   optional global patches.
 - Implemented global patches:
   - force strong level-ups via `g.class`;
-  - universal spell-charge growth via `cp0` chunk 4 plus `g.class`.
+  - universal spell-charge growth via `cp0` chunk 4 plus `g.class`;
+  - 15 max spell charges via `cp0`, `g.class`, and `i.class`;
+  - damage-causing spells scale with INT via `g.class`;
+  - healing spells scale with INT via `g.class`;
+  - Cornelia sells Masamune and Cornelia sells Excalibur via `cp0`;
+  - always-successful Run, party action order, and enemy crit defense behavior
+    via `g.class`;
+  - Cottage revives KO and airship lands on safe terrain via `i.class`.
 
 ## Important Discoveries
 
@@ -67,6 +81,16 @@ Default paths:
   - all classes: `0x3f3f`
 - Spell permissions and spell charges are separate. A class can be permitted to
   learn a spell but still be unable to use it without charges for that level.
+- Spell/effect names are decoded from `PACK0_4`; do not hardcode spell label
+  arrays in the editor.
+- Item/equipment names and descriptions are decoded from `PACK0_3`; the table's
+  first text id is read from the data file header.
+- Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Record bytes `2..3`
+  are the equip class mask and byte `6` is the battle cast skill id.
+- Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Record bytes `0..1`
+  are the equip class mask.
+- Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
+  field is the shop price.
 
 ## Build And Verification
 
@@ -107,7 +131,8 @@ ignored; on fresh clones download CFR 0.152 with the command documented in
 
 ## Near-Term Work
 
-- Decode spell names and spell observable stats for a future `Magic` tab.
-- Decode item, weapon, armor, and monster data.
+- Decode remaining unknown item, weapon, armor, and monster fields.
+- Investigate spell/name text editing beyond the current read-only decoded
+  labels.
 - Investigate an optional unsigned/wider starting-HP engine patch.
 - Add focused tests around patch-state detection and JAR entry replacement.

@@ -120,6 +120,12 @@ item/equipment bytes read-only until the remaining unknown bytes are named or
 bounded. Equipment permission masks are edited in the dedicated Equipment Matrix
 tab.
 
+The Skills tab exposes all 94 spell/effect records from `cp0` chunk `1`.
+Spell/effect labels come from decoded game text where available, with consumable
+effect labels derived from item names. Price, `power/status`, and `accuracy` are
+editable; the remaining raw fields stay read-only until their behavior is fully
+named.
+
 The current global patch modal supports:
 
 - forced strong level-ups through a `g.class` bytecode patch;
@@ -165,11 +171,11 @@ tool behind the JavaFX app.
 
 ## Near-Term Editor Milestones
 
-1. Finish decoding unknown item, weapon, and armor fields; identify monster and
-   observable spell-stat records.
-2. Add tabs only after a confirmed byte layout exists.
-3. Investigate spell name/text editing; likely candidates are `cp0` spell
-   records and/or text resources decoded through `Ff1TextService`.
+1. Finish decoding unknown item, weapon, armor, spell/effect, and monster
+   fields.
+2. Add or widen editable fields only after a confirmed byte layout exists.
+3. Investigate spell/name text editing beyond the current decoded read-only
+   labels.
 4. Optional engine patch: make starting HP read unsigned/wider so values above
    `127` do not display as negative.
 5. Keep patched output jars in `%USERPROFILE%\.ff1-editor\dist` and temporary

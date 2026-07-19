@@ -85,11 +85,49 @@ and resistance fields, target status, HP, and RNG, but does not read the acting
 hero's Intelligence. That means stock learned spells and stock item/equipment
 casts do not scale with INT.
 
-The optional INT-scaled spell damage patch wraps this helper's integer returns.
+The optional `Damage-causing spells scale with INT` patch wraps this helper's
+integer returns.
 Because item/equipment casts use the same helper while `g.C[g.Y]` is still the
 active hero slot, positive enemy-target damage from player item/equipment casts
 is scaled by the acting hero's INT in the same way as learned spell damage.
 Party-target healing and non-damage/sentinel results remain unscaled.
+
+The optional `Healing spells scale with INT` patch separately wraps the same
+helper's integer returns. It scales only negative party-target effect kind `7`
+results, which are the Cure/Heal-style random HP restoration path:
+
+```text
+heal = heal + heal * intelligence / 200
+```
+
+At INT `99`, affected healing is roughly `149%` of the stock result. Curaja is
+exempt because it uses full-heal/death effect kind `15`. Life and Full-Life are
+also exempt because they use status recovery kind `8`; Life returns a revive
+amount of `-1`, while Full-Life can return negative max HP when its accuracy
+byte is `255`, and both are intentionally outside the Cure/Heal-style randomized
+healing path.
+
+Buffs such as Saber, Haste, and Temper are not documented as INT-scaled. Their
+success helper returns small success/sentinel values, then the neighboring
+mutation helper applies the real buff from the raw spell data fields such as
+`power/status` and `accuracy`. Haste raises the hit-count stage from spell data;
+the current INT patch does not turn high-INT Haste into triple attacks.
+
+## Future INT Scaling Patch Ideas
+
+Keep future support/healing/holy utility scaling separate from the current
+`Damage-causing spells scale with INT` patch unless the behavior is deliberately
+renamed and broadened. Current design notes:
+
+- Haste: every 40 INT increases the attack-count increase by 1. For example,
+  high INT could make Haste grant one additional attack-count step beyond the
+  stock effect, but the exact cap and interaction with the existing hit-count
+  stage field still need implementation discovery.
+- Temper: every 10 INT increases the bonus damage by 1.
+- Saber: every 10 INT increases bonus damage by 1 and accuracy by 5.
+- Dia-like undead-damage spells should use a different scale than normal damage:
+  1% extra effect per INT, making White Mage more useful against undead while
+  preserving Dia as a niche holy/anti-undead line.
 
 Known field uses from that helper:
 

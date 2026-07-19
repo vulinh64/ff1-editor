@@ -71,13 +71,20 @@ This is the quick landing page for the FF1 J2ME editor project.
     spell level gains one max charge at character levels `3, 6, 9, ..., 45`;
   - changes the `i.class` field recovery helper from `+10` to `+15` charges so
     inns/tents/cottages can refill the larger pool.
-- INT-scaled spell damage:
+- Damage-causing spells scale with INT:
   - bytecode patch in `g.class`;
   - routes spell-effect returns through a Class-File API transform;
-  - scales positive enemy-target spell results from player actors by
+  - scales positive enemy-target spell damage results from player actors by
     `damage + damage * intelligence / 200`;
   - leaves failed effects, sentinel values, party-target healing, monster
     spells, and the `9999` cap unchanged.
+- Healing spells scale with INT:
+  - bytecode patch in `g.class`;
+  - routes spell-effect returns through a Class-File API transform;
+  - scales negative party-target effect kind `7` Cure/Heal-style restoration
+    from player actors by `heal + heal * intelligence / 200`;
+  - leaves Curaja/full-heal kind `15`, Life/Full-Life revival/status recovery
+    kind `8`, failed effects, monster spells, and damage results unchanged.
 - Cornelia sells Masamune:
   - data patch in `cp0`;
   - changes the Cornelia weapon shop Knife slot from item id `9` to item id
@@ -197,12 +204,18 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
 
 ## Next Good Targets
 
-- Decode spell names and observable spell stats for a future `Magic` tab.
 - In-game check the implemented Cornelia weapon-shop replacement patch
   `cp0[0x1a57] = 0x2f` for `Knife -> Masamune`.
 - In-game check the implemented Cornelia weapon-shop replacement patch
   `cp0[0x1a56] = 0x2e` for `Nunchaku -> Excalibur`.
-- Decode the remaining unknown item, weapon, and armor fields.
+- Decode the remaining unknown item, weapon, armor, spell/effect, and monster
+  fields.
+- Investigate spell/name text editing beyond the current read-only decoded
+  labels.
+- Design optional INT-scaling follow-up patches for Haste, Temper, Saber, and
+  Dia-like undead-damage spells. Keep these separate from the current
+  damage-only and healing-only patches unless the patch behavior is
+  intentionally renamed.
 - Decode monster records.
 - Investigate an optional unsigned/wider starting-HP engine patch.
 - Add focused tests around patch detection and byte replacement once layouts

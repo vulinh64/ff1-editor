@@ -17,11 +17,11 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class IntelligenceSpellDamageClassPatcher {
+public final class IntelligenceSpellHealingClassPatcher {
 
   private static final int RESULT_LOCAL = 10;
   private static final int ACTOR_LOCAL = 11;
-  private static final int DAMAGE_CAP = 9999;
+  private static final int HEALING_KIND = 7;
   private static final int INT_DIVISOR = 200;
   private static final String SPELL_EFFECT_METHOD = "a";
   private static final String SPELL_EFFECT_DESCRIPTOR = "(BII)I";
@@ -29,6 +29,7 @@ public final class IntelligenceSpellDamageClassPatcher {
   private static final String SAVE_CLASS_NAME = "j";
   private static final String SAVE_FIELD = "a";
   private static final String SAVE_FIELD_DESCRIPTOR = "Lk;";
+  private static final String SPELL_DATA_FIELD_DESCRIPTOR = "[[C";
   private static final String SAVE_DATA_CLASS_NAME = "k";
   private static final String HERO_ARRAY_FIELD = "a";
   private static final String HERO_ARRAY_FIELD_DESCRIPTOR = "[La;";
@@ -42,30 +43,30 @@ public final class IntelligenceSpellDamageClassPatcher {
     UNKNOWN
   }
 
-  private IntelligenceSpellDamageClassPatcher() {}
+  private IntelligenceSpellHealingClassPatcher() {}
 
   public static State state(byte[] data) {
     try {
       ClassModel model = ClassFile.of().parse(data);
       int targetMethods = 0;
-      int damageScaleSites = 0;
+      int healingScaleGuards = 0;
       for (MethodModel method : model.methods()) {
         if (!isSpellEffectMethod(method)) {
           continue;
         }
         targetMethods++;
-        damageScaleSites += damageScaleSites(method);
+        healingScaleGuards += healingScaleGuards(method);
       }
-      if (targetMethods == 1 && damageScaleSites == 0) {
+      if (targetMethods == 1 && healingScaleGuards == 0) {
         return State.ORIGINAL;
       }
-      if (targetMethods == 1 && damageScaleSites > 0) {
+      if (targetMethods == 1 && healingScaleGuards > 0) {
         return State.PATCHED;
       }
       log.info(
-          "INT spell-damage class patch state unknown; targetMethods={}, damageScaleSites={}",
+          "INT spell-healing class patch state unknown; targetMethods={}, healingScaleGuards={}",
           targetMethods,
-          damageScaleSites);
+          healingScaleGuards);
       return State.UNKNOWN;
     } catch (RuntimeException | LinkageError _) {
       return State.UNKNOWN;
@@ -74,12 +75,12 @@ public final class IntelligenceSpellDamageClassPatcher {
 
   public static byte[] apply(byte[] data) {
     State state = state(data);
-    log.info("Applying INT spell-damage class patch; current state={}", state);
+    log.info("Applying INT spell-healing class patch; current state={}", state);
     if (state == State.PATCHED) {
       return data.clone();
     }
     if (state != State.ORIGINAL) {
-      throw new IllegalStateException("Unsupported g.class layout for INT spell-damage patch.");
+      throw new IllegalStateException("Unsupported g.class layout for INT spell-healing patch.");
     }
 
     ClassFile classFile = ClassFile.of();
@@ -89,16 +90,16 @@ public final class IntelligenceSpellDamageClassPatcher {
         classFile.transformClass(
             model,
             java.lang.classfile.ClassTransform.transformingMethodBodies(
-                IntelligenceSpellDamageClassPatcher::isSpellEffectMethod,
+                IntelligenceSpellHealingClassPatcher::isSpellEffectMethod,
                 java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new IntelligenceDamageCodeTransform(counter))));
+                    () -> new IntelligenceHealingCodeTransform(counter))));
     State patchedState = state(patched);
     if (counter.count() == 0 || patchedState != State.PATCHED) {
       throw new IllegalStateException(
-          "INT spell-damage patch did not produce the expected g.class bytecode; counter=%d, state=%s"
+          "INT spell-healing patch did not produce the expected g.class bytecode; counter=%d, state=%s"
               .formatted(counter.count(), patchedState));
     }
-    log.info("INT spell-damage class patch applied at {} return sites", counter.count());
+    log.info("INT spell-healing class patch applied at {} return sites", counter.count());
     return patched;
   }
 
@@ -107,26 +108,25 @@ public final class IntelligenceSpellDamageClassPatcher {
         && SPELL_EFFECT_DESCRIPTOR.equals(method.methodType().stringValue());
   }
 
-  private static int damageScaleSites(MethodModel method) {
+  private static int healingScaleGuards(MethodModel method) {
     int matches = 0;
     List<Instruction> instructions = instructions(method);
-    for (int i = 0; i + 7 < instructions.size(); i++) {
-      if (isDamageScaleSite(instructions, i)) {
+    for (int i = 0; i + 6 < instructions.size(); i++) {
+      if (isHealingScaleGuard(instructions, i)) {
         matches++;
       }
     }
     return matches;
   }
 
-  private static boolean isDamageScaleSite(List<Instruction> instructions, int offset) {
-    return isIntelligenceRead(instructions.get(offset))
-        && instructions.get(offset + 1).opcode() == Opcode.IMUL
-        && isPush(instructions.get(offset + 2), INT_DIVISOR)
-        && instructions.get(offset + 3).opcode() == Opcode.IDIV
-        && instructions.get(offset + 4).opcode() == Opcode.IADD
-        && instructions.get(offset + 5).opcode() == Opcode.ISTORE
-        && instructions.get(offset + 6).opcode() == Opcode.ILOAD
-        && isPush(instructions.get(offset + 7), DAMAGE_CAP);
+  private static boolean isHealingScaleGuard(List<Instruction> instructions, int offset) {
+    return isSpellDataRead(instructions.get(offset))
+        && instructions.get(offset + 1).opcode() == Opcode.ILOAD_2
+        && instructions.get(offset + 2).opcode() == Opcode.AALOAD
+        && instructions.get(offset + 3).opcode() == Opcode.ICONST_4
+        && instructions.get(offset + 4).opcode() == Opcode.CALOAD
+        && isPush(instructions.get(offset + 5), HEALING_KIND)
+        && instructions.get(offset + 6).opcode() == Opcode.IF_ICMPNE;
   }
 
   private static List<Instruction> instructions(MethodModel method) {
@@ -142,12 +142,12 @@ public final class IntelligenceSpellDamageClassPatcher {
     return instructions;
   }
 
-  private static boolean isIntelligenceRead(Instruction instruction) {
+  private static boolean isSpellDataRead(Instruction instruction) {
     return instruction instanceof FieldInstruction field
-        && field.opcode() == Opcode.GETFIELD
-        && HERO_CLASS_NAME.equals(field.owner().asInternalName())
-        && INTELLIGENCE_FIELD.equals(field.name().stringValue())
-        && INTELLIGENCE_DESCRIPTOR.equals(field.type().stringValue());
+        && field.opcode() == Opcode.GETSTATIC
+        && SAVE_CLASS_NAME.equals(field.owner().asInternalName())
+        && SAVE_FIELD.equals(field.name().stringValue())
+        && SPELL_DATA_FIELD_DESCRIPTOR.equals(field.type().stringValue());
   }
 
   private static boolean isPush(Instruction instruction, int value) {
@@ -168,11 +168,11 @@ public final class IntelligenceSpellDamageClassPatcher {
     }
   }
 
-  private static final class IntelligenceDamageCodeTransform
+  private static final class IntelligenceHealingCodeTransform
       implements java.lang.classfile.CodeTransform {
     private final PatchCounter counter;
 
-    private IntelligenceDamageCodeTransform(PatchCounter counter) {
+    private IntelligenceHealingCodeTransform(PatchCounter counter) {
       this.counter = counter;
     }
 
@@ -189,19 +189,23 @@ public final class IntelligenceSpellDamageClassPatcher {
     private static void emitScaledReturn(CodeBuilder builder) {
       Label returnOriginal = builder.newLabel();
       Label actorInRange = builder.newLabel();
-      Label scaledUnderCap = builder.newLabel();
 
       builder
           .istore(RESULT_LOCAL)
           .iload(0)
           .iconst_2()
           .iand()
-          .ifeq(returnOriginal)
+          .ifne(returnOriginal)
           .iload(RESULT_LOCAL)
-          .ifle(returnOriginal)
-          .iload(RESULT_LOCAL)
-          .sipush(DAMAGE_CAP)
-          .if_icmpge(returnOriginal)
+          .ifge(returnOriginal)
+          .getstatic(
+              ClassDesc.of(SAVE_CLASS_NAME), SAVE_FIELD, ClassDesc.ofDescriptor(SPELL_DATA_FIELD_DESCRIPTOR))
+          .iload(2)
+          .aaload()
+          .iconst_4()
+          .caload()
+          .bipush(HEALING_KIND)
+          .if_icmpne(returnOriginal)
           .getstatic(ClassDesc.of(BATTLE_CLASS_NAME), "C", ClassDesc.ofDescriptor("[I"))
           .getstatic(ClassDesc.of(BATTLE_CLASS_NAME), "Y", ConstantDescs.CD_int)
           .iaload()
@@ -215,10 +219,9 @@ public final class IntelligenceSpellDamageClassPatcher {
           .labelBinding(actorInRange)
           .iload(RESULT_LOCAL)
           .iload(RESULT_LOCAL)
+          .ineg()
           .getstatic(
-              ClassDesc.of(SAVE_CLASS_NAME),
-              SAVE_FIELD,
-              ClassDesc.ofDescriptor(SAVE_FIELD_DESCRIPTOR))
+              ClassDesc.of(SAVE_CLASS_NAME), SAVE_FIELD, ClassDesc.ofDescriptor(SAVE_FIELD_DESCRIPTOR))
           .getfield(
               ClassDesc.of(SAVE_DATA_CLASS_NAME),
               HERO_ARRAY_FIELD,
@@ -229,16 +232,8 @@ public final class IntelligenceSpellDamageClassPatcher {
           .imul()
           .sipush(INT_DIVISOR)
           .idiv()
-          .iadd()
+          .isub()
           .istore(RESULT_LOCAL)
-          .iload(RESULT_LOCAL)
-          .sipush(DAMAGE_CAP)
-          .if_icmplt(scaledUnderCap)
-          .sipush(DAMAGE_CAP)
-          .ireturn()
-          .labelBinding(scaledUnderCap)
-          .iload(RESULT_LOCAL)
-          .ireturn()
           .labelBinding(returnOriginal)
           .iload(RESULT_LOCAL)
           .ireturn();

@@ -15,6 +15,7 @@ public record EditorWorkspace(
     PatchState universalSpellChargesState,
     PatchState fifteenSpellChargesState,
     PatchState intelligenceSpellDamageState,
+    PatchState intelligenceSpellHealingState,
     PatchState corneliaMasamuneState,
     PatchState corneliaExcaliburState,
     PatchState alwaysSuccessfulRunState,
