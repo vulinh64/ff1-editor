@@ -1,5 +1,6 @@
 package com.ff1.editor.view;
 
+import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
@@ -7,6 +8,7 @@ import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
+import com.ff1.editor.data.WeaponStatsEdit;
 import java.util.List;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
@@ -40,6 +42,8 @@ public final class FxEditorState {
   private Supplier<List<SkillEffectEdit>> skillEffectEditSupplier = List::of;
   private Supplier<List<ItemPriceEdit>> itemPriceEditSupplier = List::of;
   private Supplier<List<WeaponCastSpellEdit>> weaponCastSpellEditSupplier = List::of;
+  private Supplier<List<WeaponStatsEdit>> weaponStatsEditSupplier = List::of;
+  private Supplier<List<ArmorStatsEdit>> armorStatsEditSupplier = List::of;
 
   public ObjectProperty<EditorWorkspace> workspaceProperty() {
     return workspace;
@@ -255,6 +259,22 @@ public final class FxEditorState {
 
   public List<WeaponCastSpellEdit> weaponCastSpellEdits() {
     return weaponCastSpellEditSupplier.get();
+  }
+
+  public void weaponStatsEditSupplier(Supplier<List<WeaponStatsEdit>> supplier) {
+    weaponStatsEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<WeaponStatsEdit> weaponStatsEdits() {
+    return weaponStatsEditSupplier.get();
+  }
+
+  public void armorStatsEditSupplier(Supplier<List<ArmorStatsEdit>> supplier) {
+    armorStatsEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<ArmorStatsEdit> armorStatsEdits() {
+    return armorStatsEditSupplier.get();
   }
 
   public StringProperty statusProperty() {

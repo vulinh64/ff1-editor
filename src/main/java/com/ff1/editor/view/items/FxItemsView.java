@@ -4,11 +4,13 @@ import static com.ff1.editor.view.ui.FxTableColumns.editableIntColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.intColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
+import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.SkillSnapshot;
 import com.ff1.editor.data.WeaponCastSpellEdit;
+import com.ff1.editor.data.WeaponStatsEdit;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
@@ -53,6 +55,8 @@ public final class FxItemsView extends BorderPane {
     state.workspaceProperty().addListener((_, _, workspace) -> load(workspace));
     state.itemPriceEditSupplier(this::itemPriceEdits);
     state.weaponCastSpellEditSupplier(this::weaponCastSpellEdits);
+    state.weaponStatsEditSupplier(this::weaponStatsEdits);
+    state.armorStatsEditSupplier(this::armorStatsEdits);
     refilter();
   }
 
@@ -91,6 +95,20 @@ public final class FxItemsView extends BorderPane {
         .toList();
   }
 
+  private List<WeaponStatsEdit> weaponStatsEdits() {
+    return items.stream()
+        .filter(FxItemRowViewModel::weaponStatsChanged)
+        .map(FxItemRowViewModel::toWeaponStatsEdit)
+        .toList();
+  }
+
+  private List<ArmorStatsEdit> armorStatsEdits() {
+    return items.stream()
+        .filter(FxItemRowViewModel::armorStatsChanged)
+        .map(FxItemRowViewModel::toArmorStatsEdit)
+        .toList();
+  }
+
   private List<ItemPriceEdit> itemPriceEdits() {
     return items.stream()
         .filter(FxItemRowViewModel::priceChanged)
@@ -108,6 +126,7 @@ public final class FxItemsView extends BorderPane {
             item.category() != ItemCategory.WEAPON
                 && item.category() != ItemCategory.ARMOR
                 && item.category() != ItemCategory.BLANK
+                && item.category() != ItemCategory.KEY_ITEM
                 && item.matches(search.getText()));
   }
 
@@ -133,8 +152,8 @@ public final class FxItemsView extends BorderPane {
                 intColumn("ID", FxItemRowViewModel::id, 56),
                 textColumn("Weapon", FxItemRowViewModel::name, 150),
                 priceColumn(),
-                textColumn("Damage", FxItemRowViewModel::damage, 78),
-                textColumn("Accuracy", FxItemRowViewModel::accuracy, 82),
+                editableIntColumn("Damage", FxItemRowViewModel::damageProperty, 78, 0, 255),
+                editableIntColumn("Accuracy", FxItemRowViewModel::accuracyProperty, 82, 0, 255),
                 weaponCastSpellColumn(),
                 textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
@@ -184,8 +203,9 @@ public final class FxItemsView extends BorderPane {
                 textColumn("Type", FxItemRowViewModel::armorSubtype, 82),
                 textColumn("Armor", FxItemRowViewModel::name, 150),
                 priceColumn(),
-                textColumn("Absorb", FxItemRowViewModel::absorb, 78),
-                textColumn("Evasion Lower", FxItemRowViewModel::evasionPenalty, 112),
+                editableIntColumn("Absorb", FxItemRowViewModel::absorbProperty, 78, 0, 255),
+                editableIntColumn(
+                    "Evasion Lower", FxItemRowViewModel::evasionPenaltyProperty, 112, 0, 255),
                 textColumn("Casts", FxItemRowViewModel::castSpell, 122),
                 textColumn("Resist", FxItemRowViewModel::resistanceMask, 82),
                 textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),

@@ -49,8 +49,9 @@ Default paths:
   spell names from `PACK0_4`.
 - Equipment Matrix tab edits weapon and armor equip permission masks.
 - Items tab shows decoded item/equipment names, descriptions, prices,
-  equipment stats, equip masks, and cast spell ids. Shared item prices and
-  weapon cast spell ids are editable.
+  equipment stats, equip masks, and cast spell ids. Shared item prices, weapon
+  damage/accuracy/cast spell ids, and armor absorb/evasion lower are editable.
+  Key/quest items are hidden from the Items sub-tab.
 - Skills tab shows all 94 spell/effect records and edits price,
   `power/status`, and `accuracy`.
 - The command bar `Build Patched JAR` button opens a VDDOH-style modal for
@@ -87,9 +88,10 @@ Default paths:
 - Item/equipment names and descriptions are decoded from `PACK0_3`; the table's
   first text id is read from the data file header.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Record bytes `2..3`
-  are the equip class mask and byte `6` is the battle cast skill id.
+  are the equip class mask, bytes `4..5` are damage/accuracy, and byte `6` is
+  the battle cast skill id.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Record bytes `0..1`
-  are the equip class mask.
+  are the equip class mask and bytes `2..3` are absorb/evasion lower.
 - Cornelia armor shop row: `cp0` chunk 8 row 0 has two empty slots after
   Clothes, Leather Armor, and Chain Mail; those can be filled with Ribbon item
   id `80` and Protect Ring item id `88`.

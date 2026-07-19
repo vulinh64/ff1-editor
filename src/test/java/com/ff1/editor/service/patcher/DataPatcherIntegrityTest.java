@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.data.ItemCategory;
@@ -11,6 +12,7 @@ import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
+import com.ff1.editor.data.WeaponStatsEdit;
 import com.ff1.editor.service.Cp0ChunkTable;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.MagicMatrixDiscoveryService;
@@ -116,6 +118,37 @@ class DataPatcherIntegrityTest {
         new byte[] {0x3f, 0x3f}, Arrays.copyOfRange(cp0, weaponOffset, weaponOffset + 2));
     assertArrayEquals(
         new byte[] {0x10, 0x01}, Arrays.copyOfRange(cp0, armorOffset, armorOffset + 2));
+  }
+
+  @Test
+  void weaponStatsPatchWritesDamageAndAccuracy() {
+    byte[] cp0 = standardCp0();
+    Cp0ChunkTable table = new Cp0ChunkTable(cp0);
+
+    ItemEquipmentPatcher.applyWeaponStats(cp0, new WeaponStatsEdit(47, 56, 50));
+
+    int offset =
+        table.chunkOffset(ItemEquipmentDiscoveryService.WEAPON_CHUNK_INDEX)
+            + 2
+            + 40 * ItemEquipmentDiscoveryService.WEAPON_RECORD_SIZE;
+    assertEquals(56, cp0[offset + ItemEquipmentPatcher.WEAPON_DAMAGE_OFFSET_IN_RECORD] & 0xff);
+    assertEquals(50, cp0[offset + ItemEquipmentPatcher.WEAPON_ACCURACY_OFFSET_IN_RECORD] & 0xff);
+  }
+
+  @Test
+  void armorStatsPatchWritesAbsorbAndEvasionLower() {
+    byte[] cp0 = standardCp0();
+    Cp0ChunkTable table = new Cp0ChunkTable(cp0);
+
+    ItemEquipmentPatcher.applyArmorStats(cp0, new ArmorStatsEdit(80, 1, 1));
+
+    int offset =
+        table.chunkOffset(ItemEquipmentDiscoveryService.ARMOR_CHUNK_INDEX)
+            + 2
+            + 32 * ItemEquipmentDiscoveryService.ARMOR_RECORD_SIZE;
+    assertEquals(1, cp0[offset + ItemEquipmentPatcher.ARMOR_ABSORB_OFFSET_IN_RECORD] & 0xff);
+    assertEquals(
+        1, cp0[offset + ItemEquipmentPatcher.ARMOR_EVASION_PENALTY_OFFSET_IN_RECORD] & 0xff);
   }
 
   @Test

@@ -31,11 +31,12 @@ descriptionTextId = nameTextId + 1
 The JavaFX Items tab reads these layouts through `ItemEquipmentDiscoveryService`
 and displays the decoded records in three tables: Weapons, Armor, and Items.
 Shared item prices are editable as unsigned 16-bit values and write back to
-`cp0` chunk `0`. Weapon cast-on-use skill ids are editable with a dropdown whose
-options use decoded `ID - Skill name` labels. The Equipment Matrix tab edits weapon and
-armor class equip masks through Weapons and Armor sub-tabs, then writes those
-16-bit masks back to `cp0` chunks `3` and `2`. The same discovery path can be
-smoke-tested with:
+`cp0` chunk `0`. Weapon damage, accuracy, and cast-on-use skill ids are editable
+and write back to `cp0` chunk `3`. Armor absorb and evasion lower are editable
+and write back to `cp0` chunk `2`. Key/quest items are deliberately hidden from
+the Items sub-tab. The Equipment Matrix tab edits weapon and armor class equip
+masks through Weapons and Armor sub-tabs, then writes those 16-bit masks back to
+`cp0` chunks `3` and `2`. The same discovery path can be smoke-tested with:
 
 ```cmd
 java -jar target\ff1-data-editor-0.1.0.jar items ff1-jar
@@ -134,6 +135,21 @@ are `weaponIndex + 7`, so Masamune item id `47` uses crit threshold `40`.
 The attack roll is `0..200`, so with enough hit rate to cover that threshold,
 Masamune crits on `41 / 201` hit attempts, about `20.4%`.
 
+Weapon special bytes `7` and `8` are checked during physical attacks against two
+monster masks: one currently labeled as elemental weakness-like
+`g[target][20]`, and one currently labeled as family/status-like
+`g[target][18]`. Any match gives a single physical effectiveness bonus:
+
+```text
+attack += 4
+hitChance += 40
+```
+
+Excalibur has both special bytes set to `0xff`, so it matches any bit present in
+either monster mask. That makes it broadly effective against monsters with
+weakness/family bits such as undead, dragons, or elemental weaknesses, but the
+bonus does not stack for multiple simultaneous matches.
+
 ### Weapon Permissions
 
 The equip mask uses the same class bits as spell permissions:
@@ -199,6 +215,7 @@ The equip mask uses the same class bits as spell permissions:
 The nonzero cast spell ids are confirmed in the battle command path: weapon use
 assigns `g.j = j.a[j.c[itemId - 7][5]][1]` before target selection. The editor
 writes this one-byte field from the Weapons table `Casts` dropdown.
+The editor also writes weapon damage and accuracy from the Weapons table.
 
 Battle execution also confirms that weapon casts use the same spell/effect
 helper as learned magic. In stock bytecode, that helper does not read the acting
@@ -237,6 +254,7 @@ evasion = baseEvasion - sum equippedArmor[2]
 
 The table labels this byte as `Evasion Lower` because larger values reduce the
 hero's evasion; heavy armor such as Knight's Armor carries a large penalty.
+The editor writes absorb and evasion lower from the Armor table.
 
 ### Armor Permissions
 

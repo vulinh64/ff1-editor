@@ -76,7 +76,7 @@ The JavaFX app opens with a JAR chooser and validates that the selected file is 
 
 * `Skills`: shows all 94 spell/effect records and edits price, `power/status`, and `accuracy`.
 
-* `Items`: shows decoded item/equipment names, descriptions, prices, equipment stats, equip classes, and cast spell ids. Shared item prices and weapon cast spell ids are editable.
+* `Items`: shows decoded item/equipment names, descriptions, prices, equipment stats, equip classes, and cast spell ids. Shared item prices, weapon damage/accuracy/cast spell ids, and armor absorb/evasion lower are editable. Key/quest items are hidden.
 
 The `Build Patched JAR` command opens a global patch dialog. These options change how the patched JAR behaves compared with the base game:
 

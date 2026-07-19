@@ -37,10 +37,13 @@ This is the quick landing page for the FF1 J2ME editor project.
   - shows item names/descriptions/prices from `PACK0_3` and `cp0` chunk 0;
   - edits shared item prices and writes them back to `cp0` chunk 0;
   - shows weapon damage/accuracy/cast spell/equip classes from `cp0` chunk 3;
-  - edits weapon cast spell ids with a skill dropdown and writes them back to
+  - edits weapon damage, accuracy, and cast spell ids, writing them back to
     `cp0` chunk 3;
   - shows armor subtype/absorb/evasion lower/cast spell/resistance/equip classes from
     `cp0` chunk 2.
+  - edits armor absorb and evasion lower, writing them back to `cp0` chunk 2.
+  - hides key/quest items from the Items sub-tab because those are not normal
+    shop or inventory-balance data.
 - Skills tab:
   - discovery/edit view for all 94 `cp0` chunk 1 spell/effect records;
   - shows spell/effect names from game text where available, raw runtime fields, effect ids,
@@ -151,11 +154,13 @@ This is the quick landing page for the FF1 J2ME editor project.
   documented in `SHOP-INVENTORY.md`.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Runtime weapon item
   ids are offset by 7, so `Knife` is item id `9` and `Masamune` is item id `47`.
-  Record bytes `2..3` are editable as the equip class mask. Record byte `6` is
-  editable as the battle cast skill id.
+  Record bytes `2..3` are editable as the equip class mask. Record bytes `4`
+  and `5` are editable as damage and accuracy. Record byte `6` is editable as
+  the battle cast skill id.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Runtime armor item
   ids are offset by 48 and split into body armor, shields, helms, and gloves.
-  Record bytes `0..1` are editable as the equip class mask.
+  Record bytes `0..1` are editable as the equip class mask. Record bytes `2`
+  and `3` are editable as absorb and evasion lower.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
   field is the shop price.
 - Runtime level-up and spell-charge logic: `g.class`, method `F()`.
@@ -175,6 +180,10 @@ This is the quick landing page for the FF1 J2ME editor project.
   `BATTLE-ORDER.md`.
 - Physical damage and critical hits: `g.class`, private static method
   `a(boolean, boolean, int, int)`. See `BATTLE-PHYSICAL.md`.
+- Weapon special effectiveness: the same physical attack helper checks weapon
+  special bytes against monster weakness/family masks. Excalibur's `0xff,0xff`
+  special bytes match any bit and grant one `+4` attack / `+40` hit-chance
+  bonus, without stacking multiple elemental/family bonuses.
 - Field recovery for inns/shelters: `i.class`, private static method `l(int)`.
   Inn is `0`, Sleeping Bag is `1`, Tent is `2`, Cottage is `3`. Inn and Cottage
   share the spell-charge recovery amount.

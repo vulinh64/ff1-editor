@@ -1,9 +1,11 @@
 package com.ff1.editor.view.items;
 
+import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.WeaponCastSpellEdit;
+import com.ff1.editor.data.WeaponStatsEdit;
 import java.util.Map;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -15,12 +17,20 @@ public final class FxItemRowViewModel {
   private final Map<Integer, String> skillNames;
   private final IntegerProperty price;
   private final IntegerProperty castSpellId;
+  private final IntegerProperty damage;
+  private final IntegerProperty accuracy;
+  private final IntegerProperty absorb;
+  private final IntegerProperty evasionPenalty;
 
   public FxItemRowViewModel(ItemSnapshot item, Map<Integer, String> skillNames) {
     this.item = item;
     this.skillNames = skillNames;
     this.price = new SimpleIntegerProperty(item.price());
     this.castSpellId = new SimpleIntegerProperty(originalCastSpellId());
+    this.damage = new SimpleIntegerProperty(originalDamage());
+    this.accuracy = new SimpleIntegerProperty(originalAccuracy());
+    this.absorb = new SimpleIntegerProperty(originalAbsorb());
+    this.evasionPenalty = new SimpleIntegerProperty(originalEvasionPenalty());
   }
 
   public int id() {
@@ -76,19 +86,53 @@ public final class FxItemRowViewModel {
   }
 
   public String damage() {
-    return format(item.damage());
+    return format(damage.get());
+  }
+
+  public IntegerProperty damageProperty() {
+    return damage;
   }
 
   public String accuracy() {
-    return format(item.accuracy());
+    return format(accuracy.get());
   }
 
-  public String absorb() {
-    return format(item.absorb());
+  public IntegerProperty accuracyProperty() {
+    return accuracy;
   }
 
-  public String evasionPenalty() {
-    return format(item.evasionPenalty());
+  public boolean weaponStatsChanged() {
+    return category() == ItemCategory.WEAPON
+        && (damage.get() != originalDamage() || accuracy.get() != originalAccuracy());
+  }
+
+  public WeaponStatsEdit toWeaponStatsEdit() {
+    return WeaponStatsEdit.builder()
+        .weaponItemId(id())
+        .damage(damage.get())
+        .accuracy(accuracy.get())
+        .build();
+  }
+
+  public IntegerProperty absorbProperty() {
+    return absorb;
+  }
+
+  public IntegerProperty evasionPenaltyProperty() {
+    return evasionPenalty;
+  }
+
+  public boolean armorStatsChanged() {
+    return category() == ItemCategory.ARMOR
+        && (absorb.get() != originalAbsorb() || evasionPenalty.get() != originalEvasionPenalty());
+  }
+
+  public ArmorStatsEdit toArmorStatsEdit() {
+    return ArmorStatsEdit.builder()
+        .armorItemId(id())
+        .absorb(absorb.get())
+        .evasionPenalty(evasionPenalty.get())
+        .build();
   }
 
   public String castSpell() {
@@ -152,6 +196,22 @@ public final class FxItemRowViewModel {
 
   private int originalCastSpellId() {
     return item.castSpellId() == null ? 0 : item.castSpellId();
+  }
+
+  private int originalDamage() {
+    return item.damage() == null ? 0 : item.damage();
+  }
+
+  private int originalAccuracy() {
+    return item.accuracy() == null ? 0 : item.accuracy();
+  }
+
+  private int originalAbsorb() {
+    return item.absorb() == null ? 0 : item.absorb();
+  }
+
+  private int originalEvasionPenalty() {
+    return item.evasionPenalty() == null ? 0 : item.evasionPenalty();
   }
 
   public static String castSpellLabel(int id, Map<Integer, String> skillNames) {

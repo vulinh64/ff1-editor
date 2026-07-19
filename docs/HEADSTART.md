@@ -114,11 +114,12 @@ The Items tab is a discovery/edit surface for item/equipment data. It is split
 into Weapons, Armor, and Items tables and currently exposes names, descriptions,
 prices, equipment class masks, damage/accuracy, absorb/evasion lower, cast-on-use
 spell ids, resistance/special bytes, and source offsets. Shared item prices are
-editable as unsigned 16-bit values, and weapon cast-on-use skill ids are editable
-with a dropdown whose labels come from decoded skill/spell data. Keep other
+editable as unsigned 16-bit values. Weapon damage, accuracy, and cast-on-use
+skill ids are editable; armor absorb and evasion lower are editable. Weapon cast
+spell labels come from decoded skill/spell data. Key/quest items are hidden from
+the Items sub-tab because they are not normal balance data. Keep other
 item/equipment bytes read-only until the remaining unknown bytes are named or
-bounded. Equipment permission masks are edited in the dedicated Equipment Matrix
-tab.
+bounded. Equipment permission masks are edited in the dedicated Equipment Matrix tab.
 
 The Skills tab exposes all 94 spell/effect records from `cp0` chunk `1`.
 Spell/effect labels come from decoded game text where available, with consumable
