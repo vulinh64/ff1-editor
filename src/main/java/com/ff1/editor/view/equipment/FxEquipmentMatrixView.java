@@ -30,8 +30,7 @@ public final class FxEquipmentMatrixView extends BorderPane {
 
   private final ObservableList<FxEquipmentMatrixRowViewModel> equipment =
       FXCollections.observableArrayList();
-  private final FilteredList<FxEquipmentMatrixRowViewModel> weapons =
-      new FilteredList<>(equipment);
+  private final FilteredList<FxEquipmentMatrixRowViewModel> weapons = new FilteredList<>(equipment);
   private final FilteredList<FxEquipmentMatrixRowViewModel> armor = new FilteredList<>(equipment);
   private final TextField search = new TextField();
 
@@ -68,8 +67,7 @@ public final class FxEquipmentMatrixView extends BorderPane {
 
   private void refilter() {
     String query = search.getText();
-    weapons.setPredicate(
-        item -> item.category() == ItemCategory.WEAPON && item.matches(query));
+    weapons.setPredicate(item -> item.category() == ItemCategory.WEAPON && item.matches(query));
     armor.setPredicate(item -> item.category() == ItemCategory.ARMOR && item.matches(query));
   }
 
@@ -102,9 +100,7 @@ public final class FxEquipmentMatrixView extends BorderPane {
             List.of(
                 intColumn("ID", FxEquipmentMatrixRowViewModel::itemId, 56),
                 textColumn(
-                    showSubtype ? "Armor" : "Weapon",
-                    FxEquipmentMatrixRowViewModel::name,
-                    150)));
+                    showSubtype ? "Armor" : "Weapon", FxEquipmentMatrixRowViewModel::name, 150)));
     if (showSubtype) {
       table.getColumns().add(textColumn("Type", FxEquipmentMatrixRowViewModel::subtype, 86));
     }

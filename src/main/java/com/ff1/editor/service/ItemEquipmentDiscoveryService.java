@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public final class ItemEquipmentDiscoveryService {
 
@@ -76,7 +77,7 @@ public final class ItemEquipmentDiscoveryService {
               .price(readBigEndianUnsignedShort(chunk, recordOffset))
               .metadataByte1(chunk[recordOffset + 2] & 0xff)
               .metadataByte2(chunk[recordOffset + 3] & 0xff)
-              .allowedClasses("")
+              .allowedClasses(StringUtils.EMPTY)
               .sourceEntry(ITEM_METADATA_ENTRY)
               .sourceOffset(chunkOffset + recordOffset)
               .notes(notes(id))
@@ -108,7 +109,7 @@ public final class ItemEquipmentDiscoveryService {
     return switch (id) {
       case 7, 48 -> "Blank item slot; likely unused or sentinel.";
       case 89 -> "Blank slot before key-item range.";
-      default -> "";
+      default -> StringUtils.EMPTY;
     };
   }
 
@@ -134,7 +135,7 @@ public final class ItemEquipmentDiscoveryService {
               .withDamage(chunk[recordOffset + 4] & 0xff)
               .withAccuracy(chunk[recordOffset + 5] & 0xff)
               .withCastSpellId(castSpellId == 0 ? null : castSpellId)
-              .withCastSpellName(spellNames.getOrDefault(castSpellId, ""))
+              .withCastSpellName(spellNames.getOrDefault(castSpellId, StringUtils.EMPTY))
               .withWeaponSpecialByte1(chunk[recordOffset + 7] & 0xff)
               .withWeaponSpecialByte2(chunk[recordOffset + 8] & 0xff)
               .withSourceOffset(chunkOffset + recordOffset));
@@ -164,7 +165,7 @@ public final class ItemEquipmentDiscoveryService {
               .withAbsorb(chunk[recordOffset + 2] & 0xff)
               .withEvasionPenalty(chunk[recordOffset + 3] & 0xff)
               .withCastSpellId(castSpellId == 0 ? null : castSpellId)
-              .withCastSpellName(spellNames.getOrDefault(castSpellId, ""))
+              .withCastSpellName(spellNames.getOrDefault(castSpellId, StringUtils.EMPTY))
               .withResistanceMask(chunk[recordOffset + 5] & 0xff)
               .withSourceOffset(chunkOffset + recordOffset));
     }
@@ -194,12 +195,15 @@ public final class ItemEquipmentDiscoveryService {
     for (int id = 0; id < ITEM_COUNT; id++) {
       int nameId = firstId + 2 * id;
       items.put(
-          id, new TextPair(decoded.getOrDefault(nameId, ""), decoded.getOrDefault(nameId + 1, "")));
+          id,
+          new TextPair(
+              decoded.getOrDefault(nameId, StringUtils.EMPTY),
+              decoded.getOrDefault(nameId + 1, StringUtils.EMPTY)));
     }
     return items;
   }
 
   private record TextPair(String name, String description) {
-    private static final TextPair EMPTY = new TextPair("", "");
+    private static final TextPair EMPTY = new TextPair(StringUtils.EMPTY, StringUtils.EMPTY);
   }
 }

@@ -10,6 +10,4 @@ public record EquipmentPermissionSnapshot(
     String subtype,
     int permissionMask,
     String sourceEntry,
-    int sourceOffset) {
-
-}
+    int sourceOffset) {}

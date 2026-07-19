@@ -2,6 +2,7 @@ package com.ff1.editor.data;
 
 import lombok.Builder;
 import lombok.With;
+import org.apache.commons.lang3.StringUtils;
 
 @Builder
 @With
@@ -30,19 +31,10 @@ public record ItemSnapshot(
     String notes) {
 
   public String categoryName() {
-    return category == null ? "" : category.displayName();
+    return category == null ? StringUtils.EMPTY : category.displayName();
   }
 
   public String armorSubtypeName() {
-    return armorSubtype == null ? "" : armorSubtype.displayName();
-  }
-
-  public String castSpellLabel() {
-    if (castSpellId == null || castSpellId == 0) {
-      return "";
-    }
-    return castSpellName == null || castSpellName.isBlank()
-        ? String.valueOf(castSpellId)
-        : "%s (%d)".formatted(castSpellName, castSpellId);
+    return armorSubtype == null ? StringUtils.EMPTY : armorSubtype.displayName();
   }
 }

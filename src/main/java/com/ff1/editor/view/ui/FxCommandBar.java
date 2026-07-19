@@ -17,6 +17,7 @@ import com.ff1.editor.service.CottageReviveClassPatcher;
 import com.ff1.editor.service.Cp0ChunkTable;
 import com.ff1.editor.service.EditorLoadService;
 import com.ff1.editor.service.EditorPatchService;
+import com.ff1.editor.service.EnemyCriticalDefenseClassPatcher;
 import com.ff1.editor.service.FifteenSpellChargeCapClassPatcher;
 import com.ff1.editor.service.FifteenSpellChargeGrowthPatcher;
 import com.ff1.editor.service.FifteenSpellChargeRecoveryClassPatcher;
@@ -59,6 +60,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.StringUtils;
 
 public final class FxCommandBar extends VBox {
 
@@ -75,6 +77,7 @@ public final class FxCommandBar extends VBox {
   private final CheckBox corneliaExcalibur = new CheckBox("Cornelia sells Excalibur");
   private final CheckBox alwaysSuccessfulRun = new CheckBox("Always successful run");
   private final CheckBox partyActionOrder = new CheckBox("Party action order");
+  private final CheckBox enemyCriticalDefense = new CheckBox("Enemy crits respect party defense");
   private final CheckBox cottageRevive = new CheckBox("Cottage revives KO");
   private final CheckBox airshipLanding = new CheckBox("Airship lands on safe terrain");
   private final Button build = new Button(BUILD_PATCHED_JAR_LABEL);
@@ -102,6 +105,7 @@ public final class FxCommandBar extends VBox {
     corneliaExcalibur.selectedProperty().bindBidirectional(state.corneliaExcaliburProperty());
     alwaysSuccessfulRun.selectedProperty().bindBidirectional(state.alwaysSuccessfulRunProperty());
     partyActionOrder.selectedProperty().bindBidirectional(state.partyActionOrderProperty());
+    enemyCriticalDefense.selectedProperty().bindBidirectional(state.enemyCriticalDefenseProperty());
     cottageRevive.selectedProperty().bindBidirectional(state.cottageReviveProperty());
     airshipLanding.selectedProperty().bindBidirectional(state.airshipLandingProperty());
     forceStrongLevelUps.setDisable(true);
@@ -112,6 +116,7 @@ public final class FxCommandBar extends VBox {
     corneliaExcalibur.setDisable(true);
     alwaysSuccessfulRun.setDisable(true);
     partyActionOrder.setDisable(true);
+    enemyCriticalDefense.setDisable(true);
     cottageRevive.setDisable(true);
     airshipLanding.setDisable(true);
     build.setOnAction(_ -> showPatchOptionsDialog());
@@ -161,7 +166,7 @@ public final class FxCommandBar extends VBox {
           state.workspace(workspace);
           updateGlobalPatchControls(workspace);
           state.status(
-              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Run patch: %s. Action order: %s. Cottage revive: %s. Airship landing: %s."
+              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Cottage revive: %s. Airship landing: %s."
                   .formatted(
                       workspace.inputJar().getFileName(),
                       workspace.workDir(),
@@ -173,6 +178,7 @@ public final class FxCommandBar extends VBox {
                       patchStateLabel(workspace.corneliaExcaliburState()),
                       patchStateLabel(workspace.alwaysSuccessfulRunState()),
                       patchStateLabel(workspace.partyActionOrderState()),
+                      patchStateLabel(workspace.enemyCriticalDefenseState()),
                       patchStateLabel(workspace.cottageReviveState()),
                       patchStateLabel(workspace.airshipLandingState())));
           load.disableProperty().unbind();
@@ -201,6 +207,7 @@ public final class FxCommandBar extends VBox {
       state.corneliaExcalibur(false);
       state.alwaysSuccessfulRun(false);
       state.partyActionOrder(false);
+      state.enemyCriticalDefense(false);
       state.cottageRevive(false);
       state.airshipLanding(false);
       forceStrongLevelUps.setDisable(true);
@@ -211,6 +218,7 @@ public final class FxCommandBar extends VBox {
       corneliaExcalibur.setDisable(true);
       alwaysSuccessfulRun.setDisable(true);
       partyActionOrder.setDisable(true);
+      enemyCriticalDefense.setDisable(true);
       cottageRevive.setDisable(true);
       airshipLanding.setDisable(true);
       return;
@@ -327,6 +335,20 @@ public final class FxCommandBar extends VBox {
         partyActionOrder.setDisable(true);
       }
     }
+    switch (workspace.enemyCriticalDefenseState()) {
+      case PATCHED -> {
+        state.enemyCriticalDefense(true);
+        enemyCriticalDefense.setDisable(true);
+      }
+      case ORIGINAL -> {
+        state.enemyCriticalDefense(false);
+        enemyCriticalDefense.setDisable(false);
+      }
+      case UNKNOWN -> {
+        state.enemyCriticalDefense(false);
+        enemyCriticalDefense.setDisable(true);
+      }
+    }
     switch (workspace.cottageReviveState()) {
       case PATCHED -> {
         state.cottageRevive(true);
@@ -393,6 +415,8 @@ public final class FxCommandBar extends VBox {
         dialogCheckBox(alwaysSuccessfulRun, workspace.alwaysSuccessfulRunState());
     CheckBox partyActionOrderOption =
         dialogCheckBox(partyActionOrder, workspace.partyActionOrderState());
+    CheckBox enemyCriticalDefenseOption =
+        dialogCheckBox(enemyCriticalDefense, workspace.enemyCriticalDefenseState());
     CheckBox cottageReviveOption = dialogCheckBox(cottageRevive, workspace.cottageReviveState());
     CheckBox airshipLandingOption = dialogCheckBox(airshipLanding, workspace.airshipLandingState());
     VBox options =
@@ -406,6 +430,7 @@ public final class FxCommandBar extends VBox {
             corneliaExcaliburOption,
             alwaysSuccessfulRunOption,
             partyActionOrderOption,
+            enemyCriticalDefenseOption,
             cottageReviveOption,
             airshipLandingOption);
     options.setPadding(new Insets(8, 0, 0, 0));
@@ -433,13 +458,15 @@ public final class FxCommandBar extends VBox {
                         > 0
                     || selectedOriginal(corneliaMasamuneOption, workspace.corneliaMasamuneState())
                         > 0
-                    || selectedOriginal(
-                            corneliaExcaliburOption, workspace.corneliaExcaliburState())
+                    || selectedOriginal(corneliaExcaliburOption, workspace.corneliaExcaliburState())
                         > 0
                     || selectedOriginal(
                             alwaysSuccessfulRunOption, workspace.alwaysSuccessfulRunState())
                         > 0
                     || selectedOriginal(partyActionOrderOption, workspace.partyActionOrderState())
+                        > 0
+                    || selectedOriginal(
+                            enemyCriticalDefenseOption, workspace.enemyCriticalDefenseState())
                         > 0
                     || selectedOriginal(cottageReviveOption, workspace.cottageReviveState()) > 0
                     || selectedOriginal(airshipLandingOption, workspace.airshipLandingState()) > 0,
@@ -451,6 +478,7 @@ public final class FxCommandBar extends VBox {
             corneliaExcaliburOption.selectedProperty(),
             alwaysSuccessfulRunOption.selectedProperty(),
             partyActionOrderOption.selectedProperty(),
+            enemyCriticalDefenseOption.selectedProperty(),
             cottageReviveOption.selectedProperty(),
             airshipLandingOption.selectedProperty());
     okButton.disableProperty().bind(hasBuildSelection.not());
@@ -468,6 +496,7 @@ public final class FxCommandBar extends VBox {
     state.corneliaExcalibur(corneliaExcaliburOption.isSelected());
     state.alwaysSuccessfulRun(alwaysSuccessfulRunOption.isSelected());
     state.partyActionOrder(partyActionOrderOption.isSelected());
+    state.enemyCriticalDefense(enemyCriticalDefenseOption.isSelected());
     state.cottageRevive(cottageReviveOption.isSelected());
     state.airshipLanding(airshipLandingOption.isSelected());
     buildPatch();
@@ -516,6 +545,9 @@ public final class FxCommandBar extends VBox {
         state.alwaysSuccessfulRun() && workspace.alwaysSuccessfulRunState() == PatchState.ORIGINAL;
     boolean partyActionOrderPatch =
         state.partyActionOrder() && workspace.partyActionOrderState() == PatchState.ORIGINAL;
+    boolean enemyCriticalDefensePatch =
+        state.enemyCriticalDefense()
+            && workspace.enemyCriticalDefenseState() == PatchState.ORIGINAL;
     boolean cottageRevivePatch =
         state.cottageRevive() && workspace.cottageReviveState() == PatchState.ORIGINAL;
     boolean airshipLandingPatch =
@@ -534,6 +566,7 @@ public final class FxCommandBar extends VBox {
         && !corneliaExcaliburPatch
         && !alwaysSuccessfulRunPatch
         && !partyActionOrderPatch
+        && !enemyCriticalDefensePatch
         && !cottageRevivePatch
         && !airshipLandingPatch) {
       state.status("No patch edits selected.");
@@ -612,7 +645,8 @@ public final class FxCommandBar extends VBox {
                 || fifteenChargesPatch
                 || intelligenceSpellDamagePatch
                 || alwaysSuccessfulRunPatch
-                || partyActionOrderPatch) {
+                || partyActionOrderPatch
+                || enemyCriticalDefensePatch) {
               byte[] gClass =
                   Files.readAllBytes(
                       workspace.workDir().resolve(HeroLevelGrowthClassPatcher.ENTRY_NAME));
@@ -634,6 +668,9 @@ public final class FxCommandBar extends VBox {
               }
               if (partyActionOrderPatch) {
                 gClass = PartyActionOrderClassPatcher.apply(gClass);
+              }
+              if (enemyCriticalDefensePatch) {
+                gClass = EnemyCriticalDefenseClassPatcher.apply(gClass);
               }
               replacements.put(HeroLevelGrowthClassPatcher.ENTRY_NAME, gClass);
             }
@@ -663,24 +700,27 @@ public final class FxCommandBar extends VBox {
     state.status(
         "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
             + "%d equipment matrix edit(s), %d skill edit(s), %d item price edit(s), "
-            + "%d weapon cast edit(s)%s%s%s%s%s%s%s%s%s%s..."
-            .formatted(
-                heroEdits.size(),
-                magicEdits.size(),
-                equipmentPermissionEdits.size(),
-                skillEdits.size(),
-                itemPriceEdits.size(),
-                weaponCastEdits.size(),
-                growthPatch ? ", strong level-ups" : "",
-                universalChargesPatch ? ", universal spell-charge growth" : "",
-                fifteenChargesPatch ? ", 15 max spell charges" : "",
-                intelligenceSpellDamagePatch ? ", INT-scaled spell damage" : "",
-                corneliaMasamunePatch ? ", Cornelia Masamune" : "",
-                corneliaExcaliburPatch ? ", Cornelia Excalibur" : "",
-                alwaysSuccessfulRunPatch ? ", always-successful run" : "",
-                partyActionOrderPatch ? ", party action order" : "",
-                cottageRevivePatch ? ", Cottage revive" : "",
-                airshipLandingPatch ? ", and airship landing" : ""));
+            + "%d weapon cast edit(s)%s%s%s%s%s%s%s%s%s%s%s..."
+                .formatted(
+                    heroEdits.size(),
+                    magicEdits.size(),
+                    equipmentPermissionEdits.size(),
+                    skillEdits.size(),
+                    itemPriceEdits.size(),
+                    weaponCastEdits.size(),
+                    growthPatch ? ", strong level-ups" : StringUtils.EMPTY,
+                    universalChargesPatch ? ", universal spell-charge growth" : StringUtils.EMPTY,
+                    fifteenChargesPatch ? ", 15 max spell charges" : StringUtils.EMPTY,
+                    intelligenceSpellDamagePatch ? ", INT-scaled spell damage" : StringUtils.EMPTY,
+                    corneliaMasamunePatch ? ", Cornelia Masamune" : StringUtils.EMPTY,
+                    corneliaExcaliburPatch ? ", Cornelia Excalibur" : StringUtils.EMPTY,
+                    alwaysSuccessfulRunPatch ? ", always-successful run" : StringUtils.EMPTY,
+                    partyActionOrderPatch ? ", party action order" : StringUtils.EMPTY,
+                    enemyCriticalDefensePatch
+                        ? ", enemy crits respect party defense"
+                        : StringUtils.EMPTY,
+                    cottageRevivePatch ? ", Cottage revive" : StringUtils.EMPTY,
+                    airshipLandingPatch ? ", and airship landing" : StringUtils.EMPTY));
     task.setOnSucceeded(
         _ -> {
           BuildResult result = task.getValue();

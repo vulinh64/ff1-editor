@@ -3,13 +3,14 @@ package com.ff1.editor.data;
 import java.util.Map;
 import lombok.Builder;
 import lombok.With;
+import org.apache.commons.lang3.StringUtils;
 
 @Builder
 @With
 public record ManifestInfo(Map<String, String> attributes) {
 
   public String get(String key) {
-    return attributes.getOrDefault(key, "");
+    return attributes.getOrDefault(key, StringUtils.EMPTY);
   }
 
   public boolean notMatchesExpectedFinalFantasyJar() {

@@ -11,6 +11,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import org.apache.commons.lang3.StringUtils;
 
 public final class FxTableColumns {
 
@@ -148,7 +149,7 @@ public final class FxTableColumns {
     }
 
     private static String format(Integer value) {
-      return value == null ? "" : String.valueOf(value);
+      return value == null ? StringUtils.EMPTY : String.valueOf(value);
     }
   }
 }

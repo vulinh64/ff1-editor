@@ -7,6 +7,7 @@ import com.ff1.editor.data.WeaponCastSpellEdit;
 import java.util.Map;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import org.apache.commons.lang3.StringUtils;
 
 public final class FxItemRowViewModel {
 
@@ -67,7 +68,7 @@ public final class FxItemRowViewModel {
   }
 
   public String equipMask() {
-    return item.equipMask() == null ? "" : "0x%04x".formatted(item.equipMask());
+    return item.equipMask() == null ? StringUtils.EMPTY : "0x%04x".formatted(item.equipMask());
   }
 
   public String allowedClasses() {
@@ -91,7 +92,9 @@ public final class FxItemRowViewModel {
   }
 
   public String castSpell() {
-    return castSpellId.get() == 0 ? "" : castSpellLabel(castSpellId.get(), skillNames);
+    return castSpellId.get() == 0
+        ? StringUtils.EMPTY
+        : castSpellLabel(castSpellId.get(), skillNames);
   }
 
   public IntegerProperty castSpellIdProperty() {
@@ -108,13 +111,13 @@ public final class FxItemRowViewModel {
 
   public String resistanceMask() {
     return item.resistanceMask() == null || item.resistanceMask() == 0
-        ? ""
+        ? StringUtils.EMPTY
         : "0x%02x".formatted(item.resistanceMask());
   }
 
   public String weaponSpecialBytes() {
     if (item.weaponSpecialByte1() == null || item.weaponSpecialByte2() == null) {
-      return "";
+      return StringUtils.EMPTY;
     }
     return "%d, %d".formatted(item.weaponSpecialByte1(), item.weaponSpecialByte2());
   }
@@ -144,7 +147,7 @@ public final class FxItemRowViewModel {
   }
 
   private static String format(Integer value) {
-    return value == null ? "" : String.valueOf(value);
+    return value == null ? StringUtils.EMPTY : String.valueOf(value);
   }
 
   private int originalCastSpellId() {
@@ -155,9 +158,7 @@ public final class FxItemRowViewModel {
     if (id == 0) {
       return "0 - None";
     }
-    String name = skillNames.getOrDefault(id, "");
-    return name.isBlank()
-        ? "%d - Effect %d".formatted(id, id)
-        : "%d - %s".formatted(id, name);
+    String name = skillNames.getOrDefault(id, StringUtils.EMPTY);
+    return name.isBlank() ? "%d - Effect %d".formatted(id, id) : "%d - %s".formatted(id, name);
   }
 }

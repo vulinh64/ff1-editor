@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public final class SkillDiscoveryService {
 
@@ -55,7 +56,7 @@ public final class SkillDiscoveryService {
             snapshot(
                 spellChunk,
                 id,
-                skillNames.getOrDefault(id, ""),
+                skillNames.getOrDefault(id, StringUtils.EMPTY),
                 chunkOffset + recordOffset,
                 invokers.get(id)));
       }
@@ -84,7 +85,7 @@ public final class SkillDiscoveryService {
         .animationFlags(spellChunk[recordOffset + 9] & 0xff)
         .elementOrStatusMask(spellChunk[recordOffset + 10] & 0xff)
         .permissionMask(readBigEndianUnsignedShort(spellChunk, recordOffset + 11))
-        .invokers(invokers == null ? "" : String.join("; ", invokers))
+        .invokers(invokers == null ? StringUtils.EMPTY : String.join("; ", invokers))
         .sourceEntry(ENTRY_NAME)
         .sourceOffset(sourceOffset)
         .build();
@@ -135,7 +136,7 @@ public final class SkillDiscoveryService {
 
   private static String learnableLabel(int id) {
     if (id < 1 || id > MagicMatrixDiscoveryService.LEARNABLE_SPELL_COUNT) {
-      return "";
+      return StringUtils.EMPTY;
     }
     SpellSchool school = id >= 33 ? SpellSchool.BLACK : SpellSchool.WHITE;
     int index = id >= 33 ? id - 33 : id - 1;

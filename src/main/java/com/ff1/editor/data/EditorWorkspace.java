@@ -19,5 +19,6 @@ public record EditorWorkspace(
     PatchState corneliaExcaliburState,
     PatchState alwaysSuccessfulRunState,
     PatchState partyActionOrderState,
+    PatchState enemyCriticalDefenseState,
     PatchState cottageReviveState,
     PatchState airshipLandingState) {}

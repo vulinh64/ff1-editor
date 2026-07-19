@@ -15,11 +15,13 @@ public final class EquipmentMatrixDiscoveryService {
   }
 
   public List<EquipmentPermissionSnapshot> discover() {
-    return new ItemEquipmentDiscoveryService(workDir).discover().stream()
-        .filter(
-            item -> item.category() == ItemCategory.WEAPON || item.category() == ItemCategory.ARMOR)
-        .map(EquipmentMatrixDiscoveryService::snapshot)
-        .toList();
+    return new ItemEquipmentDiscoveryService(workDir)
+        .discover().stream()
+            .filter(
+                item ->
+                    item.category() == ItemCategory.WEAPON || item.category() == ItemCategory.ARMOR)
+            .map(EquipmentMatrixDiscoveryService::snapshot)
+            .toList();
   }
 
   private static EquipmentPermissionSnapshot snapshot(ItemSnapshot item) {

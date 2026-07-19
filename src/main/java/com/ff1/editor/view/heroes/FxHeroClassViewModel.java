@@ -6,6 +6,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import lombok.Builder;
 import lombok.With;
+import org.apache.commons.lang3.StringUtils;
 
 @Builder
 @With
@@ -54,7 +55,7 @@ public record FxHeroClassViewModel(
   }
 
   public String upgradeFrom() {
-    return hero.upgraded() ? String.valueOf(hero.upgradeFromId()) : "";
+    return hero.upgraded() ? String.valueOf(hero.upgradeFromId()) : StringUtils.EMPTY;
   }
 
   public boolean baseClass() {
@@ -127,7 +128,7 @@ public record FxHeroClassViewModel(
   }
 
   public boolean matches(String query) {
-    String normalized = query == null ? "" : query.trim().toLowerCase();
+    String normalized = query == null ? StringUtils.EMPTY : query.trim().toLowerCase();
     return normalized.isEmpty()
         || ("%d %s %s %s %s".formatted(id(), name(), tier(), source(), notes()))
             .toLowerCase()

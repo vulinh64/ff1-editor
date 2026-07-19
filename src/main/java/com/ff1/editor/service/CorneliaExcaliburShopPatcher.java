@@ -44,8 +44,7 @@ public final class CorneliaExcaliburShopPatcher {
   }
 
   public static int corneliaNunchakuOffset(byte[] cp0) {
-    return CorneliaWeaponShopPatcher.corneliaWeaponShopRowOffset(cp0)
-        + CORNELIA_NUNCHAKU_SLOT;
+    return CorneliaWeaponShopPatcher.corneliaWeaponShopRowOffset(cp0) + CORNELIA_NUNCHAKU_SLOT;
   }
 
   private static boolean matchesCorneliaRow(byte[] cp0, int slotItemId) {

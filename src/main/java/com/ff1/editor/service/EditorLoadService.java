@@ -61,6 +61,8 @@ public final class EditorLoadService {
     PatchState alwaysSuccessfulRunState =
         PatchState.from(AlwaysSuccessfulRunClassPatcher.state(gClass));
     PatchState partyActionOrderState = PatchState.from(PartyActionOrderClassPatcher.state(gClass));
+    PatchState enemyCriticalDefenseState =
+        PatchState.from(EnemyCriticalDefenseClassPatcher.state(gClass));
     PatchState cottageReviveState = PatchState.from(CottageReviveClassPatcher.state(iClass));
     PatchState airshipLandingState = PatchState.from(AirshipLandingClassPatcher.state(iClass));
     return EditorWorkspace.builder()
@@ -76,6 +78,7 @@ public final class EditorLoadService {
         .corneliaExcaliburState(corneliaExcaliburState)
         .alwaysSuccessfulRunState(alwaysSuccessfulRunState)
         .partyActionOrderState(partyActionOrderState)
+        .enemyCriticalDefenseState(enemyCriticalDefenseState)
         .cottageReviveState(cottageReviveState)
         .airshipLandingState(airshipLandingState)
         .build();

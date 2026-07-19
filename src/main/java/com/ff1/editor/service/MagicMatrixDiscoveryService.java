@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public final class MagicMatrixDiscoveryService {
 
@@ -46,7 +47,7 @@ public final class MagicMatrixDiscoveryService {
         spells.add(
             snapshot(
                 spellId,
-                spellNames.getOrDefault(spellId, ""),
+                spellNames.getOrDefault(spellId, StringUtils.EMPTY),
                 mask,
                 chunkOffset + recordOffset + MASK_OFFSET_IN_RECORD));
       }
@@ -56,8 +57,7 @@ public final class MagicMatrixDiscoveryService {
     }
   }
 
-  private static MagicSpellSnapshot snapshot(
-      int spellId, String name, int mask, int maskOffset) {
+  private static MagicSpellSnapshot snapshot(int spellId, String name, int mask, int maskOffset) {
     boolean black = spellId >= 33;
     int index = black ? spellId - 33 : spellId - 1;
     SpellSchool school = black ? SpellSchool.BLACK : SpellSchool.WHITE;
@@ -72,5 +72,4 @@ public final class MagicMatrixDiscoveryService {
         .sourceOffset(maskOffset)
         .build();
   }
-
 }

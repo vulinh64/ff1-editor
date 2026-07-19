@@ -20,9 +20,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ComboBoxTableCell;
@@ -30,6 +30,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.util.StringConverter;
+import org.apache.commons.lang3.StringUtils;
 
 public final class FxItemsView extends BorderPane {
 
@@ -151,7 +152,9 @@ public final class FxItemsView extends BorderPane {
             new StringConverter<>() {
               @Override
               public String toString(Integer id) {
-                return id == null ? "" : FxItemRowViewModel.castSpellLabel(id, skillNames);
+                return id == null
+                    ? StringUtils.EMPTY
+                    : FxItemRowViewModel.castSpellLabel(id, skillNames);
               }
 
               @Override

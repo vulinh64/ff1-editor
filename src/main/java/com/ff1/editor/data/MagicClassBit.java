@@ -1,5 +1,7 @@
 package com.ff1.editor.data;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum MagicClassBit {
   WARRIOR(HeroClass.WARRIOR, 0x0001),
   THIEF(HeroClass.THIEF, 0x0002),
@@ -44,7 +46,7 @@ public enum MagicClassBit {
       count++;
     }
     if (count == 0) {
-      return "";
+      return StringUtils.EMPTY;
     }
     return count == values().length ? "All" : out.toString();
   }

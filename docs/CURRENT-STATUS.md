@@ -100,6 +100,11 @@ This is the quick landing page for the FF1 J2ME editor project.
   - enemy slots act after the party in randomized enemy-only order;
   - first-turn ambush keeps the original queue while enemy control is active; the
     turn after control returns uses the same patched normal order.
+- Enemy crits respect party defense:
+  - bytecode patch in `g.class`;
+  - changes only enemy critical hits against party members so the critical bonus
+    doubles post-defense damage instead of adding the raw pre-defense attack roll;
+  - leaves party critical hits against enemies unchanged.
 - Cottage revives KO:
   - bytecode patch in `i.class`;
   - changes the field recovery helper so Cottage (`recoveryKind == 3`) clears the
@@ -156,6 +161,8 @@ This is the quick landing page for the FF1 J2ME editor project.
   state). See `FIELD-MOVEMENT.md`.
 - Battle turn queue: `g.class`, private static method `G()`. See
   `BATTLE-ORDER.md`.
+- Physical damage and critical hits: `g.class`, private static method
+  `a(boolean, boolean, int, int)`. See `BATTLE-PHYSICAL.md`.
 - Field recovery for inns/shelters: `i.class`, private static method `l(int)`.
   Inn is `0`, Sleeping Bag is `1`, Tent is `2`, Cottage is `3`. Inn and Cottage
   share the spell-charge recovery amount.
