@@ -88,6 +88,15 @@ This is the quick landing page for the FF1 J2ME editor project.
     from player actors by `heal + heal * intelligence / 200`;
   - leaves Curaja/full-heal kind `15`, Life/Full-Life revival/status recovery
     kind `8`, failed effects, monster spells, and damage results unchanged.
+- INT+STA reduce enemy spell effects:
+  - bytecode patch in `g.class`;
+  - reduces enemy-cast damage kind `1` against hero targets by up to `30%`;
+  - reduces positive enemy-cast normal status/effect success chances against
+    hero targets by up to `20%`;
+  - uses `min(200, hero.INT + hero.STA + 2)` as the resistance stat;
+  - affects kinds `1`, `3`, `4`, `5`, and `17`;
+  - leaves player casts, healing/buffs, Dia-style kind `2`, conditional-status
+    kind `18`, physical attacks, and physical status-on-hit unchanged.
 - Cornelia sells Masamune:
   - data patch in `cp0`;
   - changes the Cornelia weapon shop Knife slot from item id `9` to item id

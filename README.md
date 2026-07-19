@@ -90,6 +90,8 @@ The `Build Patched JAR` command opens a global patch dialog. These options chang
 
 * Healing spells scale with INT: Cure-like and Heal-like spells scale their restored HP with the acting hero's Intelligence; at `99` INT, affected healing is roughly 50% stronger. Curaja's full-heal effect and Life/Full-Life revival effects stay unchanged.
 
+* INT+STA reduce enemy spell effects (experimental): enemy-cast direct spell damage and normal spell/effect success chances against heroes are reduced by the target hero's Intelligence plus Stamina. At the capped resistance value, affected damage is reduced by 30% and affected positive success chances are reduced by 20%. Player-cast spells, healing/buffs, Dia-style undead damage, conditional status effects, physical attacks, and physical status-on-hit stay unchanged.
+
 * Cornelia sells Masamune: replaces Cornelia weapon shop's Knife slot with Masamune.
 
 * Cornelia sells Excalibur: replaces Cornelia weapon shop's Nunchaku slot with Excalibur.

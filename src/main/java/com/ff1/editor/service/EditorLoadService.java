@@ -59,6 +59,8 @@ public final class EditorLoadService {
         PatchState.from(IntelligenceSpellDamageClassPatcher.state(gClass));
     PatchState intelligenceSpellHealingState =
         PatchState.from(IntelligenceSpellHealingClassPatcher.state(gClass));
+    PatchState heroMagicResistanceState =
+        PatchState.from(HeroMagicResistanceClassPatcher.state(gClass));
     PatchState corneliaMasamuneState = PatchState.from(CorneliaWeaponShopPatcher.state(cp0));
     PatchState corneliaExcaliburState = PatchState.from(CorneliaExcaliburShopPatcher.state(cp0));
     PatchState corneliaRibbonProtectRingState =
@@ -80,6 +82,7 @@ public final class EditorLoadService {
         .fifteenSpellChargesState(fifteenSpellChargesState)
         .intelligenceSpellDamageState(intelligenceSpellDamageState)
         .intelligenceSpellHealingState(intelligenceSpellHealingState)
+        .heroMagicResistanceState(heroMagicResistanceState)
         .corneliaMasamuneState(corneliaMasamuneState)
         .corneliaExcaliburState(corneliaExcaliburState)
         .corneliaRibbonProtectRingState(corneliaRibbonProtectRingState)

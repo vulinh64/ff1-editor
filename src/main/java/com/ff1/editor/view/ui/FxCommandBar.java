@@ -29,6 +29,7 @@ import com.ff1.editor.service.patcher.FifteenSpellChargeGrowthPatcher;
 import com.ff1.editor.service.patcher.FifteenSpellChargeRecoveryClassPatcher;
 import com.ff1.editor.service.patcher.HeroClassStatsPatcher;
 import com.ff1.editor.service.patcher.HeroLevelGrowthClassPatcher;
+import com.ff1.editor.service.patcher.HeroMagicResistanceClassPatcher;
 import com.ff1.editor.service.patcher.IntelligenceSpellDamageClassPatcher;
 import com.ff1.editor.service.patcher.IntelligenceSpellHealingClassPatcher;
 import com.ff1.editor.service.patcher.ItemEquipmentPatcher;
@@ -79,6 +80,7 @@ public final class FxCommandBar extends VBox {
   private final CheckBox intelligenceSpellDamage =
       new CheckBox("Damage-causing spells scale with INT");
   private final CheckBox intelligenceSpellHealing = new CheckBox("Healing spells scale with INT");
+  private final CheckBox heroMagicResistance = new CheckBox("INT+STA reduce enemy spell effects");
   private final CheckBox corneliaMasamune = new CheckBox("Cornelia sells Masamune");
   private final CheckBox corneliaExcalibur = new CheckBox("Cornelia sells Excalibur");
   private final CheckBox corneliaRibbonProtectRing =
@@ -112,6 +114,7 @@ public final class FxCommandBar extends VBox {
     intelligenceSpellHealing
         .selectedProperty()
         .bindBidirectional(state.intelligenceSpellHealingProperty());
+    heroMagicResistance.selectedProperty().bindBidirectional(state.heroMagicResistanceProperty());
     corneliaMasamune.selectedProperty().bindBidirectional(state.corneliaMasamuneProperty());
     corneliaExcalibur.selectedProperty().bindBidirectional(state.corneliaExcaliburProperty());
     corneliaRibbonProtectRing
@@ -127,6 +130,7 @@ public final class FxCommandBar extends VBox {
     fifteenSpellCharges.setDisable(true);
     intelligenceSpellDamage.setDisable(true);
     intelligenceSpellHealing.setDisable(true);
+    heroMagicResistance.setDisable(true);
     corneliaMasamune.setDisable(true);
     corneliaExcalibur.setDisable(true);
     corneliaRibbonProtectRing.setDisable(true);
@@ -182,7 +186,7 @@ public final class FxCommandBar extends VBox {
           state.workspace(workspace);
           updateGlobalPatchControls(workspace);
           state.status(
-              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Cornelia Ribbon/Protect Ring: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Cottage revive: %s. Airship landing: %s."
+              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Hero magic resistance: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Cornelia Ribbon/Protect Ring: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Cottage revive: %s. Airship landing: %s."
                   .formatted(
                       workspace.inputJar().getFileName(),
                       workspace.workDir(),
@@ -191,6 +195,7 @@ public final class FxCommandBar extends VBox {
                       patchStateLabel(workspace.fifteenSpellChargesState()),
                       patchStateLabel(workspace.intelligenceSpellDamageState()),
                       patchStateLabel(workspace.intelligenceSpellHealingState()),
+                      patchStateLabel(workspace.heroMagicResistanceState()),
                       patchStateLabel(workspace.corneliaMasamuneState()),
                       patchStateLabel(workspace.corneliaExcaliburState()),
                       patchStateLabel(workspace.corneliaRibbonProtectRingState()),
@@ -222,6 +227,7 @@ public final class FxCommandBar extends VBox {
       state.fifteenSpellCharges(false);
       state.intelligenceSpellDamage(false);
       state.intelligenceSpellHealing(false);
+      state.heroMagicResistance(false);
       state.corneliaMasamune(false);
       state.corneliaExcalibur(false);
       state.corneliaRibbonProtectRing(false);
@@ -235,6 +241,7 @@ public final class FxCommandBar extends VBox {
       fifteenSpellCharges.setDisable(true);
       intelligenceSpellDamage.setDisable(true);
       intelligenceSpellHealing.setDisable(true);
+      heroMagicResistance.setDisable(true);
       corneliaMasamune.setDisable(true);
       corneliaExcalibur.setDisable(true);
       corneliaRibbonProtectRing.setDisable(true);
@@ -313,6 +320,20 @@ public final class FxCommandBar extends VBox {
       case UNKNOWN -> {
         state.intelligenceSpellHealing(false);
         intelligenceSpellHealing.setDisable(true);
+      }
+    }
+    switch (workspace.heroMagicResistanceState()) {
+      case PATCHED -> {
+        state.heroMagicResistance(true);
+        heroMagicResistance.setDisable(true);
+      }
+      case ORIGINAL -> {
+        state.heroMagicResistance(false);
+        heroMagicResistance.setDisable(false);
+      }
+      case UNKNOWN -> {
+        state.heroMagicResistance(false);
+        heroMagicResistance.setDisable(true);
       }
     }
     switch (workspace.corneliaMasamuneState()) {
@@ -459,6 +480,8 @@ public final class FxCommandBar extends VBox {
         dialogCheckBox(intelligenceSpellDamage, workspace.intelligenceSpellDamageState());
     CheckBox intelligenceSpellHealingOption =
         dialogCheckBox(intelligenceSpellHealing, workspace.intelligenceSpellHealingState());
+    CheckBox heroMagicResistanceOption =
+        dialogCheckBox(heroMagicResistance, workspace.heroMagicResistanceState());
     CheckBox corneliaMasamuneOption =
         dialogCheckBox(corneliaMasamune, workspace.corneliaMasamuneState());
     CheckBox corneliaExcaliburOption =
@@ -481,6 +504,7 @@ public final class FxCommandBar extends VBox {
             fifteenChargesOption,
             intelligenceSpellDamageOption,
             intelligenceSpellHealingOption,
+            heroMagicResistanceOption,
             corneliaMasamuneOption,
             corneliaExcaliburOption,
             corneliaRibbonProtectRingOption,
@@ -518,6 +542,9 @@ public final class FxCommandBar extends VBox {
                             intelligenceSpellHealingOption,
                             workspace.intelligenceSpellHealingState())
                         > 0
+                    || selectedOriginal(
+                            heroMagicResistanceOption, workspace.heroMagicResistanceState())
+                        > 0
                     || selectedOriginal(corneliaMasamuneOption, workspace.corneliaMasamuneState())
                         > 0
                     || selectedOriginal(corneliaExcaliburOption, workspace.corneliaExcaliburState())
@@ -541,6 +568,7 @@ public final class FxCommandBar extends VBox {
             fifteenChargesOption.selectedProperty(),
             intelligenceSpellDamageOption.selectedProperty(),
             intelligenceSpellHealingOption.selectedProperty(),
+            heroMagicResistanceOption.selectedProperty(),
             corneliaMasamuneOption.selectedProperty(),
             corneliaExcaliburOption.selectedProperty(),
             corneliaRibbonProtectRingOption.selectedProperty(),
@@ -561,6 +589,7 @@ public final class FxCommandBar extends VBox {
     state.fifteenSpellCharges(fifteenChargesOption.isSelected());
     state.intelligenceSpellDamage(intelligenceSpellDamageOption.isSelected());
     state.intelligenceSpellHealing(intelligenceSpellHealingOption.isSelected());
+    state.heroMagicResistance(heroMagicResistanceOption.isSelected());
     state.corneliaMasamune(corneliaMasamuneOption.isSelected());
     state.corneliaExcalibur(corneliaExcaliburOption.isSelected());
     state.corneliaRibbonProtectRing(corneliaRibbonProtectRingOption.isSelected());
@@ -612,6 +641,8 @@ public final class FxCommandBar extends VBox {
     boolean intelligenceSpellHealingPatch =
         state.intelligenceSpellHealing()
             && workspace.intelligenceSpellHealingState() == PatchState.ORIGINAL;
+    boolean heroMagicResistancePatch =
+        state.heroMagicResistance() && workspace.heroMagicResistanceState() == PatchState.ORIGINAL;
     boolean corneliaMasamunePatch =
         state.corneliaMasamune() && workspace.corneliaMasamuneState() == PatchState.ORIGINAL;
     boolean corneliaExcaliburPatch =
@@ -643,6 +674,7 @@ public final class FxCommandBar extends VBox {
         && !fifteenChargesPatch
         && !intelligenceSpellDamagePatch
         && !intelligenceSpellHealingPatch
+        && !heroMagicResistancePatch
         && !corneliaMasamunePatch
         && !corneliaExcaliburPatch
         && !corneliaRibbonProtectRingPatch
@@ -739,6 +771,7 @@ public final class FxCommandBar extends VBox {
                 || fifteenChargesPatch
                 || intelligenceSpellDamagePatch
                 || intelligenceSpellHealingPatch
+                || heroMagicResistancePatch
                 || alwaysSuccessfulRunPatch
                 || partyActionOrderPatch
                 || enemyCriticalDefensePatch) {
@@ -760,6 +793,9 @@ public final class FxCommandBar extends VBox {
               }
               if (intelligenceSpellDamagePatch) {
                 gClass = IntelligenceSpellDamageClassPatcher.apply(gClass);
+              }
+              if (heroMagicResistancePatch) {
+                gClass = HeroMagicResistanceClassPatcher.apply(gClass);
               }
               if (alwaysSuccessfulRunPatch) {
                 gClass = AlwaysSuccessfulRunClassPatcher.apply(gClass);
@@ -798,7 +834,7 @@ public final class FxCommandBar extends VBox {
     state.status(
         "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
             + "%d equipment matrix edit(s), %d skill edit(s), %d item price edit(s), "
-            + "%d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s)%s%s%s%s%s%s%s%s%s%s%s%s%s..."
+            + "%d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s)%s%s%s%s%s%s%s%s%s%s%s%s%s%s..."
                 .formatted(
                     heroEdits.size(),
                     magicEdits.size(),
@@ -816,6 +852,9 @@ public final class FxCommandBar extends VBox {
                         : StringUtils.EMPTY,
                     intelligenceSpellHealingPatch
                         ? ", healing spells scale with INT"
+                        : StringUtils.EMPTY,
+                    heroMagicResistancePatch
+                        ? ", INT+STA reduce enemy spell effects"
                         : StringUtils.EMPTY,
                     corneliaMasamunePatch ? ", Cornelia Masamune" : StringUtils.EMPTY,
                     corneliaExcaliburPatch ? ", Cornelia Excalibur" : StringUtils.EMPTY,

@@ -28,6 +28,7 @@ public final class FxEditorState {
   private final BooleanProperty fifteenSpellCharges = new SimpleBooleanProperty(false);
   private final BooleanProperty intelligenceSpellDamage = new SimpleBooleanProperty(false);
   private final BooleanProperty intelligenceSpellHealing = new SimpleBooleanProperty(false);
+  private final BooleanProperty heroMagicResistance = new SimpleBooleanProperty(false);
   private final BooleanProperty corneliaMasamune = new SimpleBooleanProperty(false);
   private final BooleanProperty corneliaExcalibur = new SimpleBooleanProperty(false);
   private final BooleanProperty corneliaRibbonProtectRing = new SimpleBooleanProperty(false);
@@ -115,6 +116,18 @@ public final class FxEditorState {
 
   public void intelligenceSpellHealing(boolean enabled) {
     intelligenceSpellHealing.set(enabled);
+  }
+
+  public BooleanProperty heroMagicResistanceProperty() {
+    return heroMagicResistance;
+  }
+
+  public boolean heroMagicResistance() {
+    return heroMagicResistance.get();
+  }
+
+  public void heroMagicResistance(boolean enabled) {
+    heroMagicResistance.set(enabled);
   }
 
   public BooleanProperty corneliaMasamuneProperty() {

@@ -88,7 +88,8 @@ public final class FxSkillsView extends BorderPane {
                 textColumn("Name", FxSkillRowViewModel::name, 140),
                 textColumn("Learnable", FxSkillRowViewModel::learnableLabel, 110),
                 intColumn("Effect ID", FxSkillRowViewModel::effectId, 82),
-                textColumn("Kind", FxSkillRowViewModel::effectKindName, 150),
+                intColumn("Kind ID", FxSkillRowViewModel::effectKind, 78),
+                textColumn("Kind Name", FxSkillRowViewModel::effectKindName, 150),
                 editableIntColumn("Price", FxSkillRowViewModel::priceProperty, 92, 0, 65535),
                 editableIntColumn(
                     "Power/Status", FxSkillRowViewModel::powerOrStatusProperty, 126, 0, 255),

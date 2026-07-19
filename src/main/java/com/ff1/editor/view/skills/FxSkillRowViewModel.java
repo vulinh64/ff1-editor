@@ -40,7 +40,7 @@ public final class FxSkillRowViewModel {
   }
 
   public String effectKindName() {
-    return "%s (%d)".formatted(skill.effectKindName(), skill.effectKind());
+    return skill.effectKindName();
   }
 
   public IntegerProperty priceProperty() {

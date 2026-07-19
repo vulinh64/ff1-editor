@@ -113,6 +113,13 @@ mutation helper applies the real buff from the raw spell data fields such as
 `power/status` and `accuracy`. Haste raises the hit-count stage from spell data;
 the current INT patch does not turn high-INT Haste into triple attacks.
 
+The optional `INT+STA reduce enemy spell effects` patch also transforms the
+spell-effect helper, but in the opposite direction: when a monster casts against
+a hero, hero INT plus STA can reduce positive damage kind `1` results and reduce
+positive normal chance rolls for kinds `3`, `4`, `5`, and `17`. It deliberately
+does not touch player-cast effects, Cure/Heal-style restoration, buffs, Dia-like
+kind `2`, or hard-gated conditional status kind `18`.
+
 ## Future INT Scaling Patch Ideas
 
 Keep future support/healing/holy utility scaling separate from the current
@@ -165,6 +172,12 @@ several status bits.
 |   16 | Evasion up | adds `power/status` to evasion-like battle field; used by Blink, Silence, Invisira. |
 |   17 | Resistance clear | clears resistance/status-protection field; used by Dispel. |
 |   18 | Conditional status | status inflict with additional HP/status gates; used by Stun, Blind, Kill. |
+
+Kind `18` does not use the normal `148 + accuracy - magicDefense` chance path.
+It fails when the target is already protected by blocking status, when a
+HP-like target field is above `300`, when the target already has the inflicted
+status, or when the target resistance mask matches the spell mask; otherwise it
+succeeds. The hero magic-resistance patch leaves this hard-gated behavior stock.
 
 White LV8 order in this Java ME port is `Full-Life`, `Holy`, `NulAll`,
 `Dispel`. This differs from the previous hardcoded editor labels and is

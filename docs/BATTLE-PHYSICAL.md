@@ -73,3 +73,7 @@ partyCriticalDamageToEnemy = normalDamage + attackRoll
 
 This preserves useful party criticals against high-defense enemies while
 preventing enemy criticals from bypassing party armor/defense.
+
+Enemy physical attacks and their status-on-hit behavior are separate from the
+spell/effect helper. The optional `INT+STA reduce enemy spell effects` patch
+does not change this physical attack path.

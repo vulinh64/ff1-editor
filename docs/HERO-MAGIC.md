@@ -196,3 +196,38 @@ damage = damage + damage * intelligence / 200
 At INT `99`, this yields roughly `149%` of the stock result. Failed effects,
 `10000` sentinel values, party-target healing, monster spells, and values capped
 at `9999` are left unchanged.
+
+## Hero Magic Resistance Patch
+
+The optional `INT+STA reduce enemy spell effects` patch changes the same
+`g.class`, private static `a(byte,int,int)`, spell-effect helper. It applies
+only when the active actor is a monster slot and the target is a party member.
+
+The patch computes:
+
+```text
+resistStat = min(200, hero.INT + hero.STA + 2)
+```
+
+For damage kind `1`, positive enemy-cast damage against heroes is reduced with:
+
+```text
+damage = damage - damage * resistStat * 30 / 20000
+damage = max(1, damage)
+```
+
+At `resistStat = 200`, this is a `30%` reduction. For normal status/effect
+chance kinds `3`, `4`, `5`, and `17`, only positive chances are reduced:
+
+```text
+chance = chance - chance * resistStat / 1000
+```
+
+At `resistStat = 200`, this is a `20%` chance reduction. Negative stock chances
+remain unchanged, preserving the original "always fails" behavior.
+
+The patch intentionally excludes kind `2` Dia-style undead damage and kind `18`
+conditional status. Kind `18` uses hard HP/status/resistance gates instead of the
+normal chance formula, so supporting it would require adding a new random roll.
+Player-cast damage, player healing/buffs, enemy physical attacks, and physical
+status-on-hit stay separate from this patch.
