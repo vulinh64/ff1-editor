@@ -1,5 +1,6 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeBuilder;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
+/** Patches g.class level-up rolls so every HP and body-stat growth check succeeds. */
 @Slf4j
 public final class HeroLevelGrowthClassPatcher {
 

@@ -32,6 +32,10 @@ five one-byte item or spell ids per row. Runtime loader `b.C()` copies those
 five bytes into `j.a[shopType][shopRow][0..4]` and stores the nonzero count in
 slot `5`.
 
+The shop screen does not expose more than those five row bytes. Blank visual
+space under a short inventory list is just unused menu space. Zero bytes inside
+a five-slot row can be filled with additional goods for that shop category.
+
 The shop/menu state in `i.class` reads `aZ` and `ba` from event bytes when a
 shop opens. It then renders and buys from:
 
@@ -111,12 +115,48 @@ cp0 offset 0x00001a57: 0x09 -> 0x2f
 `0x2f` is item id `47`, whose weapon name text id is `440` (`Masamune`) and
 description text id is `441`.
 
+## Cornelia Armor Shop
+
+`cp0` chunk `8` is the armor-shop table. It begins at absolute offset
+`0x00001a74`; row `0` begins at `0x00001a76` and contains:
+
+| Slot | Item ID | Name          |
+|-----:|--------:|---------------|
+|    0 |      49 | Clothes       |
+|    1 |      50 | Leather Armor |
+|    2 |      51 | Chain Mail    |
+|    3 |       0 | empty         |
+|    4 |       0 | empty         |
+
+The editor implements a data-only global patch that fills the two empty
+Cornelia armor-shop slots:
+
+```text
+cp0 offset 0x00001a79: 0x00 -> 0x50
+cp0 offset 0x00001a7a: 0x00 -> 0x58
+```
+
+`0x50` is item id `80` (`Ribbon`) and `0x58` is item id `88` (`Protect Ring`).
+Because this uses shop type `1`, the normal armor-shop detail and purchase path
+reads armor records from `j.d[itemId - 48]`.
+
+## Item-Shop Armor Check
+
+Armor ids share the same item-name and shared-price table as consumables, so an
+armor id in an item-shop row is likely to display a name and price. It is not a
+confirmed safe data-only patch target, though: the item shop uses shop type `2`
+and skips the armor-shop preview/equipment path (`aZ == 1`) that indexes armor
+records as `j.d[itemId - 48]`. Use the armor-shop row for buyable armor.
+
 ## Open Checks
 
 - Confirm in-game that the implemented `cp0[0x1a57]` change from `9` to `47` updates the
   Cornelia town weapon shop display and purchase result.
 - Confirm in-game that the implemented `cp0[0x1a56]` change from `8` to `46` updates the
   Cornelia town weapon shop display and purchase result.
+- Confirm in-game that the implemented Cornelia armor-shop change
+  `cp0[0x1a79..0x1a7a] = 0x50,0x58` adds Ribbon and Protect Ring to the
+  Cornelia town armor shop display and purchase result.
 - Confirm whether item id `7` is intentionally an unused/blank weapon sentinel
   or has a hidden menu purpose.
 - Decode the eight weapon record fields far enough to expose weapon stats in a

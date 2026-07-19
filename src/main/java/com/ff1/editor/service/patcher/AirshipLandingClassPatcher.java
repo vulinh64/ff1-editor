@@ -1,5 +1,6 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeBuilder;
@@ -13,6 +14,10 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Patches i.class so the airship can land on additional safe land terrain while preserving blocked
+ * and water-like terrain checks.
+ */
 @Slf4j
 public final class AirshipLandingClassPatcher {
 

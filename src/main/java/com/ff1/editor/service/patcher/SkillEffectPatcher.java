@@ -1,7 +1,11 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import com.ff1.editor.data.SkillEffectEdit;
+import com.ff1.editor.service.*;
 
+/**
+ * Patches cp0 spell and effect price, power/status, and accuracy fields from the Skills editor tab.
+ */
 public final class SkillEffectPatcher {
 
   private SkillEffectPatcher() {}

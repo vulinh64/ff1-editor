@@ -3,6 +3,7 @@ package com.ff1.editor.service;
 import com.ff1.editor.data.EquipmentPermissionSnapshot;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemSnapshot;
+import com.ff1.editor.service.patcher.*;
 import java.nio.file.Path;
 import java.util.List;
 

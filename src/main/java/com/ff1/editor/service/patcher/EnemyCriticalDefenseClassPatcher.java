@@ -1,4 +1,4 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
@@ -15,8 +15,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+
+import com.ff1.editor.utils.CldcStackMapStripper;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Patches g.class so enemy critical hits double defense-reduced damage instead of adding raw
+ * pre-defense damage.
+ */
 @Slf4j
 public final class EnemyCriticalDefenseClassPatcher {
 

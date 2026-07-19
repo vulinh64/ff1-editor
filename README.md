@@ -94,6 +94,8 @@ The `Build Patched JAR` command opens a global patch dialog. These options chang
 
 * Cornelia sells Excalibur: replaces Cornelia weapon shop's Nunchaku slot with Excalibur.
 
+* Cornelia armor shop sells Ribbon and Protect Ring: fills Cornelia armor shop's two empty inventory slots with Ribbon and Protect Ring.
+
 * Always successful Run: normal escape attempts always succeed, while boss/no-run encounters still block running.
 
 * Party action order: changes normal battle turn order so party actions resolve before enemies. Party commands are grouped as `Magic -> Item -> Attack -> Run/other`, preserving party slot order inside each group; enemies act afterward in randomized enemy-only order. Ambush first turns keep the original enemy-control behavior.

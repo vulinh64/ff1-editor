@@ -1,5 +1,8 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.service.*;
+
+/** Patches cp0 so Cornelia weapon shop sells Excalibur in the original Nunchaku slot. */
 public final class CorneliaExcaliburShopPatcher {
 
   public static final String ENTRY_NAME = "cp0";

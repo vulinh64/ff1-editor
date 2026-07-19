@@ -1,4 +1,4 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
@@ -14,8 +14,11 @@ import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.ff1.editor.utils.CldcStackMapStripper;
 import lombok.extern.slf4j.Slf4j;
 
+/** Patches i.class so Cottage clears KO before applying its normal field recovery. */
 @Slf4j
 public final class CottageReviveClassPatcher {
 

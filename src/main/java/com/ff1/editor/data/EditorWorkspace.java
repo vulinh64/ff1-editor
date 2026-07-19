@@ -18,6 +18,7 @@ public record EditorWorkspace(
     PatchState intelligenceSpellHealingState,
     PatchState corneliaMasamuneState,
     PatchState corneliaExcaliburState,
+    PatchState corneliaRibbonProtectRingState,
     PatchState alwaysSuccessfulRunState,
     PatchState partyActionOrderState,
     PatchState enemyCriticalDefenseState,

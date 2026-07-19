@@ -1,4 +1,4 @@
-package com.ff1.editor.service;
+package com.ff1.editor.utils;
 
 import java.lang.classfile.Attribute;
 import java.lang.classfile.ClassFile;
@@ -6,13 +6,14 @@ import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
 
-final class CldcStackMapStripper {
+public final class CldcStackMapStripper {
 
   private static final String STACK_MAP_ATTRIBUTE = "StackMap";
 
   private CldcStackMapStripper() {}
 
-  static byte[] stripMethodStackMap(byte[] classBytes, String methodName, String methodDescriptor) {
+  public static byte[] stripMethodStackMap(
+      byte[] classBytes, String methodName, String methodDescriptor) {
     ClassFile classFile = ClassFile.of();
     ClassModel model = classFile.parse(classBytes);
     return classFile.transformClass(

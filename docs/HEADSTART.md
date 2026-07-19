@@ -135,6 +135,8 @@ The current global patch modal supports:
   patch, and `i.class` recovery patch.
 - a Cornelia weapon-shop data patch that replaces Knife with Masamune.
 - a Cornelia weapon-shop data patch that replaces Nunchaku with Excalibur.
+- a Cornelia armor-shop data patch that fills the two empty slots with Ribbon
+  and Protect Ring.
 - an always-successful Run patch in `g.class` that preserves the encounter
   no-run/boss gate.
 - a party action-order patch in `g.class` that changes only normal battle queue

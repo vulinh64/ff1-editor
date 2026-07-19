@@ -28,6 +28,7 @@ public final class FxEditorState {
   private final BooleanProperty intelligenceSpellHealing = new SimpleBooleanProperty(false);
   private final BooleanProperty corneliaMasamune = new SimpleBooleanProperty(false);
   private final BooleanProperty corneliaExcalibur = new SimpleBooleanProperty(false);
+  private final BooleanProperty corneliaRibbonProtectRing = new SimpleBooleanProperty(false);
   private final BooleanProperty alwaysSuccessfulRun = new SimpleBooleanProperty(false);
   private final BooleanProperty partyActionOrder = new SimpleBooleanProperty(false);
   private final BooleanProperty enemyCriticalDefense = new SimpleBooleanProperty(false);
@@ -134,6 +135,18 @@ public final class FxEditorState {
 
   public void corneliaExcalibur(boolean enabled) {
     corneliaExcalibur.set(enabled);
+  }
+
+  public BooleanProperty corneliaRibbonProtectRingProperty() {
+    return corneliaRibbonProtectRing;
+  }
+
+  public boolean corneliaRibbonProtectRing() {
+    return corneliaRibbonProtectRing.get();
+  }
+
+  public void corneliaRibbonProtectRing(boolean enabled) {
+    corneliaRibbonProtectRing.set(enabled);
   }
 
   public BooleanProperty alwaysSuccessfulRunProperty() {

@@ -3,6 +3,7 @@ package com.ff1.editor.service;
 import com.ff1.editor.data.HeroClass;
 import com.ff1.editor.data.HeroClassSnapshot;
 import com.ff1.editor.data.HeroClassStatsSnapshot;
+import com.ff1.editor.service.patcher.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

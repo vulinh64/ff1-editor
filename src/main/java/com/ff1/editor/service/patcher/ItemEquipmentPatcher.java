@@ -1,7 +1,9 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import com.ff1.editor.data.EquipmentPermissionEdit;
+import com.ff1.editor.service.*;
 
+/** Patches cp0 weapon and armor equip permission masks from the Equipment Matrix editor tab. */
 public final class ItemEquipmentPatcher {
 
   public static final int WEAPON_MASK_OFFSET_IN_RECORD = 2;

@@ -1,7 +1,9 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import com.ff1.editor.data.HeroClassStatsEdit;
+import com.ff1.editor.service.*;
 
+/** Patches cp0 base-class starting HP and body stats from the Heroes editor tab. */
 public final class HeroClassStatsPatcher {
 
   public static final String ENTRY_NAME = "cp0";

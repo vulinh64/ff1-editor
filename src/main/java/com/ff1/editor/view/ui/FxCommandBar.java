@@ -9,33 +9,34 @@ import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.PatchState;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
-import com.ff1.editor.service.AirshipLandingClassPatcher;
-import com.ff1.editor.service.AlwaysSuccessfulRunClassPatcher;
-import com.ff1.editor.service.CorneliaExcaliburShopPatcher;
-import com.ff1.editor.service.CorneliaWeaponShopPatcher;
-import com.ff1.editor.service.CottageReviveClassPatcher;
 import com.ff1.editor.service.Cp0ChunkTable;
 import com.ff1.editor.service.EditorLoadService;
 import com.ff1.editor.service.EditorPatchService;
-import com.ff1.editor.service.EnemyCriticalDefenseClassPatcher;
-import com.ff1.editor.service.FifteenSpellChargeCapClassPatcher;
-import com.ff1.editor.service.FifteenSpellChargeGrowthPatcher;
-import com.ff1.editor.service.FifteenSpellChargeRecoveryClassPatcher;
-import com.ff1.editor.service.HeroClassStatsPatcher;
-import com.ff1.editor.service.HeroLevelGrowthClassPatcher;
-import com.ff1.editor.service.IntelligenceSpellDamageClassPatcher;
-import com.ff1.editor.service.IntelligenceSpellHealingClassPatcher;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
-import com.ff1.editor.service.ItemEquipmentPatcher;
-import com.ff1.editor.service.ItemPricePatcher;
 import com.ff1.editor.service.MagicMatrixDiscoveryService;
-import com.ff1.editor.service.MagicMatrixPatcher;
-import com.ff1.editor.service.PartyActionOrderClassPatcher;
 import com.ff1.editor.service.SkillDiscoveryService;
-import com.ff1.editor.service.SkillEffectPatcher;
-import com.ff1.editor.service.UniversalSpellChargeClassPatcher;
-import com.ff1.editor.service.UniversalSpellChargeGrowthPatcher;
-import com.ff1.editor.service.WeaponCastSpellPatcher;
+import com.ff1.editor.service.patcher.AirshipLandingClassPatcher;
+import com.ff1.editor.service.patcher.AlwaysSuccessfulRunClassPatcher;
+import com.ff1.editor.service.patcher.CorneliaArmorShopPatcher;
+import com.ff1.editor.service.patcher.CorneliaExcaliburShopPatcher;
+import com.ff1.editor.service.patcher.CorneliaWeaponShopPatcher;
+import com.ff1.editor.service.patcher.CottageReviveClassPatcher;
+import com.ff1.editor.service.patcher.EnemyCriticalDefenseClassPatcher;
+import com.ff1.editor.service.patcher.FifteenSpellChargeCapClassPatcher;
+import com.ff1.editor.service.patcher.FifteenSpellChargeGrowthPatcher;
+import com.ff1.editor.service.patcher.FifteenSpellChargeRecoveryClassPatcher;
+import com.ff1.editor.service.patcher.HeroClassStatsPatcher;
+import com.ff1.editor.service.patcher.HeroLevelGrowthClassPatcher;
+import com.ff1.editor.service.patcher.IntelligenceSpellDamageClassPatcher;
+import com.ff1.editor.service.patcher.IntelligenceSpellHealingClassPatcher;
+import com.ff1.editor.service.patcher.ItemEquipmentPatcher;
+import com.ff1.editor.service.patcher.ItemPricePatcher;
+import com.ff1.editor.service.patcher.MagicMatrixPatcher;
+import com.ff1.editor.service.patcher.PartyActionOrderClassPatcher;
+import com.ff1.editor.service.patcher.SkillEffectPatcher;
+import com.ff1.editor.service.patcher.UniversalSpellChargeClassPatcher;
+import com.ff1.editor.service.patcher.UniversalSpellChargeGrowthPatcher;
+import com.ff1.editor.service.patcher.WeaponCastSpellPatcher;
 import com.ff1.editor.view.FxEditorState;
 import java.io.File;
 import java.nio.file.Files;
@@ -78,6 +79,8 @@ public final class FxCommandBar extends VBox {
   private final CheckBox intelligenceSpellHealing = new CheckBox("Healing spells scale with INT");
   private final CheckBox corneliaMasamune = new CheckBox("Cornelia sells Masamune");
   private final CheckBox corneliaExcalibur = new CheckBox("Cornelia sells Excalibur");
+  private final CheckBox corneliaRibbonProtectRing =
+      new CheckBox("Cornelia armor shop sells Ribbon and Protect Ring");
   private final CheckBox alwaysSuccessfulRun = new CheckBox("Always successful run");
   private final CheckBox partyActionOrder = new CheckBox("Party action order");
   private final CheckBox enemyCriticalDefense = new CheckBox("Enemy crits respect party defense");
@@ -109,6 +112,9 @@ public final class FxCommandBar extends VBox {
         .bindBidirectional(state.intelligenceSpellHealingProperty());
     corneliaMasamune.selectedProperty().bindBidirectional(state.corneliaMasamuneProperty());
     corneliaExcalibur.selectedProperty().bindBidirectional(state.corneliaExcaliburProperty());
+    corneliaRibbonProtectRing
+        .selectedProperty()
+        .bindBidirectional(state.corneliaRibbonProtectRingProperty());
     alwaysSuccessfulRun.selectedProperty().bindBidirectional(state.alwaysSuccessfulRunProperty());
     partyActionOrder.selectedProperty().bindBidirectional(state.partyActionOrderProperty());
     enemyCriticalDefense.selectedProperty().bindBidirectional(state.enemyCriticalDefenseProperty());
@@ -121,6 +127,7 @@ public final class FxCommandBar extends VBox {
     intelligenceSpellHealing.setDisable(true);
     corneliaMasamune.setDisable(true);
     corneliaExcalibur.setDisable(true);
+    corneliaRibbonProtectRing.setDisable(true);
     alwaysSuccessfulRun.setDisable(true);
     partyActionOrder.setDisable(true);
     enemyCriticalDefense.setDisable(true);
@@ -173,7 +180,7 @@ public final class FxCommandBar extends VBox {
           state.workspace(workspace);
           updateGlobalPatchControls(workspace);
           state.status(
-              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Cottage revive: %s. Airship landing: %s."
+              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Cornelia Ribbon/Protect Ring: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Cottage revive: %s. Airship landing: %s."
                   .formatted(
                       workspace.inputJar().getFileName(),
                       workspace.workDir(),
@@ -184,6 +191,7 @@ public final class FxCommandBar extends VBox {
                       patchStateLabel(workspace.intelligenceSpellHealingState()),
                       patchStateLabel(workspace.corneliaMasamuneState()),
                       patchStateLabel(workspace.corneliaExcaliburState()),
+                      patchStateLabel(workspace.corneliaRibbonProtectRingState()),
                       patchStateLabel(workspace.alwaysSuccessfulRunState()),
                       patchStateLabel(workspace.partyActionOrderState()),
                       patchStateLabel(workspace.enemyCriticalDefenseState()),
@@ -214,6 +222,7 @@ public final class FxCommandBar extends VBox {
       state.intelligenceSpellHealing(false);
       state.corneliaMasamune(false);
       state.corneliaExcalibur(false);
+      state.corneliaRibbonProtectRing(false);
       state.alwaysSuccessfulRun(false);
       state.partyActionOrder(false);
       state.enemyCriticalDefense(false);
@@ -226,6 +235,7 @@ public final class FxCommandBar extends VBox {
       intelligenceSpellHealing.setDisable(true);
       corneliaMasamune.setDisable(true);
       corneliaExcalibur.setDisable(true);
+      corneliaRibbonProtectRing.setDisable(true);
       alwaysSuccessfulRun.setDisable(true);
       partyActionOrder.setDisable(true);
       enemyCriticalDefense.setDisable(true);
@@ -329,6 +339,20 @@ public final class FxCommandBar extends VBox {
       case UNKNOWN -> {
         state.corneliaExcalibur(false);
         corneliaExcalibur.setDisable(true);
+      }
+    }
+    switch (workspace.corneliaRibbonProtectRingState()) {
+      case PATCHED -> {
+        state.corneliaRibbonProtectRing(true);
+        corneliaRibbonProtectRing.setDisable(true);
+      }
+      case ORIGINAL -> {
+        state.corneliaRibbonProtectRing(false);
+        corneliaRibbonProtectRing.setDisable(false);
+      }
+      case UNKNOWN -> {
+        state.corneliaRibbonProtectRing(false);
+        corneliaRibbonProtectRing.setDisable(true);
       }
     }
     switch (workspace.alwaysSuccessfulRunState()) {
@@ -437,6 +461,8 @@ public final class FxCommandBar extends VBox {
         dialogCheckBox(corneliaMasamune, workspace.corneliaMasamuneState());
     CheckBox corneliaExcaliburOption =
         dialogCheckBox(corneliaExcalibur, workspace.corneliaExcaliburState());
+    CheckBox corneliaRibbonProtectRingOption =
+        dialogCheckBox(corneliaRibbonProtectRing, workspace.corneliaRibbonProtectRingState());
     CheckBox alwaysSuccessfulRunOption =
         dialogCheckBox(alwaysSuccessfulRun, workspace.alwaysSuccessfulRunState());
     CheckBox partyActionOrderOption =
@@ -455,6 +481,7 @@ public final class FxCommandBar extends VBox {
             intelligenceSpellHealingOption,
             corneliaMasamuneOption,
             corneliaExcaliburOption,
+            corneliaRibbonProtectRingOption,
             alwaysSuccessfulRunOption,
             partyActionOrderOption,
             enemyCriticalDefenseOption,
@@ -492,6 +519,10 @@ public final class FxCommandBar extends VBox {
                     || selectedOriginal(corneliaExcaliburOption, workspace.corneliaExcaliburState())
                         > 0
                     || selectedOriginal(
+                            corneliaRibbonProtectRingOption,
+                            workspace.corneliaRibbonProtectRingState())
+                        > 0
+                    || selectedOriginal(
                             alwaysSuccessfulRunOption, workspace.alwaysSuccessfulRunState())
                         > 0
                     || selectedOriginal(partyActionOrderOption, workspace.partyActionOrderState())
@@ -508,6 +539,7 @@ public final class FxCommandBar extends VBox {
             intelligenceSpellHealingOption.selectedProperty(),
             corneliaMasamuneOption.selectedProperty(),
             corneliaExcaliburOption.selectedProperty(),
+            corneliaRibbonProtectRingOption.selectedProperty(),
             alwaysSuccessfulRunOption.selectedProperty(),
             partyActionOrderOption.selectedProperty(),
             enemyCriticalDefenseOption.selectedProperty(),
@@ -527,6 +559,7 @@ public final class FxCommandBar extends VBox {
     state.intelligenceSpellHealing(intelligenceSpellHealingOption.isSelected());
     state.corneliaMasamune(corneliaMasamuneOption.isSelected());
     state.corneliaExcalibur(corneliaExcaliburOption.isSelected());
+    state.corneliaRibbonProtectRing(corneliaRibbonProtectRingOption.isSelected());
     state.alwaysSuccessfulRun(alwaysSuccessfulRunOption.isSelected());
     state.partyActionOrder(partyActionOrderOption.isSelected());
     state.enemyCriticalDefense(enemyCriticalDefenseOption.isSelected());
@@ -577,6 +610,9 @@ public final class FxCommandBar extends VBox {
         state.corneliaMasamune() && workspace.corneliaMasamuneState() == PatchState.ORIGINAL;
     boolean corneliaExcaliburPatch =
         state.corneliaExcalibur() && workspace.corneliaExcaliburState() == PatchState.ORIGINAL;
+    boolean corneliaRibbonProtectRingPatch =
+        state.corneliaRibbonProtectRing()
+            && workspace.corneliaRibbonProtectRingState() == PatchState.ORIGINAL;
     boolean alwaysSuccessfulRunPatch =
         state.alwaysSuccessfulRun() && workspace.alwaysSuccessfulRunState() == PatchState.ORIGINAL;
     boolean partyActionOrderPatch =
@@ -601,6 +637,7 @@ public final class FxCommandBar extends VBox {
         && !intelligenceSpellHealingPatch
         && !corneliaMasamunePatch
         && !corneliaExcaliburPatch
+        && !corneliaRibbonProtectRingPatch
         && !alwaysSuccessfulRunPatch
         && !partyActionOrderPatch
         && !enemyCriticalDefensePatch
@@ -624,7 +661,8 @@ public final class FxCommandBar extends VBox {
                 || universalChargesPatch
                 || fifteenChargesPatch
                 || corneliaMasamunePatch
-                || corneliaExcaliburPatch) {
+                || corneliaExcaliburPatch
+                || corneliaRibbonProtectRingPatch) {
               byte[] cp0 =
                   Files.readAllBytes(workspace.workDir().resolve(HeroClassStatsPatcher.ENTRY_NAME));
               for (HeroClassStatsEdit edit : heroEdits) {
@@ -674,6 +712,9 @@ public final class FxCommandBar extends VBox {
               }
               if (corneliaExcaliburPatch) {
                 CorneliaExcaliburShopPatcher.apply(cp0);
+              }
+              if (corneliaRibbonProtectRingPatch) {
+                CorneliaArmorShopPatcher.apply(cp0);
               }
               replacements.put(HeroClassStatsPatcher.ENTRY_NAME, cp0);
             }
@@ -741,7 +782,7 @@ public final class FxCommandBar extends VBox {
     state.status(
         "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
             + "%d equipment matrix edit(s), %d skill edit(s), %d item price edit(s), "
-            + "%d weapon cast edit(s)%s%s%s%s%s%s%s%s%s%s%s%s..."
+            + "%d weapon cast edit(s)%s%s%s%s%s%s%s%s%s%s%s%s%s..."
                 .formatted(
                     heroEdits.size(),
                     magicEdits.size(),
@@ -760,6 +801,9 @@ public final class FxCommandBar extends VBox {
                         : StringUtils.EMPTY,
                     corneliaMasamunePatch ? ", Cornelia Masamune" : StringUtils.EMPTY,
                     corneliaExcaliburPatch ? ", Cornelia Excalibur" : StringUtils.EMPTY,
+                    corneliaRibbonProtectRingPatch
+                        ? ", Cornelia Ribbon and Protect Ring"
+                        : StringUtils.EMPTY,
                     alwaysSuccessfulRunPatch ? ", always-successful run" : StringUtils.EMPTY,
                     partyActionOrderPatch ? ", party action order" : StringUtils.EMPTY,
                     enemyCriticalDefensePatch

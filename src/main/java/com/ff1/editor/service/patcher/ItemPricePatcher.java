@@ -1,7 +1,9 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import com.ff1.editor.data.ItemPriceEdit;
+import com.ff1.editor.service.*;
 
+/** Patches cp0 shared item metadata prices from the Items editor tab. */
 public final class ItemPricePatcher {
 
   private ItemPricePatcher() {}

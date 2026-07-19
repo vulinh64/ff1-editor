@@ -1,5 +1,11 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.service.*;
+
+/**
+ * Patches cp0 spell-charge growth data so every class can eventually reach fifteen charges per
+ * spell level.
+ */
 public final class FifteenSpellChargeGrowthPatcher {
 
   public static final String ENTRY_NAME = UniversalSpellChargeGrowthPatcher.ENTRY_NAME;

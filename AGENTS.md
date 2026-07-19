@@ -62,6 +62,7 @@ Default paths:
   - damage-causing spells scale with INT via `g.class`;
   - healing spells scale with INT via `g.class`;
   - Cornelia sells Masamune and Cornelia sells Excalibur via `cp0`;
+  - Cornelia armor shop sells Ribbon and Protect Ring via `cp0`;
   - always-successful Run, party action order, and enemy crit defense behavior
     via `g.class`;
   - Cottage revives KO and airship lands on safe terrain via `i.class`.
@@ -89,6 +90,9 @@ Default paths:
   are the equip class mask and byte `6` is the battle cast skill id.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Record bytes `0..1`
   are the equip class mask.
+- Cornelia armor shop row: `cp0` chunk 8 row 0 has two empty slots after
+  Clothes, Leather Armor, and Chain Mail; those can be filled with Ribbon item
+  id `80` and Protect Ring item id `88`.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
   field is the shop price.
 

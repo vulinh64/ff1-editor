@@ -1,7 +1,10 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import static com.ff1.editor.utils.EditorSupport.readBigEndianUnsignedShort;
 
+import com.ff1.editor.service.*;
+
+/** Patches cp0 so Cornelia weapon shop sells Masamune in the original Knife slot. */
 public final class CorneliaWeaponShopPatcher {
 
   public static final String ENTRY_NAME = "cp0";

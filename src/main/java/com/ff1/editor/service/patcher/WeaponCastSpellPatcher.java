@@ -1,7 +1,9 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
 import com.ff1.editor.data.WeaponCastSpellEdit;
+import com.ff1.editor.service.*;
 
+/** Patches cp0 weapon cast-on-use spell ids from the Items editor tab. */
 public final class WeaponCastSpellPatcher {
 
   private WeaponCastSpellPatcher() {}

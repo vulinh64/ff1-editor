@@ -5,6 +5,7 @@ import static com.ff1.editor.utils.EditorSupport.editorUserPath;
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.JarCatalog;
 import com.ff1.editor.data.PatchState;
+import com.ff1.editor.service.patcher.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,6 +61,8 @@ public final class EditorLoadService {
         PatchState.from(IntelligenceSpellHealingClassPatcher.state(gClass));
     PatchState corneliaMasamuneState = PatchState.from(CorneliaWeaponShopPatcher.state(cp0));
     PatchState corneliaExcaliburState = PatchState.from(CorneliaExcaliburShopPatcher.state(cp0));
+    PatchState corneliaRibbonProtectRingState =
+        PatchState.from(CorneliaArmorShopPatcher.state(cp0));
     PatchState alwaysSuccessfulRunState =
         PatchState.from(AlwaysSuccessfulRunClassPatcher.state(gClass));
     PatchState partyActionOrderState = PatchState.from(PartyActionOrderClassPatcher.state(gClass));
@@ -79,6 +82,7 @@ public final class EditorLoadService {
         .intelligenceSpellHealingState(intelligenceSpellHealingState)
         .corneliaMasamuneState(corneliaMasamuneState)
         .corneliaExcaliburState(corneliaExcaliburState)
+        .corneliaRibbonProtectRingState(corneliaRibbonProtectRingState)
         .alwaysSuccessfulRunState(alwaysSuccessfulRunState)
         .partyActionOrderState(partyActionOrderState)
         .enemyCriticalDefenseState(enemyCriticalDefenseState)

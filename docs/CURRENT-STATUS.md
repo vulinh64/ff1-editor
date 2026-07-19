@@ -95,6 +95,11 @@ This is the quick landing page for the FF1 J2ME editor project.
   - changes the Cornelia weapon shop Nunchaku slot from item id `8` to item id
     `46`;
   - compatible with the separate Knife-to-Masamune shop patch.
+- Cornelia armor shop sells Ribbon and Protect Ring:
+  - data patch in `cp0`;
+  - fills the two empty Cornelia armor-shop slots with item ids `80` and `88`;
+  - uses the armor-shop path because item shops skip armor-specific preview and
+    equipment handling.
 - Always successful run:
   - bytecode patch in `g.class`;
   - rewrites the Run success helper so normal escapes always succeed;
@@ -208,6 +213,8 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
   `cp0[0x1a57] = 0x2f` for `Knife -> Masamune`.
 - In-game check the implemented Cornelia weapon-shop replacement patch
   `cp0[0x1a56] = 0x2e` for `Nunchaku -> Excalibur`.
+- In-game check the implemented Cornelia armor-shop fill patch
+  `cp0[0x1a79..0x1a7a] = 0x50,0x58` for `empty slots -> Ribbon, Protect Ring`.
 - Decode the remaining unknown item, weapon, armor, spell/effect, and monster
   fields.
 - Investigate spell/name text editing beyond the current read-only decoded

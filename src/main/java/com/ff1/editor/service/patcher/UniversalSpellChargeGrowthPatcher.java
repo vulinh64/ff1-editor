@@ -1,5 +1,8 @@
-package com.ff1.editor.service;
+package com.ff1.editor.service.patcher;
 
+import com.ff1.editor.service.*;
+
+/** Patches cp0 spell-charge growth data so all class groups use the strong mage charge template. */
 public final class UniversalSpellChargeGrowthPatcher {
 
   public static final String ENTRY_NAME = "cp0";
