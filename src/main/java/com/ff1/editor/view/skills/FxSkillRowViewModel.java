@@ -8,11 +8,13 @@ import javafx.beans.property.SimpleIntegerProperty;
 public final class FxSkillRowViewModel {
 
   private final SkillSnapshot skill;
+  private final IntegerProperty price;
   private final IntegerProperty powerOrStatus;
   private final IntegerProperty accuracy;
 
   public FxSkillRowViewModel(SkillSnapshot skill) {
     this.skill = skill;
+    this.price = new SimpleIntegerProperty(skill.price());
     this.powerOrStatus = new SimpleIntegerProperty(skill.powerOrStatus());
     this.accuracy = new SimpleIntegerProperty(skill.accuracy());
   }
@@ -41,8 +43,8 @@ public final class FxSkillRowViewModel {
     return "%s (%d)".formatted(skill.effectKindName(), skill.effectKind());
   }
 
-  public int price() {
-    return skill.price();
+  public IntegerProperty priceProperty() {
+    return price;
   }
 
   public int raw0() {
@@ -94,12 +96,15 @@ public final class FxSkillRowViewModel {
   }
 
   public boolean changed() {
-    return powerOrStatus.get() != skill.powerOrStatus() || accuracy.get() != skill.accuracy();
+    return price.get() != skill.price()
+        || powerOrStatus.get() != skill.powerOrStatus()
+        || accuracy.get() != skill.accuracy();
   }
 
   public SkillEffectEdit toEdit() {
     return SkillEffectEdit.builder()
         .skillId(skill.id())
+        .price(price.get())
         .powerOrStatus(powerOrStatus.get())
         .accuracy(accuracy.get())
         .build();
@@ -115,6 +120,7 @@ public final class FxSkillRowViewModel {
         || learnableLabel().toLowerCase().contains(normalized)
         || String.valueOf(effectId()).contains(normalized)
         || String.valueOf(effectKind()).contains(normalized)
+        || String.valueOf(price.get()).contains(normalized)
         || String.valueOf(powerOrStatus.get()).contains(normalized)
         || String.valueOf(accuracy.get()).contains(normalized)
         || effectKindName().toLowerCase().contains(normalized)

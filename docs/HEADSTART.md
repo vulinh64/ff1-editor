@@ -103,14 +103,22 @@ the `cp0` HP byte as unsigned. Keep this separate from normal data editing.
 The Magic Matrix tab exposes spell permission masks as a class-by-spell matrix.
 It is split into White Magic and Black Magic sub-tabs. Each row is a spell, each
 class column is one permission bit, and the patched jar writes the resulting
-16-bit mask back into `cp0`.
+16-bit mask back into `cp0`. Spell labels are decoded from `PACK0_4`; do not
+hardcode spell-name arrays in the editor.
+
+The Equipment Matrix tab exposes weapon and armor equip masks as class-by-item
+matrices. It is split into Weapons and Armor sub-tabs and writes the resulting
+16-bit masks back into `cp0` chunk `3` for weapons and chunk `2` for armor.
 
 The Items tab is a discovery/edit surface for item/equipment data. It is split
 into Weapons, Armor, and Items tables and currently exposes names, descriptions,
 prices, equipment class masks, damage/accuracy, absorb/evasion lower, cast-on-use
-spell ids, resistance/special bytes, and source offsets. Weapon cast-on-use
-skill ids are editable with a dropdown. Keep other item/equipment bytes
-read-only until the remaining unknown bytes are named or bounded.
+spell ids, resistance/special bytes, and source offsets. Shared item prices are
+editable as unsigned 16-bit values, and weapon cast-on-use skill ids are editable
+with a dropdown whose labels come from decoded skill/spell data. Keep other
+item/equipment bytes read-only until the remaining unknown bytes are named or
+bounded. Equipment permission masks are edited in the dedicated Equipment Matrix
+tab.
 
 The current global patch modal supports:
 
@@ -120,6 +128,7 @@ The current global patch modal supports:
 - 15 max spell charges through a hybrid `cp0` growth schedule, `g.class` cap/gate
   patch, and `i.class` recovery patch.
 - a Cornelia weapon-shop data patch that replaces Knife with Masamune.
+- a Cornelia weapon-shop data patch that replaces Nunchaku with Excalibur.
 - an always-successful Run patch in `g.class` that preserves the encounter
   no-run/boss gate.
 - a party action-order patch in `g.class` that changes only normal battle queue

@@ -89,6 +89,7 @@ public final class FxSkillsView extends BorderPane {
                 textColumn("Learnable", FxSkillRowViewModel::learnableLabel, 110),
                 intColumn("Effect ID", FxSkillRowViewModel::effectId, 82),
                 textColumn("Kind", FxSkillRowViewModel::effectKindName, 150),
+                editableIntColumn("Price", FxSkillRowViewModel::priceProperty, 92, 0, 65535),
                 editableIntColumn(
                     "Power/Status", FxSkillRowViewModel::powerOrStatusProperty, 126, 0, 255),
                 editableIntColumn("Accuracy", FxSkillRowViewModel::accuracyProperty, 104, 0, 255),
@@ -98,7 +99,6 @@ public final class FxSkillsView extends BorderPane {
                 intColumn("Raw0", FxSkillRowViewModel::raw0, 64),
                 intColumn("Raw5", FxSkillRowViewModel::raw5, 64),
                 textColumn("Mask", FxSkillRowViewModel::permissionMask, 82),
-                intColumn("Price", FxSkillRowViewModel::price, 82),
                 textColumn("Invokers", FxSkillRowViewModel::invokers, 380),
                 textColumn("Source", FxSkillRowViewModel::source, 170)));
     return table;

@@ -91,7 +91,18 @@ not item id `7`.
 |    4 |      12 | Hammer   |
 
 This matches the expected early Cornelia weapon shop inventory. The editor now
-implements a data-only global patch to sell Masamune instead of Knife:
+implements data-only global patches for two optional replacements.
+
+Sell Excalibur instead of Nunchaku:
+
+```text
+cp0 offset 0x00001a56: 0x08 -> 0x2e
+```
+
+`0x2e` is item id `46`, whose weapon name text id is `438` (`Excalibur`) and
+description text id is `439`.
+
+Sell Masamune instead of Knife:
 
 ```text
 cp0 offset 0x00001a57: 0x09 -> 0x2f
@@ -103,6 +114,8 @@ description text id is `441`.
 ## Open Checks
 
 - Confirm in-game that the implemented `cp0[0x1a57]` change from `9` to `47` updates the
+  Cornelia town weapon shop display and purchase result.
+- Confirm in-game that the implemented `cp0[0x1a56]` change from `8` to `46` updates the
   Cornelia town weapon shop display and purchase result.
 - Confirm whether item id `7` is intentionally an unused/blank weapon sentinel
   or has a hidden menu purpose.

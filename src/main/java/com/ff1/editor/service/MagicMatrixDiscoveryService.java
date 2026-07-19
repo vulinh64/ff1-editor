@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class MagicMatrixDiscoveryService {
 
@@ -17,27 +18,6 @@ public final class MagicMatrixDiscoveryService {
   public static final int SPELL_RECORD_SIZE = 13;
   public static final int LEARNABLE_SPELL_COUNT = 64;
   public static final int MASK_OFFSET_IN_RECORD = 11;
-
-  private static final String[] WHITE_SPELLS = {
-    "Cure", "Dia", "Protect", "Blink",
-    "Blindna", "NulShock", "Invis", "Silence",
-    "Cura", "Diara", "NulBlaze", "Heal",
-    "Poisona", "Fear", "NulFrost", "Vox",
-    "Curaga", "Life", "Diaga", "Healara",
-    "Stona", "Exit", "Protera", "Invisira",
-    "Curaja", "Diaja", "NulDeath", "Healaga",
-    "Holy", "NulAll", "Dispel", "Full-Life"
-  };
-  private static final String[] BLACK_SPELLS = {
-    "Fire", "Sleep", "Focus", "Thunder",
-    "Blizzard", "Dark", "Temper", "Slow",
-    "Fira", "Hold", "Thundara", "Focara",
-    "Sleepra", "Haste", "Confuse", "Blizzara",
-    "Firaga", "Scourge", "Teleport", "Slowra",
-    "Thundaga", "Death", "Quake", "Stun",
-    "Blizzaga", "Break", "Saber", "Blind",
-    "Flare", "Stop", "Warp", "Kill"
-  };
 
   private final Path workDir;
 
@@ -58,11 +38,17 @@ public final class MagicMatrixDiscoveryService {
       }
 
       int chunkOffset = table.chunkOffset(SPELL_CHUNK_INDEX);
+      Map<Integer, String> spellNames = new SpellTextService(workDir).spellNames(count);
       List<MagicSpellSnapshot> spells = new ArrayList<>(LEARNABLE_SPELL_COUNT);
       for (int spellId = 1; spellId <= LEARNABLE_SPELL_COUNT; spellId++) {
         int recordOffset = 2 + spellId * SPELL_RECORD_SIZE;
         int mask = readBigEndianUnsignedShort(spellChunk, recordOffset + MASK_OFFSET_IN_RECORD);
-        spells.add(snapshot(spellId, mask, chunkOffset + recordOffset + MASK_OFFSET_IN_RECORD));
+        spells.add(
+            snapshot(
+                spellId,
+                spellNames.getOrDefault(spellId, ""),
+                mask,
+                chunkOffset + recordOffset + MASK_OFFSET_IN_RECORD));
       }
       return spells;
     } catch (IOException e) {
@@ -70,13 +56,14 @@ public final class MagicMatrixDiscoveryService {
     }
   }
 
-  private static MagicSpellSnapshot snapshot(int spellId, int mask, int maskOffset) {
+  private static MagicSpellSnapshot snapshot(
+      int spellId, String name, int mask, int maskOffset) {
     boolean black = spellId >= 33;
     int index = black ? spellId - 33 : spellId - 1;
     SpellSchool school = black ? SpellSchool.BLACK : SpellSchool.WHITE;
     return MagicSpellSnapshot.builder()
         .spellId(spellId)
-        .name(spellName(spellId))
+        .name(name)
         .school(school)
         .level(index / 4 + 1)
         .slot(index % 4 + 1)
@@ -86,13 +73,4 @@ public final class MagicMatrixDiscoveryService {
         .build();
   }
 
-  public static String spellName(int spellId) {
-    boolean black = spellId >= 33;
-    int index = black ? spellId - 33 : spellId - 1;
-    String[] names = black ? BLACK_SPELLS : WHITE_SPELLS;
-    if (index < 0 || index >= names.length) {
-      return "";
-    }
-    return names[index];
-  }
 }

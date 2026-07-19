@@ -1,16 +1,20 @@
 package com.ff1.editor.view.items;
 
+import static com.ff1.editor.view.ui.FxTableColumns.editableIntColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.intColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.ItemCategory;
+import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.SkillSnapshot;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -37,6 +41,7 @@ public final class FxItemsView extends BorderPane {
   private final FilteredList<FxItemRowViewModel> armor = new FilteredList<>(items);
   private final FilteredList<FxItemRowViewModel> otherItems = new FilteredList<>(items);
   private final ObservableList<Integer> skillIds = FXCollections.observableArrayList();
+  private Map<Integer, String> skillNames = Map.of();
   private final TextField search = new TextField();
 
   public FxItemsView(FxEditorState state) {
@@ -45,6 +50,7 @@ public final class FxItemsView extends BorderPane {
     setCenter(itemTabs());
     search.textProperty().addListener((_, _, _) -> refilter());
     state.workspaceProperty().addListener((_, _, workspace) -> load(workspace));
+    state.itemPriceEditSupplier(this::itemPriceEdits);
     state.weaponCastSpellEditSupplier(this::weaponCastSpellEdits);
     refilter();
   }
@@ -59,18 +65,18 @@ public final class FxItemsView extends BorderPane {
   }
 
   private void load(EditorWorkspace workspace) {
+    List<SkillSnapshot> skills =
+        workspace == null ? List.of() : new SkillDiscoveryService(workspace.workDir()).discover();
+    skillNames =
+        skills.stream()
+            .collect(Collectors.toMap(SkillSnapshot::id, SkillSnapshot::name, (_, newer) -> newer));
     List<FxItemRowViewModel> rows =
         workspace == null
             ? List.of()
             : new ItemEquipmentDiscoveryService(workspace.workDir())
-                .discover().stream().map(FxItemRowViewModel::new).toList();
+                .discover().stream().map(item -> new FxItemRowViewModel(item, skillNames)).toList();
     List<Integer> skillOptions =
-        workspace == null
-            ? List.of()
-            : new SkillDiscoveryService(workspace.workDir()).discover().stream()
-                .map(SkillSnapshot::id)
-                .filter(id -> id > 0)
-                .toList();
+        skills.stream().map(SkillSnapshot::id).filter(id -> id > 0).toList();
     skillIds.setAll(0);
     skillIds.addAll(skillOptions);
     items.setAll(rows);
@@ -81,6 +87,13 @@ public final class FxItemsView extends BorderPane {
     return items.stream()
         .filter(FxItemRowViewModel::weaponCastChanged)
         .map(FxItemRowViewModel::toWeaponCastSpellEdit)
+        .toList();
+  }
+
+  private List<ItemPriceEdit> itemPriceEdits() {
+    return items.stream()
+        .filter(FxItemRowViewModel::priceChanged)
+        .map(FxItemRowViewModel::toItemPriceEdit)
         .toList();
   }
 
@@ -118,7 +131,7 @@ public final class FxItemsView extends BorderPane {
             List.of(
                 intColumn("ID", FxItemRowViewModel::id, 56),
                 textColumn("Weapon", FxItemRowViewModel::name, 150),
-                intColumn(PRICE_TITLE, FxItemRowViewModel::price, 82),
+                priceColumn(),
                 textColumn("Damage", FxItemRowViewModel::damage, 78),
                 textColumn("Accuracy", FxItemRowViewModel::accuracy, 82),
                 weaponCastSpellColumn(),
@@ -138,7 +151,7 @@ public final class FxItemsView extends BorderPane {
             new StringConverter<>() {
               @Override
               public String toString(Integer id) {
-                return id == null ? "" : FxItemRowViewModel.castSpellLabel(id);
+                return id == null ? "" : FxItemRowViewModel.castSpellLabel(id, skillNames);
               }
 
               @Override
@@ -159,6 +172,7 @@ public final class FxItemsView extends BorderPane {
 
   private TableView<FxItemRowViewModel> armorTable() {
     TableView<FxItemRowViewModel> table = baseTable(armor);
+    table.setEditable(true);
     table
         .getColumns()
         .setAll(
@@ -166,7 +180,7 @@ public final class FxItemsView extends BorderPane {
                 intColumn("ID", FxItemRowViewModel::id, 56),
                 textColumn("Type", FxItemRowViewModel::armorSubtype, 82),
                 textColumn("Armor", FxItemRowViewModel::name, 150),
-                intColumn(PRICE_TITLE, FxItemRowViewModel::price, 82),
+                priceColumn(),
                 textColumn("Absorb", FxItemRowViewModel::absorb, 78),
                 textColumn("Evasion Lower", FxItemRowViewModel::evasionPenalty, 112),
                 textColumn("Casts", FxItemRowViewModel::castSpell, 122),
@@ -180,6 +194,7 @@ public final class FxItemsView extends BorderPane {
 
   private TableView<FxItemRowViewModel> itemTable() {
     TableView<FxItemRowViewModel> table = baseTable(otherItems);
+    table.setEditable(true);
     table
         .getColumns()
         .setAll(
@@ -187,12 +202,16 @@ public final class FxItemsView extends BorderPane {
                 intColumn("ID", FxItemRowViewModel::id, 56),
                 textColumn("Category", FxItemRowViewModel::categoryName, 104),
                 textColumn("Item", FxItemRowViewModel::name, 160),
-                intColumn(PRICE_TITLE, FxItemRowViewModel::price, 82),
+                priceColumn(),
                 textColumn("Metadata", FxItemRowViewModel::metadataBytes, 100),
                 textColumn(DESCRIPTION_TITLE, FxItemRowViewModel::description, 520),
                 textColumn("Notes", FxItemRowViewModel::notes, 220),
                 textColumn(SOURCE_TITLE, FxItemRowViewModel::source, 170)));
     return table;
+  }
+
+  private static TableColumn<FxItemRowViewModel, Integer> priceColumn() {
+    return editableIntColumn(PRICE_TITLE, FxItemRowViewModel::priceProperty, 112, 0, 65535);
   }
 
   private static TableView<FxItemRowViewModel> baseTable(FilteredList<FxItemRowViewModel> rows) {

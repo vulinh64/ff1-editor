@@ -21,6 +21,7 @@ public final class SkillDiscoveryService {
   public static final int SPELL_CHUNK_INDEX = MagicMatrixDiscoveryService.SPELL_CHUNK_INDEX;
   public static final int SPELL_RECORD_SIZE = MagicMatrixDiscoveryService.SPELL_RECORD_SIZE;
   public static final int SKILL_COUNT = 94;
+  public static final int PRICE_OFFSET_IN_RECORD = 0;
   public static final int POWER_OR_STATUS_OFFSET_IN_RECORD = 5;
   public static final int ACCURACY_OFFSET_IN_RECORD = 6;
 
@@ -44,12 +45,19 @@ public final class SkillDiscoveryService {
         throw new IllegalStateException("cp0 spell/effect chunk does not match known layout.");
       }
 
+      Map<Integer, String> skillNames = skillNames(count);
       Map<Integer, List<String>> invokers = invokers();
       int chunkOffset = table.chunkOffset(SPELL_CHUNK_INDEX);
       List<SkillSnapshot> skills = new ArrayList<>(count);
       for (int id = 0; id < count; id++) {
         int recordOffset = Short.BYTES + id * SPELL_RECORD_SIZE;
-        skills.add(snapshot(spellChunk, id, chunkOffset + recordOffset, invokers.get(id)));
+        skills.add(
+            snapshot(
+                spellChunk,
+                id,
+                skillNames.getOrDefault(id, ""),
+                chunkOffset + recordOffset,
+                invokers.get(id)));
       }
       return List.copyOf(skills);
     } catch (IOException e) {
@@ -58,13 +66,13 @@ public final class SkillDiscoveryService {
   }
 
   private SkillSnapshot snapshot(
-      byte[] spellChunk, int id, int sourceOffset, List<String> invokers) {
+      byte[] spellChunk, int id, String name, int sourceOffset, List<String> invokers) {
     int recordOffset = Short.BYTES + id * SPELL_RECORD_SIZE;
     return SkillSnapshot.builder()
         .id(id)
-        .name(skillName(id))
+        .name(name)
         .learnableLabel(learnableLabel(id))
-        .price(readBigEndianUnsignedShort(spellChunk, recordOffset))
+        .price(readBigEndianUnsignedShort(spellChunk, recordOffset + PRICE_OFFSET_IN_RECORD))
         .raw0(spellChunk[recordOffset + 2] & 0xff)
         .effectId(spellChunk[recordOffset + 3] & 0xff)
         .effectKind(spellChunk[recordOffset + 4] & 0xff)
@@ -105,17 +113,24 @@ public final class SkillDiscoveryService {
     invokers.computeIfAbsent(spellId, _ -> new ArrayList<>()).add(invoker);
   }
 
-  public static String skillName(int id) {
-    String spellName = MagicMatrixDiscoveryService.spellName(id);
-    if (!spellName.isBlank()) {
-      return spellName;
+  private Map<Integer, String> skillNames(int count) {
+    Map<Integer, String> names =
+        new LinkedHashMap<>(new SpellTextService(workDir).spellNames(count));
+    Map<Integer, String> itemNames = itemNames();
+    for (Map.Entry<Integer, Integer> entry : CONSUMABLE_EFFECT_SPELL_IDS.entrySet()) {
+      names.put(
+          entry.getValue(),
+          itemNames.getOrDefault(entry.getKey(), "Item " + entry.getKey()) + " effect");
     }
-    return switch (id) {
-      case 91 -> "Potion effect";
-      case 92 -> "Antidote effect";
-      case 93 -> "Gold Needle effect";
-      default -> "";
-    };
+    return Map.copyOf(names);
+  }
+
+  private Map<Integer, String> itemNames() {
+    Map<Integer, String> names = new LinkedHashMap<>();
+    for (ItemSnapshot item : new ItemEquipmentDiscoveryService(workDir).discover()) {
+      names.put(item.id(), item.name());
+    }
+    return names;
   }
 
   private static String learnableLabel(int id) {

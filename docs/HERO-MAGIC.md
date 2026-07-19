@@ -156,6 +156,20 @@ The raw `cp0` chunk parser is now reconciled with `f.b(1)`:
 - learnable spell IDs `1..64` use chunk `1`; spell ID `0` is the dummy record.
 - each permission mask is stored big-endian at `chunk1 + 2 + spellId * 13 + 11`.
 
+## Spell Text Source
+
+Spell names and descriptions are decoded from `PACK0_4`, not hardcoded in the
+editor. The table is length-prefixed:
+
+```text
+first text id + count + count text blobs
+spell name text id = firstTextId + spellId * 2
+spell description text id = spellNameTextId + 1
+```
+
+For the local jar, this makes White LV8 order `Full-Life`, `Holy`, `NulAll`,
+`Dispel`; ID `30` is the Holy damage record.
+
 ## Future Spell Editing
 
 Renaming spells should be feasible, but it is not yet mapped. The likely first

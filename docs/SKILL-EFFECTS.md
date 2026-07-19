@@ -28,18 +28,20 @@ The loader maps each source record to runtime fields as follows:
 |           10 | `j.a[id][3]`  | element/status mask |
 |        11-12 | `j.a[id][9]`  | class permission mask |
 
-The editor exposes these records in the `Skills` tab. Only `power/status` and
-`accuracy` are editable for now; partly confirmed fields keep conservative
-labels until the battle behavior is fully decoded.
+The editor exposes these records in the `Skills` tab. Price, `power/status`,
+and `accuracy` are editable; partly confirmed fields keep conservative labels
+until the battle behavior is fully decoded.
 
 ## Editable Fields
 
-The first editable pass writes only two one-byte fields:
+The editable pass writes the shop price/cost field plus two one-byte effect
+fields:
 
-| Source Byte | Runtime Field | Editor Column | Range |
-|------------:|---------------|---------------|------:|
-|           5 | `j.a[id][2]`  | Power/Status  | 0..255 |
-|           6 | `j.a[id][8]`  | Accuracy      | 0..255 |
+| Source Bytes | Runtime Field | Editor Column | Range |
+|-------------:|---------------|---------------|------:|
+|          0-1 | `j.a[id][10]` | Price         | 0..65535 |
+|            5 | `j.a[id][2]`  | Power/Status  | 0..255 |
+|            6 | `j.a[id][8]`  | Accuracy      | 0..255 |
 
 These fields are context-sensitive. For `Damage` and `Healing` kinds,
 `Power/Status` is a base amount. For status/recovery/protection kinds, it is
@@ -114,7 +116,7 @@ several status bits.
 |    5 | Mind blast | reduces monster field `8`; used by Fear-like behavior. |
 |    6 | Unused/no-op | returns zero and has no follow-up mutation. |
 |    7 | Healing | returns negative HP restoration using the power byte as the base. |
-|    8 | Status recovery | checks/applies status recovery bits; used by Blindna, Poisona, Life, Stona, Vox, Holy. |
+|    8 | Status recovery | checks/applies status recovery bits; used by Blindna, Poisona, Life, Stona, Vox, Full-Life. |
 |    9 | Defense up | adds `power/status` to defense-like battle field. |
 |   10 | Resistance up | ORs `power/status` into resistance/status-protection field; Invis also sets a display/status bit. |
 |   11 | Attack/accuracy up | adds `power/status` to attack and `accuracy` to hit rate; used by Saber. |
@@ -123,8 +125,12 @@ several status bits.
 |   14 | Defense down | subtracts `power/status` from defense-like battle field; used by Focus/Focara. |
 |   15 | Full heal/death | returns full restoration or death-scale sentinel behavior; used by Curaja. |
 |   16 | Evasion up | adds `power/status` to evasion-like battle field; used by Blink, Silence, Invisira. |
-|   17 | Resistance clear | clears resistance/status-protection field; used by Full-Life. |
+|   17 | Resistance clear | clears resistance/status-protection field; used by Dispel. |
 |   18 | Conditional status | status inflict with additional HP/status gates; used by Stun, Blind, Kill. |
+
+White LV8 order in this Java ME port is `Full-Life`, `Holy`, `NulAll`,
+`Dispel`. This differs from the previous hardcoded editor labels and is
+confirmed by both `cp0` skill behavior and `PACK0_4` text order.
 
 ## Excalibur Note
 

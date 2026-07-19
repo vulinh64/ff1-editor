@@ -1,19 +1,24 @@
 package com.ff1.editor.view.items;
 
 import com.ff1.editor.data.ItemCategory;
+import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.WeaponCastSpellEdit;
-import com.ff1.editor.service.SkillDiscoveryService;
+import java.util.Map;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 public final class FxItemRowViewModel {
 
   private final ItemSnapshot item;
+  private final Map<Integer, String> skillNames;
+  private final IntegerProperty price;
   private final IntegerProperty castSpellId;
 
-  public FxItemRowViewModel(ItemSnapshot item) {
+  public FxItemRowViewModel(ItemSnapshot item, Map<Integer, String> skillNames) {
     this.item = item;
+    this.skillNames = skillNames;
+    this.price = new SimpleIntegerProperty(item.price());
     this.castSpellId = new SimpleIntegerProperty(originalCastSpellId());
   }
 
@@ -42,7 +47,19 @@ public final class FxItemRowViewModel {
   }
 
   public int price() {
-    return item.price();
+    return price.get();
+  }
+
+  public IntegerProperty priceProperty() {
+    return price;
+  }
+
+  public boolean priceChanged() {
+    return price.get() != item.price();
+  }
+
+  public ItemPriceEdit toItemPriceEdit() {
+    return ItemPriceEdit.builder().itemId(id()).price(price.get()).build();
   }
 
   public String metadataBytes() {
@@ -74,7 +91,7 @@ public final class FxItemRowViewModel {
   }
 
   public String castSpell() {
-    return castSpellId.get() == 0 ? "" : castSpellLabel(castSpellId.get());
+    return castSpellId.get() == 0 ? "" : castSpellLabel(castSpellId.get(), skillNames);
   }
 
   public IntegerProperty castSpellIdProperty() {
@@ -134,12 +151,12 @@ public final class FxItemRowViewModel {
     return item.castSpellId() == null ? 0 : item.castSpellId();
   }
 
-  public static String castSpellLabel(int id) {
+  public static String castSpellLabel(int id, Map<Integer, String> skillNames) {
     if (id == 0) {
       return "0 - None";
     }
-    String name = SkillDiscoveryService.skillName(id);
-    return name == null || name.isBlank()
+    String name = skillNames.getOrDefault(id, "");
+    return name.isBlank()
         ? "%d - Effect %d".formatted(id, id)
         : "%d - %s".formatted(id, name);
   }

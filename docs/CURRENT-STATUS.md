@@ -24,11 +24,18 @@ This is the quick landing page for the FF1 J2ME editor project.
   - keeps upgraded classes read-only and mirrors their base-class row values.
 - Magic Matrix tab:
   - splits White Magic and Black Magic into sub-tabs;
+  - reads spell names from `PACK0_4`;
   - exposes each spell permission mask as class checkboxes;
   - writes masks back to `cp0`.
+- Equipment Matrix tab:
+  - splits Weapons and Armor into sub-tabs;
+  - exposes each equip permission mask as class checkboxes;
+  - writes weapon masks back to `cp0` chunk 3 and armor masks back to
+    `cp0` chunk 2.
 - Items tab:
   - discovery/edit view split into Weapons, Armor, and Items;
   - shows item names/descriptions/prices from `PACK0_3` and `cp0` chunk 0;
+  - edits shared item prices and writes them back to `cp0` chunk 0;
   - shows weapon damage/accuracy/cast spell/equip classes from `cp0` chunk 3;
   - edits weapon cast spell ids with a skill dropdown and writes them back to
     `cp0` chunk 3;
@@ -36,9 +43,9 @@ This is the quick landing page for the FF1 J2ME editor project.
     `cp0` chunk 2.
 - Skills tab:
   - discovery/edit view for all 94 `cp0` chunk 1 spell/effect records;
-  - shows learnable spell labels where known, raw runtime fields, effect ids,
+  - shows spell/effect names from game text where available, raw runtime fields, effect ids,
     permission masks, prices, and known spell/equipment/item invokers;
-  - edits `power/status` and `accuracy` bytes only.
+  - edits price, `power/status`, and `accuracy` fields.
 - Command bar:
   - `Build Patched JAR` opens a VDDOH-style global patch modal;
   - the modal contains optional global patches, not tab-local data controls.
@@ -76,6 +83,11 @@ This is the quick landing page for the FF1 J2ME editor project.
   - changes the Cornelia weapon shop Knife slot from item id `9` to item id
     `47`;
   - leaves the input jar untouched and writes the change only to patched output.
+- Cornelia sells Excalibur:
+  - data patch in `cp0`;
+  - changes the Cornelia weapon shop Nunchaku slot from item id `8` to item id
+    `46`;
+  - compatible with the separate Knife-to-Masamune shop patch.
 - Always successful run:
   - bytecode patch in `g.class`;
   - rewrites the Run success helper so normal escapes always succeed;
@@ -108,20 +120,25 @@ This is the quick landing page for the FF1 J2ME editor project.
   and writes the same table when building patched output.
 - Growth matrix: `cp0` chunk 4, shape `6 x 49 x 14`.
 - Spell metadata: `cp0` chunk 1, 94 records, 13 bytes each.
+- Spell names/descriptions: `PACK0_4`, a length-prefixed text table whose first
+  id is read from the table header. Spell name text is `firstId + spellId * 2`;
+  description text is the following row.
 - Learnable spell masks: `chunk1 + 2 + spellId * 13 + 11`, big-endian 16-bit.
 - Spell/effect router: `j.a[spellId][1]`; battle code assigns this field to
   `g.j` for learned spells, weapon-cast spells, armor-cast spells, and several
   consumable effects.
-- Spell/effect editable fields: source record bytes `5` and `6` in each
-  13-byte record, loaded as `j.a[id][2]` (`power/status`) and `j.a[id][8]`
-  (`accuracy`).
+- Spell/effect editable fields: source record bytes `0..1`, `5`, and `6` in
+  each 13-byte record, loaded as `j.a[id][10]` (`price/cost`), `j.a[id][2]`
+  (`power/status`), and `j.a[id][8]` (`accuracy`).
 - Shop inventory rows: `cp0` chunks `6..11` via the shop chunk source array
   documented in `SHOP-INVENTORY.md`.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Runtime weapon item
   ids are offset by 7, so `Knife` is item id `9` and `Masamune` is item id `47`.
-  Record byte `6` is editable as the battle cast skill id.
+  Record bytes `2..3` are editable as the equip class mask. Record byte `6` is
+  editable as the battle cast skill id.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Runtime armor item
   ids are offset by 48 and split into body armor, shields, helms, and gloves.
+  Record bytes `0..1` are editable as the equip class mask.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
   field is the shop price.
 - Runtime level-up and spell-charge logic: `g.class`, method `F()`.
@@ -131,6 +148,12 @@ This is the quick landing page for the FF1 J2ME editor project.
   `BATTLE-RUN.md`.
 - Encounter table: `cp0` chunk 12, 245 records of 15 bytes. Encounter byte `1`
   is the no-run/boss-style flag used by Run and battle-start advantage logic.
+- Random encounter rate: `i.class`, private method `V()`. It rolls
+  `random(100) < aI`, where `aI` rises per eligible step, resets to
+  `-2 - random(4)` after an encounter, and caps at `15`. Airship skips random
+  encounters. Code evidence shows the direct vehicle rate clamp is on
+  `j.a.e == 2` (canoe/river-looking state), not `j.a.e == 1` (ship/sea-looking
+  state). See `FIELD-MOVEMENT.md`.
 - Battle turn queue: `g.class`, private static method `G()`. See
   `BATTLE-ORDER.md`.
 - Field recovery for inns/shelters: `i.class`, private static method `l(int)`.
@@ -170,6 +193,8 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
 - Decode spell names and observable spell stats for a future `Magic` tab.
 - In-game check the implemented Cornelia weapon-shop replacement patch
   `cp0[0x1a57] = 0x2f` for `Knife -> Masamune`.
+- In-game check the implemented Cornelia weapon-shop replacement patch
+  `cp0[0x1a56] = 0x2e` for `Nunchaku -> Excalibur`.
 - Decode the remaining unknown item, weapon, and armor fields.
 - Decode monster records.
 - Investigate an optional unsigned/wider starting-HP engine patch.

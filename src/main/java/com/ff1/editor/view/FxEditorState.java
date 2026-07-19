@@ -1,7 +1,9 @@
 package com.ff1.editor.view;
 
 import com.ff1.editor.data.EditorWorkspace;
+import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
+import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
@@ -24,13 +26,16 @@ public final class FxEditorState {
   private final BooleanProperty fifteenSpellCharges = new SimpleBooleanProperty(false);
   private final BooleanProperty intelligenceSpellDamage = new SimpleBooleanProperty(false);
   private final BooleanProperty corneliaMasamune = new SimpleBooleanProperty(false);
+  private final BooleanProperty corneliaExcalibur = new SimpleBooleanProperty(false);
   private final BooleanProperty alwaysSuccessfulRun = new SimpleBooleanProperty(false);
   private final BooleanProperty partyActionOrder = new SimpleBooleanProperty(false);
   private final BooleanProperty cottageRevive = new SimpleBooleanProperty(false);
   private final BooleanProperty airshipLanding = new SimpleBooleanProperty(false);
   private Supplier<List<HeroClassStatsEdit>> heroStatsEditSupplier = List::of;
   private Supplier<List<MagicMatrixEdit>> magicMatrixEditSupplier = List::of;
+  private Supplier<List<EquipmentPermissionEdit>> equipmentPermissionEditSupplier = List::of;
   private Supplier<List<SkillEffectEdit>> skillEffectEditSupplier = List::of;
+  private Supplier<List<ItemPriceEdit>> itemPriceEditSupplier = List::of;
   private Supplier<List<WeaponCastSpellEdit>> weaponCastSpellEditSupplier = List::of;
 
   public ObjectProperty<EditorWorkspace> workspaceProperty() {
@@ -105,6 +110,18 @@ public final class FxEditorState {
     corneliaMasamune.set(enabled);
   }
 
+  public BooleanProperty corneliaExcaliburProperty() {
+    return corneliaExcalibur;
+  }
+
+  public boolean corneliaExcalibur() {
+    return corneliaExcalibur.get();
+  }
+
+  public void corneliaExcalibur(boolean enabled) {
+    corneliaExcalibur.set(enabled);
+  }
+
   public BooleanProperty alwaysSuccessfulRunProperty() {
     return alwaysSuccessfulRun;
   }
@@ -169,12 +186,28 @@ public final class FxEditorState {
     return magicMatrixEditSupplier.get();
   }
 
+  public void equipmentPermissionEditSupplier(Supplier<List<EquipmentPermissionEdit>> supplier) {
+    equipmentPermissionEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<EquipmentPermissionEdit> equipmentPermissionEdits() {
+    return equipmentPermissionEditSupplier.get();
+  }
+
   public void skillEffectEditSupplier(Supplier<List<SkillEffectEdit>> supplier) {
     skillEffectEditSupplier = supplier == null ? List::of : supplier;
   }
 
   public List<SkillEffectEdit> skillEffectEdits() {
     return skillEffectEditSupplier.get();
+  }
+
+  public void itemPriceEditSupplier(Supplier<List<ItemPriceEdit>> supplier) {
+    itemPriceEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<ItemPriceEdit> itemPriceEdits() {
+    return itemPriceEditSupplier.get();
   }
 
   public void weaponCastSpellEditSupplier(Supplier<List<WeaponCastSpellEdit>> supplier) {

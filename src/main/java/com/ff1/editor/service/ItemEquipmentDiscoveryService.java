@@ -25,12 +25,12 @@ public final class ItemEquipmentDiscoveryService {
   public static final int WEAPON_RECORD_SIZE = 9;
   public static final int ITEM_COUNT = 106;
   public static final int WEAPON_COUNT = 41;
+  public static final int ARMOR_COUNT = 41;
   public static final int WEAPON_ITEM_ID_OFFSET = 7;
   public static final int ARMOR_ITEM_ID_OFFSET = 48;
   public static final int WEAPON_CAST_SPELL_OFFSET_IN_RECORD = 6;
 
   private static final String ITEM_TEXT_ENTRY = "PACK0_3";
-  private static final int ITEM_TEXT_FIRST_ID = 346;
 
   private final Path workDir;
   private final Ff1TextService textService;
@@ -45,9 +45,11 @@ public final class ItemEquipmentDiscoveryService {
       byte[] cp0 = Files.readAllBytes(workDir.resolve(ITEM_METADATA_ENTRY));
       Cp0ChunkTable table = new Cp0ChunkTable(cp0);
       Map<Integer, TextPair> text = itemText();
+      Map<Integer, String> spellNames =
+          new SpellTextService(workDir).spellNames(SkillDiscoveryService.SKILL_COUNT);
       List<ItemSnapshot> items = metadataSnapshots(table, text);
-      applyWeaponRecords(table, items);
-      applyArmorRecords(table, items);
+      applyWeaponRecords(table, items, spellNames);
+      applyArmorRecords(table, items, spellNames);
       return List.copyOf(items);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to discover items from " + workDir, e);
@@ -110,7 +112,8 @@ public final class ItemEquipmentDiscoveryService {
     };
   }
 
-  private void applyWeaponRecords(Cp0ChunkTable table, List<ItemSnapshot> items) {
+  private void applyWeaponRecords(
+      Cp0ChunkTable table, List<ItemSnapshot> items, Map<Integer, String> spellNames) {
     byte[] chunk = table.chunk(WEAPON_CHUNK_INDEX);
     int count = readBigEndianUnsignedShort(chunk, 0);
     if (chunk.length != Short.BYTES + count * WEAPON_RECORD_SIZE) {
@@ -131,14 +134,15 @@ public final class ItemEquipmentDiscoveryService {
               .withDamage(chunk[recordOffset + 4] & 0xff)
               .withAccuracy(chunk[recordOffset + 5] & 0xff)
               .withCastSpellId(castSpellId == 0 ? null : castSpellId)
-              .withCastSpellName(MagicMatrixDiscoveryService.spellName(castSpellId))
+              .withCastSpellName(spellNames.getOrDefault(castSpellId, ""))
               .withWeaponSpecialByte1(chunk[recordOffset + 7] & 0xff)
               .withWeaponSpecialByte2(chunk[recordOffset + 8] & 0xff)
               .withSourceOffset(chunkOffset + recordOffset));
     }
   }
 
-  private void applyArmorRecords(Cp0ChunkTable table, List<ItemSnapshot> items) {
+  private void applyArmorRecords(
+      Cp0ChunkTable table, List<ItemSnapshot> items, Map<Integer, String> spellNames) {
     byte[] chunk = table.chunk(ARMOR_CHUNK_INDEX);
     int count = readBigEndianUnsignedShort(chunk, 0);
     if (chunk.length != Short.BYTES + count * ARMOR_RECORD_SIZE) {
@@ -160,7 +164,7 @@ public final class ItemEquipmentDiscoveryService {
               .withAbsorb(chunk[recordOffset + 2] & 0xff)
               .withEvasionPenalty(chunk[recordOffset + 3] & 0xff)
               .withCastSpellId(castSpellId == 0 ? null : castSpellId)
-              .withCastSpellName(MagicMatrixDiscoveryService.spellName(castSpellId))
+              .withCastSpellName(spellNames.getOrDefault(castSpellId, ""))
               .withResistanceMask(chunk[recordOffset + 5] & 0xff)
               .withSourceOffset(chunkOffset + recordOffset));
     }
@@ -183,27 +187,12 @@ public final class ItemEquipmentDiscoveryService {
   }
 
   private Map<Integer, TextPair> itemText() throws IOException {
-    byte[] pack = Files.readAllBytes(workDir.resolve(ITEM_TEXT_ENTRY));
-    int firstId = readBigEndianUnsignedShort(pack, 0);
-    int count = readBigEndianUnsignedShort(pack, 2);
-    if (firstId != ITEM_TEXT_FIRST_ID) {
-      throw new IllegalStateException("Unexpected item text pack first id: " + firstId);
-    }
-    Map<Integer, String> decoded = new HashMap<>();
-    int offset = 4;
-    for (int i = 0; i < count; i++) {
-      int textId = firstId + i;
-      int length = readBigEndianUnsignedShort(pack, offset);
-      offset += Short.BYTES;
-      byte[] encoded = new byte[length];
-      System.arraycopy(pack, offset, encoded, 0, length);
-      offset += length;
-      decoded.put(textId, textService.decodeText(encoded).stripTrailing());
-    }
+    Map<Integer, String> decoded = textService.readLengthPrefixedTextTable(ITEM_TEXT_ENTRY);
+    int firstId = decoded.keySet().stream().mapToInt(Integer::intValue).min().orElseThrow();
 
     Map<Integer, TextPair> items = new HashMap<>();
     for (int id = 0; id < ITEM_COUNT; id++) {
-      int nameId = ITEM_TEXT_FIRST_ID + 2 * id;
+      int nameId = firstId + 2 * id;
       items.put(
           id, new TextPair(decoded.getOrDefault(nameId, ""), decoded.getOrDefault(nameId + 1, "")));
     }

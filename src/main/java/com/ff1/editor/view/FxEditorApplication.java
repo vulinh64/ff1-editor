@@ -1,5 +1,6 @@
 package com.ff1.editor.view;
 
+import com.ff1.editor.view.equipment.FxEquipmentMatrixView;
 import com.ff1.editor.view.heroes.FxHeroesView;
 import com.ff1.editor.view.items.FxItemsView;
 import com.ff1.editor.view.magic.FxMagicMatrixView;
@@ -60,11 +61,13 @@ public final class FxEditorApplication extends Application {
     heroes.setClosable(false);
     Tab magicMatrix = new Tab("Magic Matrix", new FxMagicMatrixView(state));
     magicMatrix.setClosable(false);
+    Tab equipmentMatrix = new Tab("Equipment Matrix", new FxEquipmentMatrixView(state));
+    equipmentMatrix.setClosable(false);
     Tab skills = new Tab("Skills", new FxSkillsView(state));
     skills.setClosable(false);
     Tab items = new Tab("Items", new FxItemsView(state));
     items.setClosable(false);
-    tabs.getTabs().addAll(heroes, magicMatrix, skills, items);
+    tabs.getTabs().addAll(heroes, magicMatrix, equipmentMatrix, skills, items);
     return tabs;
   }
 

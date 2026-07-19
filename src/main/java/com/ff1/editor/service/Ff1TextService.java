@@ -5,8 +5,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -49,6 +51,27 @@ public final class Ff1TextService {
       }
     }
     return out.toString();
+  }
+
+  public Map<Integer, String> readLengthPrefixedTextTable(String entryName) throws IOException {
+    byte[] pack = Files.readAllBytes(extractedDir.resolve(entryName));
+    int firstId = readUnsignedShort(pack, 0);
+    int count = readUnsignedShort(pack, 2);
+    Map<Integer, String> decoded = new HashMap<>();
+    int offset = Integer.BYTES;
+    for (int i = 0; i < count; i++) {
+      int textId = firstId + i;
+      int length = readUnsignedShort(pack, offset);
+      offset += Short.BYTES;
+      byte[] encoded = new byte[length];
+      System.arraycopy(pack, offset, encoded, 0, length);
+      offset += length;
+      decoded.put(textId, decodeText(encoded).stripTrailing());
+    }
+    if (offset != pack.length) {
+      throw new IllegalStateException("Text table " + entryName + " has trailing or short data.");
+    }
+    return Map.copyOf(decoded);
   }
 
   public void searchEncodedText(String text) throws IOException {

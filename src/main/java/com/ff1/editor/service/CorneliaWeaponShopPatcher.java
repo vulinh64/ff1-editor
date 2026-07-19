@@ -48,19 +48,27 @@ public final class CorneliaWeaponShopPatcher {
   }
 
   public static int corneliaKnifeOffset(byte[] cp0) {
+    return corneliaWeaponShopRowOffset(cp0) + CORNELIA_KNIFE_SLOT;
+  }
+
+  public static int corneliaWeaponShopRowOffset(byte[] cp0) {
     Cp0ChunkTable table = new Cp0ChunkTable(cp0);
     validateWeaponShopChunk(table);
     return table.chunkOffset(WEAPON_SHOP_CHUNK_INDEX)
         + Short.BYTES
-        + CORNELIA_WEAPON_SHOP_ROW * SHOP_ROW_SIZE
-        + CORNELIA_KNIFE_SLOT;
+        + CORNELIA_WEAPON_SHOP_ROW * SHOP_ROW_SIZE;
   }
 
   private static boolean matchesCorneliaRow(byte[] cp0, int slotItemId) {
     int offset = corneliaKnifeOffset(cp0) - CORNELIA_KNIFE_SLOT;
     for (int slot = 0; slot < EXPECTED_CORNELIA_WEAPONS.length; slot++) {
       int expected = slot == CORNELIA_KNIFE_SLOT ? slotItemId : EXPECTED_CORNELIA_WEAPONS[slot];
-      if ((cp0[offset + slot] & 0xff) != expected) {
+      int actual = cp0[offset + slot] & 0xff;
+      if (slot == CorneliaExcaliburShopPatcher.CORNELIA_NUNCHAKU_SLOT
+          && actual == CorneliaExcaliburShopPatcher.EXCALIBUR_ITEM_ID) {
+        continue;
+      }
+      if (actual != expected) {
         return false;
       }
     }

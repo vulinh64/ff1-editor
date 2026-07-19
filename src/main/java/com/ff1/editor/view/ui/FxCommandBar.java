@@ -2,13 +2,16 @@ package com.ff1.editor.view.ui;
 
 import com.ff1.editor.data.BuildResult;
 import com.ff1.editor.data.EditorWorkspace;
+import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
+import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.PatchState;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.service.AirshipLandingClassPatcher;
 import com.ff1.editor.service.AlwaysSuccessfulRunClassPatcher;
+import com.ff1.editor.service.CorneliaExcaliburShopPatcher;
 import com.ff1.editor.service.CorneliaWeaponShopPatcher;
 import com.ff1.editor.service.CottageReviveClassPatcher;
 import com.ff1.editor.service.Cp0ChunkTable;
@@ -21,6 +24,8 @@ import com.ff1.editor.service.HeroClassStatsPatcher;
 import com.ff1.editor.service.HeroLevelGrowthClassPatcher;
 import com.ff1.editor.service.IntelligenceSpellDamageClassPatcher;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
+import com.ff1.editor.service.ItemEquipmentPatcher;
+import com.ff1.editor.service.ItemPricePatcher;
 import com.ff1.editor.service.MagicMatrixDiscoveryService;
 import com.ff1.editor.service.MagicMatrixPatcher;
 import com.ff1.editor.service.PartyActionOrderClassPatcher;
@@ -67,6 +72,7 @@ public final class FxCommandBar extends VBox {
   private final CheckBox fifteenSpellCharges = new CheckBox("15 max spell charges");
   private final CheckBox intelligenceSpellDamage = new CheckBox("INT-scaled spell damage");
   private final CheckBox corneliaMasamune = new CheckBox("Cornelia sells Masamune");
+  private final CheckBox corneliaExcalibur = new CheckBox("Cornelia sells Excalibur");
   private final CheckBox alwaysSuccessfulRun = new CheckBox("Always successful run");
   private final CheckBox partyActionOrder = new CheckBox("Party action order");
   private final CheckBox cottageRevive = new CheckBox("Cottage revives KO");
@@ -93,6 +99,7 @@ public final class FxCommandBar extends VBox {
         .selectedProperty()
         .bindBidirectional(state.intelligenceSpellDamageProperty());
     corneliaMasamune.selectedProperty().bindBidirectional(state.corneliaMasamuneProperty());
+    corneliaExcalibur.selectedProperty().bindBidirectional(state.corneliaExcaliburProperty());
     alwaysSuccessfulRun.selectedProperty().bindBidirectional(state.alwaysSuccessfulRunProperty());
     partyActionOrder.selectedProperty().bindBidirectional(state.partyActionOrderProperty());
     cottageRevive.selectedProperty().bindBidirectional(state.cottageReviveProperty());
@@ -102,6 +109,7 @@ public final class FxCommandBar extends VBox {
     fifteenSpellCharges.setDisable(true);
     intelligenceSpellDamage.setDisable(true);
     corneliaMasamune.setDisable(true);
+    corneliaExcalibur.setDisable(true);
     alwaysSuccessfulRun.setDisable(true);
     partyActionOrder.setDisable(true);
     cottageRevive.setDisable(true);
@@ -153,7 +161,7 @@ public final class FxCommandBar extends VBox {
           state.workspace(workspace);
           updateGlobalPatchControls(workspace);
           state.status(
-              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. Cornelia Masamune: %s. Run patch: %s. Action order: %s. Cottage revive: %s. Airship landing: %s."
+              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. Cornelia Masamune: %s. Cornelia Excalibur: %s. Run patch: %s. Action order: %s. Cottage revive: %s. Airship landing: %s."
                   .formatted(
                       workspace.inputJar().getFileName(),
                       workspace.workDir(),
@@ -162,6 +170,7 @@ public final class FxCommandBar extends VBox {
                       patchStateLabel(workspace.fifteenSpellChargesState()),
                       patchStateLabel(workspace.intelligenceSpellDamageState()),
                       patchStateLabel(workspace.corneliaMasamuneState()),
+                      patchStateLabel(workspace.corneliaExcaliburState()),
                       patchStateLabel(workspace.alwaysSuccessfulRunState()),
                       patchStateLabel(workspace.partyActionOrderState()),
                       patchStateLabel(workspace.cottageReviveState()),
@@ -189,6 +198,7 @@ public final class FxCommandBar extends VBox {
       state.fifteenSpellCharges(false);
       state.intelligenceSpellDamage(false);
       state.corneliaMasamune(false);
+      state.corneliaExcalibur(false);
       state.alwaysSuccessfulRun(false);
       state.partyActionOrder(false);
       state.cottageRevive(false);
@@ -198,6 +208,7 @@ public final class FxCommandBar extends VBox {
       fifteenSpellCharges.setDisable(true);
       intelligenceSpellDamage.setDisable(true);
       corneliaMasamune.setDisable(true);
+      corneliaExcalibur.setDisable(true);
       alwaysSuccessfulRun.setDisable(true);
       partyActionOrder.setDisable(true);
       cottageRevive.setDisable(true);
@@ -272,6 +283,20 @@ public final class FxCommandBar extends VBox {
       case UNKNOWN -> {
         state.corneliaMasamune(false);
         corneliaMasamune.setDisable(true);
+      }
+    }
+    switch (workspace.corneliaExcaliburState()) {
+      case PATCHED -> {
+        state.corneliaExcalibur(true);
+        corneliaExcalibur.setDisable(true);
+      }
+      case ORIGINAL -> {
+        state.corneliaExcalibur(false);
+        corneliaExcalibur.setDisable(false);
+      }
+      case UNKNOWN -> {
+        state.corneliaExcalibur(false);
+        corneliaExcalibur.setDisable(true);
       }
     }
     switch (workspace.alwaysSuccessfulRunState()) {
@@ -362,6 +387,8 @@ public final class FxCommandBar extends VBox {
         dialogCheckBox(intelligenceSpellDamage, workspace.intelligenceSpellDamageState());
     CheckBox corneliaMasamuneOption =
         dialogCheckBox(corneliaMasamune, workspace.corneliaMasamuneState());
+    CheckBox corneliaExcaliburOption =
+        dialogCheckBox(corneliaExcalibur, workspace.corneliaExcaliburState());
     CheckBox alwaysSuccessfulRunOption =
         dialogCheckBox(alwaysSuccessfulRun, workspace.alwaysSuccessfulRunState());
     CheckBox partyActionOrderOption =
@@ -376,6 +403,7 @@ public final class FxCommandBar extends VBox {
             fifteenChargesOption,
             intelligenceSpellDamageOption,
             corneliaMasamuneOption,
+            corneliaExcaliburOption,
             alwaysSuccessfulRunOption,
             partyActionOrderOption,
             cottageReviveOption,
@@ -386,7 +414,9 @@ public final class FxCommandBar extends VBox {
     boolean hasDataEdits =
         !state.heroStatsEdits().isEmpty()
             || !state.magicMatrixEdits().isEmpty()
+            || !state.equipmentPermissionEdits().isEmpty()
             || !state.skillEffectEdits().isEmpty()
+            || !state.itemPriceEdits().isEmpty()
             || !state.weaponCastSpellEdits().isEmpty();
     BooleanBinding hasBuildSelection =
         Bindings.createBooleanBinding(
@@ -404,6 +434,9 @@ public final class FxCommandBar extends VBox {
                     || selectedOriginal(corneliaMasamuneOption, workspace.corneliaMasamuneState())
                         > 0
                     || selectedOriginal(
+                            corneliaExcaliburOption, workspace.corneliaExcaliburState())
+                        > 0
+                    || selectedOriginal(
                             alwaysSuccessfulRunOption, workspace.alwaysSuccessfulRunState())
                         > 0
                     || selectedOriginal(partyActionOrderOption, workspace.partyActionOrderState())
@@ -415,6 +448,7 @@ public final class FxCommandBar extends VBox {
             fifteenChargesOption.selectedProperty(),
             intelligenceSpellDamageOption.selectedProperty(),
             corneliaMasamuneOption.selectedProperty(),
+            corneliaExcaliburOption.selectedProperty(),
             alwaysSuccessfulRunOption.selectedProperty(),
             partyActionOrderOption.selectedProperty(),
             cottageReviveOption.selectedProperty(),
@@ -431,6 +465,7 @@ public final class FxCommandBar extends VBox {
     state.fifteenSpellCharges(fifteenChargesOption.isSelected());
     state.intelligenceSpellDamage(intelligenceSpellDamageOption.isSelected());
     state.corneliaMasamune(corneliaMasamuneOption.isSelected());
+    state.corneliaExcalibur(corneliaExcaliburOption.isSelected());
     state.alwaysSuccessfulRun(alwaysSuccessfulRunOption.isSelected());
     state.partyActionOrder(partyActionOrderOption.isSelected());
     state.cottageRevive(cottageReviveOption.isSelected());
@@ -459,7 +494,9 @@ public final class FxCommandBar extends VBox {
 
     List<HeroClassStatsEdit> heroEdits = state.heroStatsEdits();
     List<MagicMatrixEdit> magicEdits = state.magicMatrixEdits();
+    List<EquipmentPermissionEdit> equipmentPermissionEdits = state.equipmentPermissionEdits();
     List<SkillEffectEdit> skillEdits = state.skillEffectEdits();
+    List<ItemPriceEdit> itemPriceEdits = state.itemPriceEdits();
     List<WeaponCastSpellEdit> weaponCastEdits = state.weaponCastSpellEdits();
     boolean growthPatch =
         state.forceStrongLevelUps() && workspace.strongLevelUpsState() == PatchState.ORIGINAL;
@@ -473,6 +510,8 @@ public final class FxCommandBar extends VBox {
             && workspace.intelligenceSpellDamageState() == PatchState.ORIGINAL;
     boolean corneliaMasamunePatch =
         state.corneliaMasamune() && workspace.corneliaMasamuneState() == PatchState.ORIGINAL;
+    boolean corneliaExcaliburPatch =
+        state.corneliaExcalibur() && workspace.corneliaExcaliburState() == PatchState.ORIGINAL;
     boolean alwaysSuccessfulRunPatch =
         state.alwaysSuccessfulRun() && workspace.alwaysSuccessfulRunState() == PatchState.ORIGINAL;
     boolean partyActionOrderPatch =
@@ -483,13 +522,16 @@ public final class FxCommandBar extends VBox {
         state.airshipLanding() && workspace.airshipLandingState() == PatchState.ORIGINAL;
     if (heroEdits.isEmpty()
         && magicEdits.isEmpty()
+        && equipmentPermissionEdits.isEmpty()
         && skillEdits.isEmpty()
+        && itemPriceEdits.isEmpty()
         && weaponCastEdits.isEmpty()
         && !growthPatch
         && !universalChargesPatch
         && !fifteenChargesPatch
         && !intelligenceSpellDamagePatch
         && !corneliaMasamunePatch
+        && !corneliaExcaliburPatch
         && !alwaysSuccessfulRunPatch
         && !partyActionOrderPatch
         && !cottageRevivePatch
@@ -505,11 +547,14 @@ public final class FxCommandBar extends VBox {
             Map<String, byte[]> replacements = new HashMap<>();
             if (!heroEdits.isEmpty()
                 || !magicEdits.isEmpty()
+                || !equipmentPermissionEdits.isEmpty()
                 || !skillEdits.isEmpty()
+                || !itemPriceEdits.isEmpty()
                 || !weaponCastEdits.isEmpty()
                 || universalChargesPatch
                 || fifteenChargesPatch
-                || corneliaMasamunePatch) {
+                || corneliaMasamunePatch
+                || corneliaExcaliburPatch) {
               byte[] cp0 =
                   Files.readAllBytes(workspace.workDir().resolve(HeroClassStatsPatcher.ENTRY_NAME));
               for (HeroClassStatsEdit edit : heroEdits) {
@@ -522,11 +567,22 @@ public final class FxCommandBar extends VBox {
                   MagicMatrixPatcher.apply(cp0, chunkOffset, edit);
                 }
               }
+              for (EquipmentPermissionEdit edit : equipmentPermissionEdits) {
+                ItemEquipmentPatcher.applyPermission(cp0, edit);
+              }
               if (!skillEdits.isEmpty()) {
                 Cp0ChunkTable table = new Cp0ChunkTable(cp0);
                 int chunkOffset = table.chunkOffset(SkillDiscoveryService.SPELL_CHUNK_INDEX);
                 for (SkillEffectEdit edit : skillEdits) {
                   SkillEffectPatcher.apply(cp0, chunkOffset, edit);
+                }
+              }
+              if (!itemPriceEdits.isEmpty()) {
+                Cp0ChunkTable table = new Cp0ChunkTable(cp0);
+                int chunkOffset =
+                    table.chunkOffset(ItemEquipmentDiscoveryService.ITEM_METADATA_CHUNK_INDEX);
+                for (ItemPriceEdit edit : itemPriceEdits) {
+                  ItemPricePatcher.apply(cp0, chunkOffset, edit);
                 }
               }
               if (!weaponCastEdits.isEmpty()) {
@@ -545,6 +601,9 @@ public final class FxCommandBar extends VBox {
               }
               if (corneliaMasamunePatch) {
                 CorneliaWeaponShopPatcher.apply(cp0);
+              }
+              if (corneliaExcaliburPatch) {
+                CorneliaExcaliburShopPatcher.apply(cp0);
               }
               replacements.put(HeroClassStatsPatcher.ENTRY_NAME, cp0);
             }
@@ -603,17 +662,21 @@ public final class FxCommandBar extends VBox {
     load.disableProperty().bind(task.runningProperty());
     state.status(
         "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
-            + "%d skill edit(s), %d weapon cast edit(s)%s%s%s%s%s%s%s%s%s..."
+            + "%d equipment matrix edit(s), %d skill edit(s), %d item price edit(s), "
+            + "%d weapon cast edit(s)%s%s%s%s%s%s%s%s%s%s..."
             .formatted(
                 heroEdits.size(),
                 magicEdits.size(),
+                equipmentPermissionEdits.size(),
                 skillEdits.size(),
+                itemPriceEdits.size(),
                 weaponCastEdits.size(),
                 growthPatch ? ", strong level-ups" : "",
                 universalChargesPatch ? ", universal spell-charge growth" : "",
                 fifteenChargesPatch ? ", 15 max spell charges" : "",
                 intelligenceSpellDamagePatch ? ", INT-scaled spell damage" : "",
                 corneliaMasamunePatch ? ", Cornelia Masamune" : "",
+                corneliaExcaliburPatch ? ", Cornelia Excalibur" : "",
                 alwaysSuccessfulRunPatch ? ", always-successful run" : "",
                 partyActionOrderPatch ? ", party action order" : "",
                 cottageRevivePatch ? ", Cottage revive" : "",

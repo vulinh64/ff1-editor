@@ -29,9 +29,12 @@ descriptionTextId = nameTextId + 1
 
 The JavaFX Items tab reads these layouts through `ItemEquipmentDiscoveryService`
 and displays the decoded records in three tables: Weapons, Armor, and Items.
-Weapon cast-on-use skill ids are editable with a dropdown whose options use
-`ID - Skill name` labels. Armor and shared item metadata remain read-only. The
-same discovery path can be smoke-tested with:
+Shared item prices are editable as unsigned 16-bit values and write back to
+`cp0` chunk `0`. Weapon cast-on-use skill ids are editable with a dropdown whose
+options use decoded `ID - Skill name` labels. The Equipment Matrix tab edits weapon and
+armor class equip masks through Weapons and Armor sub-tabs, then writes those
+16-bit masks back to `cp0` chunks `3` and `2`. The same discovery path can be
+smoke-tested with:
 
 ```cmd
 java -jar target\ff1-data-editor-0.1.0.jar items ff1-jar
