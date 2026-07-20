@@ -8,13 +8,19 @@ import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
+import com.ff1.editor.data.ItemSnapshot;
+import com.ff1.editor.data.SkillEffectKind;
 import com.ff1.editor.data.SkillSnapshot;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -75,11 +81,27 @@ public final class FxItemsView extends BorderPane {
     skillNames =
         skills.stream()
             .collect(Collectors.toMap(SkillSnapshot::id, SkillSnapshot::name, (_, newer) -> newer));
+    Map<Integer, String> elementEffectivenessLabels = elementEffectivenessLabels(skills);
+    List<ItemSnapshot> discoveredItems =
+        workspace == null
+            ? List.of()
+            : new ItemEquipmentDiscoveryService(workspace.workDir()).discover();
+    Map<Integer, String> familyEffectivenessLabels = familyEffectivenessLabels(discoveredItems);
+    Map<Integer, String> familyEffectivenessCombinationLabels =
+        familyEffectivenessCombinationLabels(discoveredItems);
     List<FxItemRowViewModel> rows =
         workspace == null
             ? List.of()
-            : new ItemEquipmentDiscoveryService(workspace.workDir())
-                .discover().stream().map(item -> new FxItemRowViewModel(item, skillNames)).toList();
+            : discoveredItems.stream()
+                .map(
+                    item ->
+                        new FxItemRowViewModel(
+                            item,
+                            skillNames,
+                            elementEffectivenessLabels,
+                            familyEffectivenessLabels,
+                            familyEffectivenessCombinationLabels))
+                .toList();
     List<Integer> skillOptions =
         skills.stream().map(SkillSnapshot::id).filter(id -> id > 0).toList();
     skillIds.setAll(0);
@@ -157,6 +179,7 @@ public final class FxItemsView extends BorderPane {
                 weaponCastSpellColumn(),
                 textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
+                textColumn("Effective Against", FxItemRowViewModel::weaponEffectiveness, 320),
                 textColumn("Special", FxItemRowViewModel::weaponSpecialBytes, 92),
                 textColumn(DESCRIPTION_TITLE, FxItemRowViewModel::description, 360),
                 textColumn(SOURCE_TITLE, FxItemRowViewModel::source, 170)));
@@ -243,5 +266,65 @@ public final class FxItemsView extends BorderPane {
     table.setEditable(false);
     table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
     return table;
+  }
+
+  private static Map<Integer, String> elementEffectivenessLabels(List<SkillSnapshot> skills) {
+    Map<Integer, String> labels = new LinkedHashMap<>();
+    skills.stream()
+        .filter(skill -> skill.effectKind() == SkillEffectKind.DAMAGE.id())
+        .filter(skill -> Integer.bitCount(skill.elementOrStatusMask()) == 1)
+        .filter(skill -> !skill.name().isBlank())
+        .sorted(Comparator.comparingInt(SkillSnapshot::id))
+        .forEach(skill -> labels.putIfAbsent(skill.elementOrStatusMask(), skill.name()));
+    return Collections.unmodifiableMap(labels);
+  }
+
+  private static Map<Integer, String> familyEffectivenessLabels(List<ItemSnapshot> items) {
+    Map<Integer, String> labels = new LinkedHashMap<>();
+    for (ItemSnapshot item : items) {
+      if (item.category() != ItemCategory.WEAPON
+          || item.weaponSpecialByte2() == null
+          || Integer.bitCount(item.weaponSpecialByte2()) != 1) {
+        continue;
+      }
+      String label = effectiveAgainstText(item.description());
+      if (!label.isBlank()) {
+        labels.putIfAbsent(item.weaponSpecialByte2(), label);
+      }
+    }
+    return Collections.unmodifiableMap(labels);
+  }
+
+  private static Map<Integer, String> familyEffectivenessCombinationLabels(
+      List<ItemSnapshot> items) {
+    Map<Integer, String> labels = new LinkedHashMap<>();
+    for (ItemSnapshot item : items) {
+      if (item.category() != ItemCategory.WEAPON
+          || item.weaponSpecialByte2() == null
+          || Integer.bitCount(item.weaponSpecialByte2()) <= 1) {
+        continue;
+      }
+      String label = effectiveAgainstText(item.description());
+      if (!label.isBlank()) {
+        labels.putIfAbsent(item.weaponSpecialByte2(), label);
+      }
+    }
+    return Collections.unmodifiableMap(labels);
+  }
+
+  private static String effectiveAgainstText(String description) {
+    String prefix = "effective against ";
+    String normalized = description.toLowerCase(Locale.ROOT);
+    int start = normalized.indexOf(prefix);
+    if (start < 0) {
+      return StringUtils.EMPTY;
+    }
+    int valueStart = start + prefix.length();
+    int valueEnd = normalized.indexOf('.', valueStart);
+    String value =
+        valueEnd < 0
+            ? description.substring(valueStart)
+            : description.substring(valueStart, valueEnd);
+    return value.strip();
   }
 }

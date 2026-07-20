@@ -127,6 +127,19 @@ effect labels derived from item names. Price, `power/status`, and `accuracy` are
 editable; the remaining raw fields stay read-only until their behavior is fully
 named.
 
+The Monsters tab is a discovery/edit surface split into Normal and Bosses /
+Fixed. Monster names come from `PACK0_14`; records come from `cp0` chunk `15`.
+The Bosses / Fixed split is derived from encounter data, not a confirmed
+monster-stat flag: a monster appears there when any `cp0` chunk `12` encounter
+row containing that monster has no-run/boss-style byte `1`. Confirmed editable
+fields are EXP, Gil, HP, attack, hit count, defense, evasion, magic defense,
+Archetypes, Weaknesses, and Resists. Archetypes edit record byte `20` and are
+limited to three selected families per monster. Weaknesses edit byte `22` and
+Resists edit byte `23`; neither has a selection cap, but the same bit cannot be
+selected in both masks. Source offsets and raw leading bytes remain read-only.
+Confirmed monster reward fields: record bytes `4..5` are total EXP award and
+bytes `6..7` are Gil. EXP is divided among living party members in-game.
+
 The current global patch modal supports:
 
 - forced strong level-ups through a `g.class` bytecode patch;

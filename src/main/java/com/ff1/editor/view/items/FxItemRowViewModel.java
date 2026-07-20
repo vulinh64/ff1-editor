@@ -13,8 +13,12 @@ import org.apache.commons.lang3.StringUtils;
 
 public final class FxItemRowViewModel {
 
+  public static final String FAMILY_MASK_PATTERN = "%s (0x%02x)";
   private final ItemSnapshot item;
   private final Map<Integer, String> skillNames;
+  private final Map<Integer, String> elementEffectivenessLabels;
+  private final Map<Integer, String> familyEffectivenessLabels;
+  private final Map<Integer, String> familyEffectivenessCombinationLabels;
   private final IntegerProperty price;
   private final IntegerProperty castSpellId;
   private final IntegerProperty damage;
@@ -22,9 +26,17 @@ public final class FxItemRowViewModel {
   private final IntegerProperty absorb;
   private final IntegerProperty evasionPenalty;
 
-  public FxItemRowViewModel(ItemSnapshot item, Map<Integer, String> skillNames) {
+  public FxItemRowViewModel(
+      ItemSnapshot item,
+      Map<Integer, String> skillNames,
+      Map<Integer, String> elementEffectivenessLabels,
+      Map<Integer, String> familyEffectivenessLabels,
+      Map<Integer, String> familyEffectivenessCombinationLabels) {
     this.item = item;
     this.skillNames = skillNames;
+    this.elementEffectivenessLabels = elementEffectivenessLabels;
+    this.familyEffectivenessLabels = familyEffectivenessLabels;
+    this.familyEffectivenessCombinationLabels = familyEffectivenessCombinationLabels;
     this.price = new SimpleIntegerProperty(item.price());
     this.castSpellId = new SimpleIntegerProperty(originalCastSpellId());
     this.damage = new SimpleIntegerProperty(originalDamage());
@@ -166,6 +178,15 @@ public final class FxItemRowViewModel {
     return "%d, %d".formatted(item.weaponSpecialByte1(), item.weaponSpecialByte2());
   }
 
+  public String weaponEffectiveness() {
+    if (item.weaponSpecialByte1() == null || item.weaponSpecialByte2() == null) {
+      return StringUtils.EMPTY;
+    }
+    return joinNonBlank(
+        labelsForMask(item.weaponSpecialByte1(), elementEffectivenessLabels, "Element"),
+        labelsForFamilyMask(item.weaponSpecialByte2()));
+  }
+
   public String source() {
     return "%s @ 0x%08x".formatted(item.sourceEntry(), item.sourceOffset());
   }
@@ -186,6 +207,7 @@ public final class FxItemRowViewModel {
         || armorSubtype().toLowerCase().contains(normalized)
         || allowedClasses().toLowerCase().contains(normalized)
         || castSpell().toLowerCase().contains(normalized)
+        || weaponEffectiveness().toLowerCase().contains(normalized)
         || source().toLowerCase().contains(normalized)
         || notes().toLowerCase().contains(normalized);
   }
@@ -220,5 +242,60 @@ public final class FxItemRowViewModel {
     }
     String name = skillNames.getOrDefault(id, StringUtils.EMPTY);
     return name.isBlank() ? "%d - Effect %d".formatted(id, id) : "%d - %s".formatted(id, name);
+  }
+
+  private String labelsForFamilyMask(int mask) {
+    if (mask == 0) {
+      return StringUtils.EMPTY;
+    }
+    String combinationLabel = familyEffectivenessCombinationLabels.get(mask);
+    String bitLabels = labelsForMask(mask, familyEffectivenessLabels, "Family");
+    if (combinationLabel == null || combinationLabel.isBlank()) {
+      return bitLabels;
+    }
+    if (bitLabels.isBlank()) {
+      return FAMILY_MASK_PATTERN.formatted(combinationLabel, mask);
+    }
+    return "%s; %s".formatted(bitLabels, FAMILY_MASK_PATTERN.formatted(combinationLabel, mask));
+  }
+
+  private static String labelsForMask(
+      int mask, Map<Integer, String> labels, String fallbackPrefix) {
+    if (mask == 0) {
+      return StringUtils.EMPTY;
+    }
+    StringBuilder out = new StringBuilder();
+    int unknownBits = mask;
+    for (Map.Entry<Integer, String> entry : labels.entrySet()) {
+      int bit = entry.getKey();
+      if ((mask & bit) == 0) {
+        continue;
+      }
+      append(out, FAMILY_MASK_PATTERN.formatted(entry.getValue(), bit));
+      unknownBits &= ~bit;
+    }
+    for (int bit = 1; bit <= 0x80; bit <<= 1) {
+      if ((unknownBits & bit) != 0) {
+        append(out, "%s 0x%02x".formatted(fallbackPrefix, bit));
+      }
+    }
+    return out.toString();
+  }
+
+  private static String joinNonBlank(String first, String second) {
+    if (first == null || first.isBlank()) {
+      return second == null ? StringUtils.EMPTY : second;
+    }
+    if (second == null || second.isBlank()) {
+      return first;
+    }
+    return first + "; " + second;
+  }
+
+  private static void append(StringBuilder out, String value) {
+    if (!out.isEmpty()) {
+      out.append("; ");
+    }
+    out.append(value);
   }
 }

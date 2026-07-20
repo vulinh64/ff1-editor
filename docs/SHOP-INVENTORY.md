@@ -115,6 +115,10 @@ cp0 offset 0x00001a57: 0x09 -> 0x2f
 `0x2f` is item id `47`, whose weapon name text id is `440` (`Masamune`) and
 description text id is `441`.
 
+Both Cornelia weapon-shop replacement patches are confirmed in-game. The
+`Nunchaku -> Excalibur` and `Knife -> Masamune` changes update the Cornelia town
+weapon shop display and purchase result.
+
 ## Cornelia Armor Shop
 
 `cp0` chunk `8` is the armor-shop table. It begins at absolute offset
@@ -140,6 +144,10 @@ cp0 offset 0x00001a7a: 0x00 -> 0x58
 Because this uses shop type `1`, the normal armor-shop detail and purchase path
 reads armor records from `j.d[itemId - 48]`.
 
+The Cornelia armor-shop fill patch is confirmed in-game. The two empty slots
+become Ribbon and Protect Ring in the Cornelia town armor shop display and
+purchase result.
+
 ## Item-Shop Armor Check
 
 Armor ids share the same item-name and shared-price table as consumables, so an
@@ -150,13 +158,6 @@ records as `j.d[itemId - 48]`. Use the armor-shop row for buyable armor.
 
 ## Open Checks
 
-- Confirm in-game that the implemented `cp0[0x1a57]` change from `9` to `47` updates the
-  Cornelia town weapon shop display and purchase result.
-- Confirm in-game that the implemented `cp0[0x1a56]` change from `8` to `46` updates the
-  Cornelia town weapon shop display and purchase result.
-- Confirm in-game that the implemented Cornelia armor-shop change
-  `cp0[0x1a79..0x1a7a] = 0x50,0x58` adds Ribbon and Protect Ring to the
-  Cornelia town armor shop display and purchase result.
 - Confirm whether item id `7` is intentionally an unused/blank weapon sentinel
   or has a hidden menu purpose.
 - Decode the eight weapon record fields far enough to expose weapon stats in a

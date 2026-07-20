@@ -186,9 +186,11 @@ confirmed by both `cp0` skill behavior and `PACK0_4` text order.
 ## Excalibur Note
 
 Physical attack resolution reads weapon special bytes from `j.c[weapon][6]` and
-`j.c[weapon][7]`. If those bytes intersect enemy fields `g[target][20]` or
-`g[target][18]`, the attack gains a single physical effectiveness bonus:
+`j.c[weapon][7]`. If those bytes intersect enemy fields `g[target][20]`
+elemental weakness or `g[target][18]` family/type, the attack gains a single
+physical effectiveness bonus:
 `+4` attack and `+40` hit chance. Excalibur has special bytes `255,255`, so it
 matches every bit in those two target fields. Multiple matches do not stack, and
 this does not invoke Dia/fire/dragon spell formulas. Keep the UI label as
-`Special` until those enemy fields are named with more confidence.
+`Special` until the remaining fuzzy family/type bits are named with more
+confidence.

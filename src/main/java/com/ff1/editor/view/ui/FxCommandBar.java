@@ -7,6 +7,7 @@ import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
+import com.ff1.editor.data.MonsterStatsEdit;
 import com.ff1.editor.data.PatchState;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
@@ -35,6 +36,7 @@ import com.ff1.editor.service.patcher.IntelligenceSpellHealingClassPatcher;
 import com.ff1.editor.service.patcher.ItemEquipmentPatcher;
 import com.ff1.editor.service.patcher.ItemPricePatcher;
 import com.ff1.editor.service.patcher.MagicMatrixPatcher;
+import com.ff1.editor.service.patcher.MonsterStatsPatcher;
 import com.ff1.editor.service.patcher.PartyActionOrderClassPatcher;
 import com.ff1.editor.service.patcher.SkillEffectPatcher;
 import com.ff1.editor.service.patcher.UniversalSpellChargeClassPatcher;
@@ -524,7 +526,8 @@ public final class FxCommandBar extends VBox {
             || !state.itemPriceEdits().isEmpty()
             || !state.weaponCastSpellEdits().isEmpty()
             || !state.weaponStatsEdits().isEmpty()
-            || !state.armorStatsEdits().isEmpty();
+            || !state.armorStatsEdits().isEmpty()
+            || !state.monsterStatsEdits().isEmpty();
     BooleanBinding hasBuildSelection =
         Bindings.createBooleanBinding(
             () ->
@@ -628,6 +631,7 @@ public final class FxCommandBar extends VBox {
     List<WeaponCastSpellEdit> weaponCastEdits = state.weaponCastSpellEdits();
     List<WeaponStatsEdit> weaponStatsEdits = state.weaponStatsEdits();
     List<ArmorStatsEdit> armorStatsEdits = state.armorStatsEdits();
+    List<MonsterStatsEdit> monsterStatsEdits = state.monsterStatsEdits();
     boolean growthPatch =
         state.forceStrongLevelUps() && workspace.strongLevelUpsState() == PatchState.ORIGINAL;
     boolean universalChargesPatch =
@@ -669,6 +673,7 @@ public final class FxCommandBar extends VBox {
         && weaponCastEdits.isEmpty()
         && weaponStatsEdits.isEmpty()
         && armorStatsEdits.isEmpty()
+        && monsterStatsEdits.isEmpty()
         && !growthPatch
         && !universalChargesPatch
         && !fifteenChargesPatch
@@ -700,6 +705,7 @@ public final class FxCommandBar extends VBox {
                 || !weaponCastEdits.isEmpty()
                 || !weaponStatsEdits.isEmpty()
                 || !armorStatsEdits.isEmpty()
+                || !monsterStatsEdits.isEmpty()
                 || universalChargesPatch
                 || fifteenChargesPatch
                 || corneliaMasamunePatch
@@ -725,6 +731,9 @@ public final class FxCommandBar extends VBox {
               }
               for (ArmorStatsEdit edit : armorStatsEdits) {
                 ItemEquipmentPatcher.applyArmorStats(cp0, edit);
+              }
+              for (MonsterStatsEdit edit : monsterStatsEdits) {
+                MonsterStatsPatcher.apply(cp0, edit);
               }
               if (!skillEdits.isEmpty()) {
                 Cp0ChunkTable table = new Cp0ChunkTable(cp0);
@@ -834,7 +843,8 @@ public final class FxCommandBar extends VBox {
     state.status(
         "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
             + "%d equipment matrix edit(s), %d skill edit(s), %d item price edit(s), "
-            + "%d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s)%s%s%s%s%s%s%s%s%s%s%s%s%s%s..."
+            + "%d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), "
+            + "%d monster stat edit(s)%s%s%s%s%s%s%s%s%s%s%s%s%s%s..."
                 .formatted(
                     heroEdits.size(),
                     magicEdits.size(),
@@ -844,6 +854,7 @@ public final class FxCommandBar extends VBox {
                     weaponCastEdits.size(),
                     weaponStatsEdits.size(),
                     armorStatsEdits.size(),
+                    monsterStatsEdits.size(),
                     growthPatch ? ", strong level-ups" : StringUtils.EMPTY,
                     universalChargesPatch ? ", universal spell-charge growth" : StringUtils.EMPTY,
                     fifteenChargesPatch ? ", 15 max spell charges" : StringUtils.EMPTY,

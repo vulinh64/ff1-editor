@@ -104,3 +104,7 @@ and both rows have byte `1` set to `1`:
 So Piscodemon encounters behave like no-run/fixed battles, but the enforcement
 comes from the encounter rows that place Piscodemons, not from a Piscodemon
 monster-stat boss bit.
+
+The editor's Monsters tab uses this same encounter-level evidence for its
+Bosses / Fixed sub-tab: any monster found in a no-run encounter row is shown
+there, while the remaining monsters are shown under Normal.

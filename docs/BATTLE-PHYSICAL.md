@@ -36,18 +36,31 @@ weaponSpecialB = j.c[weaponIndex][7]
 Against monster targets, those bytes are checked against two monster masks:
 
 ```text
-monsterFamilyOrStatusMask = g[target][18]
+monsterFamilyOrTypeMask = g[target][18]
 monsterElementWeaknessMask = g[target][20]
 
 if ((weaponSpecialA & monsterElementWeaknessMask) != 0
-    || (weaponSpecialB & monsterFamilyOrStatusMask) != 0) {
+    || (weaponSpecialB & monsterFamilyOrTypeMask) != 0) {
     attack += 4
     hitChance += 40
 }
 ```
 
 This is a single boolean effectiveness bonus. Matching several bits does not
-stack several bonuses.
+stack several bonuses, and it does not change the physical attack into a spell
+formula or separate elemental damage type.
+
+Confirmed weapon examples:
+
+| Weapon | Special bytes | Meaning |
+|--------|---------------|---------|
+| Flame Sword | `0x10,0x88` | Effective against fire-weak enemies, undead via `0x08`, and regenerative enemies via `0x80`. |
+| Ice Brand | `0x20,0x00` | Effective against ice-weak enemies. |
+| Wyrmkiller | `0x00,0x02` | Effective against dragon/reptile-family enemies. |
+| Great Sword | `0x00,0x04` | Effective against the `0x04` family; local data includes gigas/ogres plus Goblin and Goblin Guard. |
+| Sun Blade | `0x00,0x08` | Effective against undead; same monster family bit used by Dia-like damage gating. |
+| Coral Sword | `0x00,0x20` | Effective against aquatic enemies. |
+| Rune Blade | `0x00,0x41` | Effective against spellcaster/magical-style family bits, still partly fuzzy. |
 
 Excalibur has `0xff,0xff` in these two weapon-special bytes, so it matches any
 bit present in either monster mask. Practically, Excalibur gets the same one-time

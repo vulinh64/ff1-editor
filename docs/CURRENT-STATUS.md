@@ -39,11 +39,26 @@ This is the quick landing page for the FF1 J2ME editor project.
   - shows weapon damage/accuracy/cast spell/equip classes from `cp0` chunk 3;
   - edits weapon damage, accuracy, and cast spell ids, writing them back to
     `cp0` chunk 3;
+  - shows read-only weapon effectiveness labels derived from skill names,
+    weapon descriptions, and the raw special masks;
   - shows armor subtype/absorb/evasion lower/cast spell/resistance/equip classes from
     `cp0` chunk 2.
   - edits armor absorb and evasion lower, writing them back to `cp0` chunk 2.
   - hides key/quest items from the Items sub-tab because those are not normal
     shop or inventory-balance data.
+- Monsters tab:
+  - discovery/edit view split into Normal and Bosses / Fixed;
+  - reads monster names from `PACK0_14` and monster records from `cp0` chunk 15;
+  - classifies Bosses / Fixed by whether the monster appears in any `cp0` chunk
+    12 encounter row whose no-run/boss-style flag byte is `1`;
+  - edits confirmed monster EXP, Gil, HP, attack, hit count, defense, evasion,
+    magic defense, Archetypes, Weaknesses, and Resists fields, writing them back
+    to `cp0` chunk 15;
+  - limits Archetypes selection to three checked families per monster;
+  - allows any number of Weakness and Resist selections, including no weaknesses
+    or all resistances, while preventing the same element from being both a
+    weakness and a resistance;
+  - keeps source offsets and raw leading bytes read-only for ongoing decoding.
 - Skills tab:
   - discovery/edit view for all 94 `cp0` chunk 1 spell/effect records;
   - shows spell/effect names from game text where available, raw runtime fields, effect ids,
@@ -179,6 +194,16 @@ This is the quick landing page for the FF1 J2ME editor project.
   `BATTLE-RUN.md`.
 - Encounter table: `cp0` chunk 12, 245 records of 15 bytes. Encounter byte `1`
   is the no-run/boss-style flag used by Run and battle-start advantage logic.
+- Monster table: `cp0` chunk 15, 128 records of 25 bytes. Names are decoded
+  from `PACK0_14`, where local text ids correspond to monster ids.
+- Monster record bytes `4..5` are total EXP award and bytes `6..7` are Gil,
+  both big-endian unsigned 16-bit values. In-game EXP is divided among living
+  party members, while Gil is awarded as the full battle total.
+- Monster record bytes `8..9`, `12`, `13`, `14`, `16`, `20`, `21`, `22`, and
+  `23` are editable HP, defense, evasion, hit count, attack, archetype mask,
+  magic defense, weakness mask, and resistance mask respectively. The editor
+  caps archetype masks to at most three set bits; weakness and resistance masks
+  have no selection cap but may not overlap.
 - Random encounter rate: `i.class`, private method `V()`. It rolls
   `random(100) < aI`, where `aI` rises per eligible step, resets to
   `-2 - random(4)` after an encounter, and caps at `15`. Airship skips random
@@ -190,9 +215,15 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Physical damage and critical hits: `g.class`, private static method
   `a(boolean, boolean, int, int)`. See `BATTLE-PHYSICAL.md`.
 - Weapon special effectiveness: the same physical attack helper checks weapon
-  special bytes against monster weakness/family masks. Excalibur's `0xff,0xff`
-  special bytes match any bit and grant one `+4` attack / `+40` hit-chance
-  bonus, without stacking multiple elemental/family bonuses.
+  special byte `7` against monster elemental weakness mask `g[target][20]` and
+  weapon special byte `8` against monster family/type mask `g[target][18]`.
+  Matching either side grants one `+4` attack / `+40` hit-chance bonus, without
+  stacking multiple elemental/family bonuses. Confirmed examples include Flame
+  Sword `0x10,0x88`, Ice Brand `0x20,0x00`, Wyrmkiller `0x00,0x02`, Sun Blade
+  `0x00,0x08`, Coral Sword `0x00,0x20`, and Excalibur `0xff,0xff`.
+- Monster family/type bit `0x80` is regenerative. The local battle code checks
+  `g[target][18] & 0x80` during end-of-round HP ticks and applies a `maxHp / 20`
+  recovery result.
 - Field recovery for inns/shelters: `i.class`, private static method `l(int)`.
   Inn is `0`, Sleeping Bag is `1`, Tent is `2`, Cottage is `3`. Inn and Cottage
   share the spell-charge recovery amount.
@@ -213,6 +244,12 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Black Wizard has all Black Magic permissions and no White Magic permissions.
 - Red Wizard has broader access than Red Mage, but Red Mage and Red Wizard are
   distinct permission bits.
+- Cornelia weapon-shop replacement patches are confirmed in-game:
+  `cp0[0x1a56] = 0x2e` updates `Nunchaku -> Excalibur`, and
+  `cp0[0x1a57] = 0x2f` updates `Knife -> Masamune`.
+- Cornelia armor-shop fill patch is confirmed in-game:
+  `cp0[0x1a79..0x1a7a] = 0x50,0x58` adds Ribbon and Protect Ring to the
+  Cornelia town armor shop display and purchase result.
 
 ## Useful Build Commands
 
@@ -227,12 +264,6 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
 
 ## Next Good Targets
 
-- In-game check the implemented Cornelia weapon-shop replacement patch
-  `cp0[0x1a57] = 0x2f` for `Knife -> Masamune`.
-- In-game check the implemented Cornelia weapon-shop replacement patch
-  `cp0[0x1a56] = 0x2e` for `Nunchaku -> Excalibur`.
-- In-game check the implemented Cornelia armor-shop fill patch
-  `cp0[0x1a79..0x1a7a] = 0x50,0x58` for `empty slots -> Ribbon, Protect Ring`.
 - Decode the remaining unknown item, weapon, armor, spell/effect, and monster
   fields.
 - Investigate spell/name text editing beyond the current read-only decoded
@@ -241,7 +272,8 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
   Dia-like undead-damage spells. Keep these separate from the current
   damage-only and healing-only patches unless the patch behavior is
   intentionally renamed.
-- Decode monster records.
+- Continue decoding monster record fields beyond the currently exposed combat,
+  type, weakness, resistance, and raw leading bytes.
 - Investigate an optional unsigned/wider starting-HP engine patch.
 - Add focused tests around patch detection and byte replacement once layouts
   settle.

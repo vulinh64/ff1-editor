@@ -32,11 +32,14 @@ The JavaFX Items tab reads these layouts through `ItemEquipmentDiscoveryService`
 and displays the decoded records in three tables: Weapons, Armor, and Items.
 Shared item prices are editable as unsigned 16-bit values and write back to
 `cp0` chunk `0`. Weapon damage, accuracy, and cast-on-use skill ids are editable
-and write back to `cp0` chunk `3`. Armor absorb and evasion lower are editable
-and write back to `cp0` chunk `2`. Key/quest items are deliberately hidden from
-the Items sub-tab. The Equipment Matrix tab edits weapon and armor class equip
-masks through Weapons and Armor sub-tabs, then writes those 16-bit masks back to
-`cp0` chunks `3` and `2`. The same discovery path can be smoke-tested with:
+and write back to `cp0` chunk `3`. Weapon effectiveness is shown as a read-only
+column derived from skill names, weapon descriptions, and the raw special masks;
+unknown bits remain raw instead of guessed. Armor absorb and evasion lower are
+editable and write back to `cp0` chunk `2`. Key/quest items are deliberately
+hidden from the Items sub-tab. The Equipment Matrix tab edits weapon and armor
+class equip masks through Weapons and Armor sub-tabs, then writes those 16-bit
+masks back to `cp0` chunks `3` and `2`. The same discovery path can be
+smoke-tested with:
 
 ```cmd
 java -jar target\ff1-data-editor-0.1.0.jar items ff1-jar
@@ -118,8 +121,8 @@ Current confirmed record shape:
 |     4 | weapon damage                         |
 |     5 | weapon accuracy                       |
 |     6 | spell id cast when used, `0` for none |
-|     7 | special/element byte, not fully named |
-|     8 | special/effect byte, not fully named  |
+|     7 | element weakness effectiveness mask   |
+|     8 | family/type effectiveness mask        |
 
 Damage and accuracy are confirmed by `j.f(hero)` and `j.e(hero)`:
 
@@ -136,8 +139,8 @@ The attack roll is `0..200`, so with enough hit rate to cover that threshold,
 Masamune crits on `41 / 201` hit attempts, about `20.4%`.
 
 Weapon special bytes `7` and `8` are checked during physical attacks against two
-monster masks: one currently labeled as elemental weakness-like
-`g[target][20]`, and one currently labeled as family/status-like
+monster masks: byte `7` is checked against the monster elemental weakness mask
+`g[target][20]`, and byte `8` is checked against the monster family/type mask
 `g[target][18]`. Any match gives a single physical effectiveness bonus:
 
 ```text
@@ -146,9 +149,36 @@ hitChance += 40
 ```
 
 Excalibur has both special bytes set to `0xff`, so it matches any bit present in
-either monster mask. That makes it broadly effective against monsters with
-weakness/family bits such as undead, dragons, or elemental weaknesses, but the
-bonus does not stack for multiple simultaneous matches.
+either monster mask. That makes it broadly effective against monsters with any
+elemental weakness or family/type bit, but the bonus does not stack for multiple
+simultaneous matches.
+
+Important behavior note: this is not a separate spell-style damage element. It
+does not route Flame Sword through the Fire spell formula or Sun Blade through
+Dia. The physical helper only grants one flat `+4` attack and `+40` hit-chance
+bonus before normal hit/damage rolls.
+
+Confirmed element weakness mask bits, shared with spell `element/status` masks:
+
+| Bit    | Meaning   | Evidence |
+|--------|-----------|----------|
+| `0x10` | Fire      | Fire/Fira/Firaga spell records use `0x10`; Flame Sword uses this bit. |
+| `0x20` | Ice       | Blizzard/Blizzara/Blizzaga spell records use `0x20`; Ice Brand uses this bit. |
+| `0x40` | Lightning | Thunder/Thundara/Thundaga spell records use `0x40`; water-family enemies often carry this weakness. |
+| `0x80` | Earth     | Quake/Earthquake spell records use `0x80`; no stock weapon except Excalibur targets it directly. |
+
+Confirmed and tentative family/type mask bits:
+
+| Bit    | Meaning                         | Evidence |
+|--------|---------------------------------|----------|
+| `0x02` | Dragon/reptile                  | Wyrmkiller uses this bit; matching monsters include dragons, wyrms, wyverns, hydras, lizards, snakes, and dinosaurs. |
+| `0x04` | Giant/ogre/goblin family        | Great Sword uses this bit and its local description says "effective against giants"; matching monsters include Hill/Ice/Fire Gigas, ogres, Goblin, and Goblin Guard. |
+| `0x08` | Undead                          | Sun Blade and Light Axe use this bit; Dia-like damage also gates on `g[target][18] & 0x08`. |
+| `0x10` | Werebeast                       | Werebuster uses this bit; matching monsters are Werewolf and Weretiger. The label matches the FF1 wiki enemy-type wording. |
+| `0x20` | Aquatic                         | Coral Sword uses this bit; matching monsters include Sahagin, sharks, sea monsters, Water Naga, and Kraken. |
+| `0x40` | Spellcaster/magical, tentative  | Rune Blade uses this bit plus `0x01`; matching monsters include Ogre Mage, Evil Eye, Rakshasa, Dark Wizard, Dark Fighter, Lich, and several bosses. |
+| `0x01` | Magical/boss-like, still fuzzy  | Rune Blade also uses this bit; matching monsters include spirits, elementals, golems, fiends, and some undead. |
+| `0x80` | Regenerative                    | Flame Sword includes this bit in addition to Undead; matching monsters include Werewolf, trolls, vampires, Ogre Mage, Death Eye, and Death Machine. Local battle code also checks `g[target][18] & 0x80` during end-of-round HP ticks and applies a `maxHp / 20` recovery result. |
 
 ### Weapon Permissions
 
@@ -320,7 +350,8 @@ patch notes. Current shop category mapping:
 - Trace the field/menu path for item/equipment spells. The battle command and
   battle execution path are confirmed; field/menu restrictions still need a
   fuller pass before editing.
-- Name the unknown weapon bytes `0`, `1`, `7`, and `8`.
+- Name the unknown weapon bytes `0` and `1`.
 - Name the shared item metadata bytes `2` and `3`.
-- Decode resistance/special mask bits for armor and elemental/effective-family
-  bits for weapons.
+- Decode resistance/special mask bits for armor.
+- Refine the weapon family/type labels for bits `0x01` and `0x40`
+  against more monster behavior and in-game expectations.
