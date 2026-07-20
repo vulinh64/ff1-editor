@@ -60,7 +60,6 @@ java -jar target\ff1-data-editor-0.1.0.jar heroes ff1-jar
 java -jar target\ff1-data-editor-0.1.0.jar items ff1-jar
 java -jar target\ff1-data-editor-0.1.0.jar skills ff1-jar
 java -jar target\ff1-data-editor-0.1.0.jar dump-int-arrays ff1.jar g
-java -jar target\ff1-data-editor-0.1.0.jar dump-text ff1-jar PACK0_4 <boundariesCsv> <startInclusive> [endExclusive]
 java -jar target\ff1-data-editor-0.1.0.jar search-text ff1-jar <text> [moreText...]
 ```
 
@@ -68,15 +67,17 @@ java -jar target\ff1-data-editor-0.1.0.jar search-text ff1-jar <text> [moreText.
 
 The JavaFX app opens with a JAR chooser and validates that the selected file is the expected Namco Bandai `Final Fantasy` MIDlet. Once loaded, the editor provides these tabs:
 
-* `Heroes`: edits base-class starting HP, STR, AGL, INT, STA, and LCK from `cp0`. Upgraded classes are shown as read-only mirror rows because class change inherits live character stats.
+* `Heroes`: edits base-class starting HP, STR, AGL, INT, STA, and LCK. Upgraded classes are shown as read-only mirror rows because class change inherits live character stats.
 
-* `Magic Matrix`: edits class permission masks for learnable White and Black Magic. Spell names are decoded from `PACK0_4`.
+* `Magic Matrix`: edits which classes can learn each White and Black Magic spell.
 
 * `Equipment Matrix`: edits weapon and armor equip permission masks.
 
-* `Skills`: shows all 94 spell/effect records and edits price, `power/status`, and `accuracy`.
+* `Skills`: shows all 94 spell/effect entries and edits spell shop price, effect strength, status behavior, and success rate.
 
-* `Items`: shows decoded item/equipment names, descriptions, prices, equipment stats, equip classes, and cast spell ids. Shared item prices, weapon damage/accuracy/cast spell ids, and armor absorb/evasion lower are editable. Key/quest items are hidden.
+* `Items`: shows item/equipment names, descriptions, prices, equipment stats, equip classes, cast spell ids, and weapon effectiveness labels. Shared item prices, weapon damage/hit rate/cast spell ids, and armor absorb/evasion lower are editable. Key/quest items are hidden.
+
+* `Monsters`: splits normal monsters from bosses/fixed encounters and edits confirmed rewards, HP, attack, hits, defense, evasion, magic defense, archetypes, weaknesses, and resistances. Archetypes are capped to three selections; weaknesses and resistances cannot overlap on the same element.
 
 The `Build Patched JAR` command opens a global patch dialog. These options change how the patched JAR behaves compared with the base game:
 
