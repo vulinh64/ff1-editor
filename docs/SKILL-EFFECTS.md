@@ -158,7 +158,7 @@ several status bits.
 |    2 | Undead damage | same damage shape but gated by target field `g[target][18] & 0x08`; used by Dia line. |
 |    3 | Status inflict | applies `power/status` as a status bit on success. |
 |    4 | Sleep stage down | decrements target sleep/stun stage field. |
-|    5 | Mind blast | reduces monster field `8`; used by Fear-like behavior. |
+|    5 | Fear/morale down | reduces monster flee morale field `8`; used by Fear-like behavior. |
 |    6 | Unused/no-op | returns zero and has no follow-up mutation. |
 |    7 | Healing | returns negative HP restoration using the power byte as the base. |
 |    8 | Status recovery | checks/applies status recovery bits; used by Blindna, Poisona, Life, Stona, Vox, Full-Life. |

@@ -4,6 +4,9 @@ JavaFX editor and patch builder for the Namco Bandai Java ME release of `Final F
 
 This project is inspired by [vulinh64/vddoh-editor](https://github.com/vulinh64/vddoh-editor).
 
+For a player/modder deep dive into the game's confirmed systems and optional
+quality-of-life patches, see [Final Fantasy I Java ME - Game Mechanics](docs/FF1-J2ME-MECHANICS.md).
+
 The selected input JAR is never modified in place. Patched JARs are written to `%USERPROFILE%\.ff1-editor\dist`, and temporary extracted files are written to `%USERPROFILE%\.ff1-editor\temp`.
 
 ## Technologies

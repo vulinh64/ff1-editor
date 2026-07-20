@@ -204,6 +204,11 @@ This is the quick landing page for the FF1 J2ME editor project.
   magic defense, weakness mask, and resistance mask respectively. The editor
   caps archetype masks to at most three set bits; weakness and resistance masks
   have no selection cap but may not overlap.
+- Monster record byte `10` is loaded into runtime monster field `8` and used as
+  enemy flee morale. Enemy AI chooses flee when
+  `morale - leaderLevel * 2 + random(50) < 80`, unless the encounter no-run flag
+  is set or morale is `255`. Fear-style effect kind `5` lowers this same runtime
+  morale field by spell/effect power.
 - Random encounter rate: `i.class`, private method `V()`. It rolls
   `random(100) < aI`, where `aI` rises per eligible step, resets to
   `-2 - random(4)` after an encounter, and caps at `15`. Airship skips random
@@ -212,6 +217,8 @@ This is the quick landing page for the FF1 J2ME editor project.
   state). See `FIELD-MOVEMENT.md`.
 - Battle turn queue: `g.class`, private static method `G()`. See
   `BATTLE-ORDER.md`.
+- Luck is used in vanilla battle logic for Run escape odds and battle-start
+  preemptive/ambush odds. See `BATTLE-RUN.md`.
 - Physical damage and critical hits: `g.class`, private static method
   `a(boolean, boolean, int, int)`. See `BATTLE-PHYSICAL.md`.
 - Weapon special effectiveness: the same physical attack helper checks weapon

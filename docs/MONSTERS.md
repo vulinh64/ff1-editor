@@ -80,3 +80,18 @@ The editor and patcher prevent selecting the same element as both a weakness and
 a resistance.
 For example, Chaos can be represented as no checked Weaknesses and all checked
 Resists. Raw leading bytes and source offsets remain read-only.
+
+## Confirmed Runtime Behavior Fields
+
+Record byte `10` is loaded into runtime monster field `8`. Enemy action planning
+uses it as flee morale:
+
+```text
+chance to flee = clamp(80 - morale + leader level * 2, 0, 50) / 50
+```
+
+Morale `255` disables automatic enemy fleeing. Encounter no-run/boss rows also
+disable it. Fear-style effect kind `5` lowers this runtime morale field by the
+spell/effect power byte, which can cause the monster to flee on a later action
+decision. This byte is confirmed behavior, but it is not exposed as an editable
+Monsters tab field yet.
