@@ -306,7 +306,7 @@ public final class WeaponAffinityDamageClassPatcher {
 
     private void patchPending(CodeBuilder builder) {
       List<Instruction> instructions = pendingInstructions();
-      List<Instruction> trailingInstructions = trailingInstructions(2);
+      List<Instruction> trailingInstructions = trailingInstructions();
       if (isOriginalFlatAffinityWindow(trailingInstructions)) {
         while (pending.size() > 2) {
           builder.with(pending.removeFirst());
@@ -324,7 +324,6 @@ public final class WeaponAffinityDamageClassPatcher {
         emitAccuracyClamp(builder);
         accuracyInjected = true;
         counter.accuracyPatched();
-        return;
       }
     }
 
@@ -344,13 +343,13 @@ public final class WeaponAffinityDamageClassPatcher {
       return instructions;
     }
 
-    private List<Instruction> trailingInstructions(int count) {
-      if (pending.size() < count) {
+    private List<Instruction> trailingInstructions() {
+      if (pending.size() < 2) {
         return List.of();
       }
       List<CodeElement> elements = new ArrayList<>(pending);
-      List<Instruction> instructions = new ArrayList<>(count);
-      for (int i = elements.size() - count; i < elements.size(); i++) {
+      List<Instruction> instructions = new ArrayList<>(2);
+      for (int i = elements.size() - 2; i < elements.size(); i++) {
         if (elements.get(i) instanceof Instruction instruction) {
           instructions.add(instruction);
         } else {

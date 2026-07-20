@@ -525,21 +525,21 @@ public final class FxCommandBar extends VBox {
     VBox options =
         new VBox(
             8,
-            strongLevelUpsOption,
-            universalChargesOption,
-            fifteenChargesOption,
-            intelligenceSpellDamageOption,
-            intelligenceSpellHealingOption,
-            heroMagicResistanceOption,
-            corneliaMasamuneOption,
-            corneliaExcaliburOption,
-            corneliaRibbonProtectRingOption,
-            alwaysSuccessfulRunOption,
-            partyActionOrderOption,
-            enemyCriticalDefenseOption,
-            weaponAffinityDamageOption,
-            cottageReviveOption,
-            airshipLandingOption);
+            optionRow(strongLevelUpsOption),
+            optionRow(universalChargesOption),
+            optionRow(fifteenChargesOption),
+            optionRow(intelligenceSpellDamageOption),
+            optionRow(intelligenceSpellHealingOption),
+            optionRow(heroMagicResistanceOption),
+            optionRow(corneliaMasamuneOption),
+            optionRow(corneliaExcaliburOption),
+            optionRow(corneliaRibbonProtectRingOption),
+            optionRow(alwaysSuccessfulRunOption),
+            optionRow(partyActionOrderOption),
+            optionRow(enemyCriticalDefenseOption),
+            optionRow(weaponAffinityDamageOption),
+            optionRow(cottageReviveOption),
+            optionRow(airshipLandingOption));
     options.setPadding(new Insets(8, 0, 0, 0));
     pane.setContent(options);
 
@@ -638,8 +638,18 @@ public final class FxCommandBar extends VBox {
     CheckBox checkbox = new CheckBox(source.getText());
     checkbox.setSelected(source.isSelected());
     checkbox.setDisable(source.isDisable());
-    checkbox.setTooltip(new Tooltip(optionTooltip(patchState)));
+    checkbox.setTooltip(new Tooltip(optionTooltip(source, patchState)));
     return checkbox;
+  }
+
+  private static HBox optionRow(CheckBox checkbox) {
+    HBox row = new HBox(checkbox);
+    row.setPickOnBounds(true);
+    Tooltip tooltip = checkbox.getTooltip();
+    if (tooltip != null) {
+      Tooltip.install(row, new Tooltip(tooltip.getText()));
+    }
+    return row;
   }
 
   private static int selectedOriginal(CheckBox checkbox, PatchState patchState) {
@@ -953,7 +963,43 @@ public final class FxCommandBar extends VBox {
     };
   }
 
-  private static String optionTooltip(PatchState state) {
+  private String optionTooltip(CheckBox source, PatchState state) {
+    String description =
+        switch (source.getText()) {
+          case "Force strong level-ups" ->
+              "Every level-up uses the strong-growth path: bonus HP, plus +1 to every body stat.";
+          case "Universal spell-charge growth" -> "Every class gains spell charges while leveling.";
+          case "15 max spell charges" -> "Raises the spell-charge cap from 9 to 15.";
+          case "Damage-causing spells scale with INT" ->
+              "Damage-causing player spells gain 1% damage for every 2 INT.";
+          case "Healing spells scale with INT" ->
+              "Non-full-heal player healing gains 1% effectiveness for every 2 INT.";
+          case "INT+STA reduce enemy spell effects" ->
+              "Hero INT + STA reduces enemy spell damage and some enemy spell success chances.";
+          case "Cornelia sells Masamune" ->
+              "Cornelia's weapon shop sells Masamune, the end-game katana.";
+          case "Cornelia sells Excalibur" ->
+              "Cornelia's weapon shop sells Excalibur, the Knight's end-game broadsword.";
+          case "Cornelia armor shop sells Ribbon and Protect Ring" ->
+              "Cornelia's armor shop sells Ribbon and Protect Ring in its empty slots.";
+          case "Always successful run" ->
+              "The Run command always succeeds, except in forced or boss encounters.";
+          case "Party action order" ->
+              "Party actions resolve before enemies: magic, then items, then attacks, then Run. Within the same action group, lower party slots act first.";
+          case "Enemy crits respect party defense" ->
+              "Enemy critical-hit bonus damage is reduced by party defense, so heavy heroes take much less critical damage.";
+          case "Weapon affinity damage bonus" ->
+              "When a weapon matches an enemy weakness or archetype, it adds half its weapon damage to attack and clamps hit chance to 255.";
+          case "Cottage revives KO" ->
+              "Cottage revives KO party members and restores full HP and spell charges.";
+          case "Airship lands on safe terrain" ->
+              "The airship can land on walkable land terrain, while still rejecting water.";
+          default -> source.getText();
+        };
+    return description + "\nStatus: " + optionTooltipState(state);
+  }
+
+  private static String optionTooltipState(PatchState state) {
     return switch (state) {
       case ORIGINAL -> "available";
       case PATCHED -> "already patched";
