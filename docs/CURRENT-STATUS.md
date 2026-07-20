@@ -144,6 +144,12 @@ This is the quick landing page for the FF1 J2ME editor project.
   - changes only enemy critical hits against party members so the critical bonus
     doubles post-defense damage instead of adding the raw pre-defense attack roll;
   - leaves party critical hits against enemies unchanged.
+- Weapon affinity damage bonus:
+  - bytecode patch in `g.class`;
+  - changes hero weapon-special matches from stock `+4` attack / `+40` hit
+    chance to `weapon damage / 2` added attack and `255` hit chance;
+  - applies the added attack before defense, random damage rolls, and critical
+    handling, while keeping the one-time no-stacking affinity rule.
 - Cottage revives KO:
   - bytecode patch in `i.class`;
   - changes the field recovery helper so Cottage (`recoveryKind == 3`) clears the
@@ -228,6 +234,8 @@ This is the quick landing page for the FF1 J2ME editor project.
   stacking multiple elemental/family bonuses. Confirmed examples include Flame
   Sword `0x10,0x88`, Ice Brand `0x20,0x00`, Wyrmkiller `0x00,0x02`, Sun Blade
   `0x00,0x08`, Coral Sword `0x00,0x20`, and Excalibur `0xff,0xff`.
+  The optional weapon affinity damage patch replaces that flat stock bonus with
+  `weapon damage / 2` added attack plus `255` hit chance.
 - Monster family/type bit `0x80` is regenerative. The local battle code checks
   `g[target][18] & 0x80` during end-of-round HP ticks and applies a `maxHp / 20`
   recovery result.

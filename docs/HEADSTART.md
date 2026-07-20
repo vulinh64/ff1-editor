@@ -158,6 +158,9 @@ The current global patch modal supports:
 - an enemy critical-defense patch in `g.class` that changes only enemy critical
   hits against party members to double post-defense damage instead of adding the
   raw pre-defense attack roll.
+- a weapon affinity damage patch in `g.class` that changes matching weapon
+  special bonuses from stock flat attack/hit bonuses to half weapon damage added
+  to attack plus clamped hit chance.
 - a Cottage revive patch in `i.class` that lets Cottage revive KO members while
   preserving Sleeping Bag/Tent behavior.
 - an airship landing patch in `i.class` that expands landing to safe world-map

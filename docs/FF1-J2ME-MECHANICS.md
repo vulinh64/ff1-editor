@@ -289,6 +289,22 @@ Worked example: if Flame Sword hits a Fire-weak monster, the game adds the flat
 weapon effectiveness bonus. If the same monster is also Undead, the bonus does
 not apply twice. It is a yes/no bonus, not a per-tag multiplier.
 
+### Optional improvement: weapon affinity damage bonus
+
+The editor can make matching weapon affinities more dramatic without turning
+them into spell damage. The optional patch changes the match bonus to:
+
+```text
+if weapon matches monster weakness or archetype:
+    attack += weapon damage / 2
+    hit chance = 255
+```
+
+This bonus is added before defense, random damage rolls, and critical handling.
+The game uses integer division here: Excalibur has `45` weapon damage, so an
+affinity match adds `22` attack. The yes/no rule still applies: one match and
+five matches both grant the same single half-weapon bonus.
+
 ---
 
 ## 7. Magic And Skill Effects
@@ -578,6 +594,7 @@ shape:
 | INT spell damage/healing                   | Gives INT visible value                 | Uses modest scaling and leaves many effects stock |
 | INT+STA reduce enemy spells (experimental) | Makes defensive stats matter            | Does not touch physical attacks or player spells  |
 | Enemy crit defense fix                     | Reduces armor-bypassing spikes          | Keeps player crits stock                          |
+| Weapon affinity damage bonus               | Makes anti-monster weapons matter more  | Keeps the bonus physical and non-stacking         |
 | Party action order                         | Makes commands feel more controllable   | Keeps command groups and enemy randomness         |
 | Always successful run                      | Reduces random encounter friction       | Boss/no-run encounters remain locked              |
 | Cottage revives KO                         | Makes the top shelter feel worth buying | Lower shelters stay weaker                        |

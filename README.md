@@ -108,6 +108,8 @@ The `Build Patched JAR` command opens a global patch dialog. These options chang
 
 * Enemy crits respect party defense: enemy critical hits against party members double the already defense-reduced damage instead of adding the raw pre-defense attack roll. Party critical hits against enemies remain unchanged.
 
+* Weapon affinity damage bonus: when a hero weapon matches a monster weakness or archetype, the weapon adds half of its own damage value to attack and clamps hit chance to `255`, replacing the stock flat `+4` attack and `+40` hit chance. For example, Excalibur's `45` damage adds `+22` attack before defense, criticals, and random damage rolls.
+
 * Cottage revives KO: lets Cottage revive knocked-out party members before applying its normal full HP and spell-charge recovery. Sleeping Bag and Tent still skip KO members.
 
 * Airship lands on safe terrain: expands airship landing from the stock terrain set to additional safe land terrain while still rejecting water-like and blocked/special terrain.

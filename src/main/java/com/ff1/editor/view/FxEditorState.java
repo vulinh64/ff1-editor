@@ -36,6 +36,7 @@ public final class FxEditorState {
   private final BooleanProperty alwaysSuccessfulRun = new SimpleBooleanProperty(false);
   private final BooleanProperty partyActionOrder = new SimpleBooleanProperty(false);
   private final BooleanProperty enemyCriticalDefense = new SimpleBooleanProperty(false);
+  private final BooleanProperty weaponAffinityDamage = new SimpleBooleanProperty(false);
   private final BooleanProperty cottageRevive = new SimpleBooleanProperty(false);
   private final BooleanProperty airshipLanding = new SimpleBooleanProperty(false);
   private Supplier<List<HeroClassStatsEdit>> heroStatsEditSupplier = List::of;
@@ -202,6 +203,18 @@ public final class FxEditorState {
 
   public void enemyCriticalDefense(boolean enabled) {
     enemyCriticalDefense.set(enabled);
+  }
+
+  public BooleanProperty weaponAffinityDamageProperty() {
+    return weaponAffinityDamage;
+  }
+
+  public boolean weaponAffinityDamage() {
+    return weaponAffinityDamage.get();
+  }
+
+  public void weaponAffinityDamage(boolean enabled) {
+    weaponAffinityDamage.set(enabled);
   }
 
   public BooleanProperty cottageReviveProperty() {

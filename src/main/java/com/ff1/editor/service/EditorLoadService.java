@@ -70,6 +70,8 @@ public final class EditorLoadService {
     PatchState partyActionOrderState = PatchState.from(PartyActionOrderClassPatcher.state(gClass));
     PatchState enemyCriticalDefenseState =
         PatchState.from(EnemyCriticalDefenseClassPatcher.state(gClass));
+    PatchState weaponAffinityDamageState =
+        PatchState.from(WeaponAffinityDamageClassPatcher.state(gClass));
     PatchState cottageReviveState = PatchState.from(CottageReviveClassPatcher.state(iClass));
     PatchState airshipLandingState = PatchState.from(AirshipLandingClassPatcher.state(iClass));
     return EditorWorkspace.builder()
@@ -89,6 +91,7 @@ public final class EditorLoadService {
         .alwaysSuccessfulRunState(alwaysSuccessfulRunState)
         .partyActionOrderState(partyActionOrderState)
         .enemyCriticalDefenseState(enemyCriticalDefenseState)
+        .weaponAffinityDamageState(weaponAffinityDamageState)
         .cottageReviveState(cottageReviveState)
         .airshipLandingState(airshipLandingState)
         .build();

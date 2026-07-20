@@ -23,5 +23,6 @@ public record EditorWorkspace(
     PatchState alwaysSuccessfulRunState,
     PatchState partyActionOrderState,
     PatchState enemyCriticalDefenseState,
+    PatchState weaponAffinityDamageState,
     PatchState cottageReviveState,
     PatchState airshipLandingState) {}

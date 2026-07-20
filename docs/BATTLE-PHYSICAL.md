@@ -52,21 +52,37 @@ formula or separate elemental damage type.
 
 Confirmed weapon examples:
 
-| Weapon | Special bytes | Meaning |
-|--------|---------------|---------|
-| Flame Sword | `0x10,0x88` | Effective against fire-weak enemies, undead via `0x08`, and regenerative enemies via `0x80`. |
-| Ice Brand | `0x20,0x00` | Effective against ice-weak enemies. |
-| Wyrmkiller | `0x00,0x02` | Effective against dragon/reptile-family enemies. |
-| Great Sword | `0x00,0x04` | Effective against the `0x04` family; local data includes gigas/ogres plus Goblin and Goblin Guard. |
-| Sun Blade | `0x00,0x08` | Effective against undead; same monster family bit used by Dia-like damage gating. |
-| Coral Sword | `0x00,0x20` | Effective against aquatic enemies. |
-| Rune Blade | `0x00,0x41` | Effective against spellcaster/magical-style family bits, still partly fuzzy. |
+| Weapon      | Special bytes | Meaning                                                                                            |
+|-------------|---------------|----------------------------------------------------------------------------------------------------|
+| Flame Sword | `0x10,0x88`   | Effective against fire-weak enemies, undead via `0x08`, and regenerative enemies via `0x80`.       |
+| Ice Brand   | `0x20,0x00`   | Effective against ice-weak enemies.                                                                |
+| Wyrmkiller  | `0x00,0x02`   | Effective against dragon/reptile-family enemies.                                                   |
+| Great Sword | `0x00,0x04`   | Effective against the `0x04` family; local data includes gigas/ogres plus Goblin and Goblin Guard. |
+| Sun Blade   | `0x00,0x08`   | Effective against undead; same monster family bit used by Dia-like damage gating.                  |
+| Coral Sword | `0x00,0x20`   | Effective against aquatic enemies.                                                                 |
+| Rune Blade  | `0x00,0x41`   | Effective against spellcaster/magical-style family bits, still partly fuzzy.                       |
 
 Excalibur has `0xff,0xff` in these two weapon-special bytes, so it matches any
 bit present in either monster mask. Practically, Excalibur gets the same one-time
 `+4` attack and `+40` hit-chance bonus against monsters with any decoded
 weakness/family bit, such as undead, dragons, or elemental weaknesses. It does
 not apply separate Dia/fire/dragon formulas; those remain spell/effect logic.
+
+## Weapon Affinity Damage Patch
+
+`WeaponAffinityDamageClassPatcher` changes only the hero weapon-special match
+bonus. Instead of stock `+4` attack and `+40` hit chance, a matching weapon uses:
+
+```text
+attack += weapon damage / 2
+hitChance = 255
+```
+
+The added attack happens before defense, random damage rolls, and critical
+handling. The game uses integer division here: Excalibur has `45` weapon damage,
+so an affinity match adds `22` attack. The bonus is still a single yes/no
+affinity bonus; matching multiple weakness or archetype bits does not stack
+multiple half-weapon bonuses.
 
 ## Enemy Crits Respect Party Defense Patch
 
