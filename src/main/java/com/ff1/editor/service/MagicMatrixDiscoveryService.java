@@ -39,7 +39,9 @@ public final class MagicMatrixDiscoveryService {
       }
 
       int chunkOffset = table.chunkOffset(SPELL_CHUNK_INDEX);
-      Map<Integer, String> spellNames = new SpellTextService(workDir).spellNames(count);
+      SpellTextService spellTextService = new SpellTextService(workDir);
+      Map<Integer, String> spellNames = spellTextService.spellNames(count);
+      Map<Integer, String> spellDescriptions = spellTextService.spellDescriptions(count);
       List<MagicSpellSnapshot> spells = new ArrayList<>(LEARNABLE_SPELL_COUNT);
       for (int spellId = 1; spellId <= LEARNABLE_SPELL_COUNT; spellId++) {
         int recordOffset = 2 + spellId * SPELL_RECORD_SIZE;
@@ -48,6 +50,7 @@ public final class MagicMatrixDiscoveryService {
             snapshot(
                 spellId,
                 spellNames.getOrDefault(spellId, StringUtils.EMPTY),
+                spellDescriptions.getOrDefault(spellId, StringUtils.EMPTY),
                 mask,
                 chunkOffset + recordOffset + MASK_OFFSET_IN_RECORD));
       }
@@ -57,13 +60,15 @@ public final class MagicMatrixDiscoveryService {
     }
   }
 
-  private static MagicSpellSnapshot snapshot(int spellId, String name, int mask, int maskOffset) {
+  private static MagicSpellSnapshot snapshot(
+      int spellId, String name, String description, int mask, int maskOffset) {
     boolean black = spellId >= 33;
     int index = black ? spellId - 33 : spellId - 1;
     SpellSchool school = black ? SpellSchool.BLACK : SpellSchool.WHITE;
     return MagicSpellSnapshot.builder()
         .spellId(spellId)
         .name(name)
+        .description(description)
         .school(school)
         .level(index / 4 + 1)
         .slot(index % 4 + 1)

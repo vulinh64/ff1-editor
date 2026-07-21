@@ -8,6 +8,7 @@ import lombok.With;
 public record MagicSpellSnapshot(
     int spellId,
     String name,
+    String description,
     SpellSchool school,
     int level,
     int slot,

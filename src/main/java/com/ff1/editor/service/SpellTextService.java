@@ -17,19 +17,29 @@ public final class SpellTextService {
   }
 
   public Map<Integer, String> spellNames(int spellCount) {
+    return spellTexts(spellCount, 0, "names");
+  }
+
+  public Map<Integer, String> spellDescriptions(int spellCount) {
+    return spellTexts(spellCount, 1, "descriptions");
+  }
+
+  private Map<Integer, String> spellTexts(int spellCount, int textOffset, String kind) {
     try {
       Map<Integer, String> text = textService.readLengthPrefixedTextTable(SPELL_TEXT_ENTRY);
       if (text.isEmpty()) {
         return Map.of();
       }
       int firstTextId = text.keySet().stream().mapToInt(Integer::intValue).min().orElseThrow();
-      Map<Integer, String> names = new HashMap<>();
+      Map<Integer, String> spells = new HashMap<>();
       for (int spellId = 1; spellId < spellCount; spellId++) {
-        names.put(spellId, text.getOrDefault(firstTextId + spellId * 2, StringUtils.EMPTY));
+        spells.put(
+            spellId, text.getOrDefault(firstTextId + spellId * 2 + textOffset, StringUtils.EMPTY));
       }
-      return Map.copyOf(names);
+      return Map.copyOf(spells);
     } catch (IOException e) {
-      throw new IllegalStateException("Unable to read spell names from " + SPELL_TEXT_ENTRY, e);
+      throw new IllegalStateException(
+          "Unable to read spell " + kind + " from " + SPELL_TEXT_ENTRY, e);
     }
   }
 }

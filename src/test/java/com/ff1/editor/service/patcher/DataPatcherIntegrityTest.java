@@ -121,11 +121,11 @@ class DataPatcherIntegrityTest {
   }
 
   @Test
-  void weaponStatsPatchWritesDamageAndAccuracy() {
+  void weaponStatsPatchWritesDamageAccuracyAndSpecialMasks() {
     byte[] cp0 = standardCp0();
     Cp0ChunkTable table = new Cp0ChunkTable(cp0);
 
-    ItemEquipmentPatcher.applyWeaponStats(cp0, new WeaponStatsEdit(47, 56, 50));
+    ItemEquipmentPatcher.applyWeaponStats(cp0, new WeaponStatsEdit(47, 56, 50, 0xff, 0x08));
 
     int offset =
         table.chunkOffset(ItemEquipmentDiscoveryService.WEAPON_CHUNK_INDEX)
@@ -133,6 +133,10 @@ class DataPatcherIntegrityTest {
             + 40 * ItemEquipmentDiscoveryService.WEAPON_RECORD_SIZE;
     assertEquals(56, cp0[offset + ItemEquipmentPatcher.WEAPON_DAMAGE_OFFSET_IN_RECORD] & 0xff);
     assertEquals(50, cp0[offset + ItemEquipmentPatcher.WEAPON_ACCURACY_OFFSET_IN_RECORD] & 0xff);
+    assertEquals(
+        0xff, cp0[offset + ItemEquipmentPatcher.WEAPON_AFFINITY_MASK_OFFSET_IN_RECORD] & 0xff);
+    assertEquals(
+        0x08, cp0[offset + ItemEquipmentPatcher.WEAPON_FAMILY_MASK_OFFSET_IN_RECORD] & 0xff);
   }
 
   @Test

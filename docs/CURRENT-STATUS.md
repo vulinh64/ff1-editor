@@ -22,17 +22,18 @@ This is the quick landing page for the FF1 J2ME editor project.
   - shows the 12 known classes;
   - edits base-class starting HP/STR/AGL/INT/STA/LCK;
   - keeps upgraded classes read-only and mirrors their base-class row values.
-- Magic Matrix tab:
+- Magic Permissions tab:
   - splits White Magic and Black Magic into sub-tabs;
-  - reads spell names from `PACK0_4`;
-  - exposes each spell permission mask as class checkboxes;
+  - reads spell names and descriptions from `PACK0_4`;
+  - exposes each spell permission mask as an editable class mask;
   - writes masks back to `cp0`.
 - Equipment / Items tab:
   - discovery/edit view split into Weapons, Armor, and Items;
   - shows item names/descriptions/prices from `PACK0_3` and `cp0` chunk 0;
   - edits shared item prices and writes them back to `cp0` chunk 0;
-  - shows weapon damage/accuracy/cast spell/equip classes from `cp0` chunk 3;
-  - edits weapon damage, accuracy, cast spell ids, and equip class masks,
+  - shows weapon damage/accuracy/cast spell/affinity/family/equip classes from `cp0` chunk 3;
+  - edits weapon damage, accuracy, cast spell ids, affinity masks, family masks,
+    and equip class masks,
     writing them back to `cp0` chunk 3;
   - shows read-only weapon effectiveness labels derived from skill names,
     weapon descriptions, and the raw special masks;
@@ -182,7 +183,8 @@ This is the quick landing page for the FF1 J2ME editor project.
   ids are offset by 7, so `Knife` is item id `9` and `Masamune` is item id `47`.
   Record bytes `2..3` are editable as the equip class mask. Record bytes `4`
   and `5` are editable as damage and accuracy. Record byte `6` is editable as
-  the battle cast skill id.
+  the battle cast skill id. Record bytes `7` and `8` are editable as the weapon
+  affinity and family/type masks.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Runtime armor item
   ids are offset by 48 and split into body armor, shields, helms, and gloves.
   Record bytes `0..1` are editable as the equip class mask. Record bytes `2`

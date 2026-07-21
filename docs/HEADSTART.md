@@ -100,19 +100,21 @@ are read-only because class change inherits live character stats.
 Future optional engine patch: change the game's starting-HP read path to treat
 the `cp0` HP byte as unsigned. Keep this separate from normal data editing.
 
-The Magic Matrix tab exposes spell permission masks as a class-by-spell matrix.
-It is split into White Magic and Black Magic sub-tabs. Each row is a spell, each
-class column is one permission bit, and the patched jar writes the resulting
-16-bit mask back into `cp0`. Spell labels are decoded from `PACK0_4`; do not
-hardcode spell-name arrays in the editor.
+The Magic Permissions tab exposes spell permission masks. It is split into
+White Magic and Black Magic sub-tabs. Each row is a spell with a compact class
+mask editor plus the decoded in-game description, and the patched jar writes the
+resulting 16-bit mask back into `cp0`. Spell labels and descriptions are decoded
+from `PACK0_4`; do not hardcode spell-name arrays in the editor.
 
 The Equipment / Items tab is a discovery/edit surface for item/equipment data.
 It is split into Weapons, Armor, and Items tables and currently exposes names,
 descriptions, prices, equipment class masks, damage/accuracy, absorb/evasion
-lower, cast-on-use spell ids, resistance/special bytes, and source offsets.
+lower, cast-on-use spell ids, affinity/family masks, resistance masks, and
+source offsets.
 Shared item prices are editable as unsigned 16-bit values. Weapon damage,
-accuracy, cast-on-use skill ids, and equip class masks are editable; armor
-absorb, evasion lower, resistance masks, and equip class masks are editable.
+accuracy, cast-on-use skill ids, affinity masks, family masks, and equip class
+masks are editable; armor absorb, evasion lower, resistance masks, and equip
+class masks are editable.
 Weapon cast spell labels come from decoded skill/spell data. Key/quest items are
 hidden from the Items sub-tab because they are not normal balance data. Keep
 other item/equipment bytes read-only until the remaining unknown bytes are named

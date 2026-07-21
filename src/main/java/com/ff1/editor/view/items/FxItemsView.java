@@ -2,6 +2,7 @@ package com.ff1.editor.view.items;
 
 import static com.ff1.editor.view.ui.FxTableColumns.editableIntColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.intColumn;
+import static com.ff1.editor.view.ui.FxTableColumns.maskColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
 import com.ff1.editor.data.ArmorResistance;
@@ -12,7 +13,8 @@ import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.MagicClassBit;
-import com.ff1.editor.data.MaskOption;
+import com.ff1.editor.data.MonsterArchetype;
+import com.ff1.editor.data.MonsterElementAffinity;
 import com.ff1.editor.data.SkillEffectKind;
 import com.ff1.editor.data.SkillSnapshot;
 import com.ff1.editor.data.WeaponCastSpellEdit;
@@ -20,32 +22,20 @@ import com.ff1.editor.data.WeaponStatsEdit;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -53,7 +43,6 @@ import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -203,15 +192,33 @@ public final class FxItemsView extends BorderPane {
                 editableIntColumn("Accuracy", FxItemRowViewModel::accuracyProperty, 82, 0, 255),
                 weaponCastSpellColumn(),
                 maskColumn(
+                    "Affinities",
+                    MonsterElementAffinity.values(),
+                    FxItemRowViewModel::weaponAffinities,
+                    FxItemRowViewModel::weaponAffinityMaskValue,
+                    FxItemRowViewModel::weaponAffinityMaskValue,
+                    FxItemRowViewModel::name,
+                    220),
+                textColumn("Affinity Mask", FxItemRowViewModel::weaponAffinityMask, 102),
+                maskColumn(
+                    "Families",
+                    MonsterArchetype.values(),
+                    FxItemRowViewModel::weaponFamilies,
+                    FxItemRowViewModel::weaponFamilyMaskValue,
+                    FxItemRowViewModel::weaponFamilyMaskValue,
+                    FxItemRowViewModel::name,
+                    260),
+                textColumn("Family Mask", FxItemRowViewModel::weaponFamilyMask, 96),
+                maskColumn(
                     "Classes",
                     MagicClassBit.values(),
                     FxItemRowViewModel::allowedClasses,
                     FxItemRowViewModel::equipmentPermissionMaskValue,
                     FxItemRowViewModel::equipmentPermissionMaskValue,
+                    FxItemRowViewModel::name,
                     420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
                 textColumn("Effective Against", FxItemRowViewModel::weaponEffectiveness, 320),
-                textColumn("Special", FxItemRowViewModel::weaponSpecialBytes, 92),
                 textColumn(DESCRIPTION_TITLE, FxItemRowViewModel::description, 360),
                 textColumn(SOURCE_TITLE, FxItemRowViewModel::source, 170)));
     return table;
@@ -267,6 +274,7 @@ public final class FxItemsView extends BorderPane {
                     FxItemRowViewModel::armorResistances,
                     FxItemRowViewModel::armorResistanceMaskValue,
                     FxItemRowViewModel::armorResistanceMaskValue,
+                    FxItemRowViewModel::name,
                     220),
                 textColumn("Resist Mask", FxItemRowViewModel::resistanceMask, 96),
                 maskColumn(
@@ -275,6 +283,7 @@ public final class FxItemsView extends BorderPane {
                     FxItemRowViewModel::allowedClasses,
                     FxItemRowViewModel::equipmentPermissionMaskValue,
                     FxItemRowViewModel::equipmentPermissionMaskValue,
+                    FxItemRowViewModel::name,
                     420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
                 textColumn(DESCRIPTION_TITLE, FxItemRowViewModel::description, 360),
@@ -302,20 +311,6 @@ public final class FxItemsView extends BorderPane {
 
   private static TableColumn<FxItemRowViewModel, Integer> priceColumn() {
     return editableIntColumn(PRICE_TITLE, FxItemRowViewModel::priceProperty, 112, 0, 65535);
-  }
-
-  private static TableColumn<FxItemRowViewModel, FxItemRowViewModel> maskColumn(
-      String title,
-      MaskOption[] options,
-      Function<FxItemRowViewModel, String> label,
-      ToIntFunction<FxItemRowViewModel> mask,
-      BiConsumer<FxItemRowViewModel, Integer> update,
-      int width) {
-    TableColumn<FxItemRowViewModel, FxItemRowViewModel> column = new TableColumn<>(title);
-    column.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));
-    column.setCellFactory(_ -> new MaskCell(title, options, label, mask, update));
-    column.setPrefWidth(width);
-    return column;
   }
 
   private static TableView<FxItemRowViewModel> baseTable(FilteredList<FxItemRowViewModel> rows) {
@@ -384,89 +379,5 @@ public final class FxItemsView extends BorderPane {
             ? description.substring(valueStart)
             : description.substring(valueStart, valueEnd);
     return value.strip();
-  }
-
-  private static final class MaskCell extends TableCell<FxItemRowViewModel, FxItemRowViewModel> {
-
-    private final String title;
-    private final MaskOption[] options;
-    private final Function<FxItemRowViewModel, String> label;
-    private final ToIntFunction<FxItemRowViewModel> mask;
-    private final BiConsumer<FxItemRowViewModel, Integer> update;
-    private final Button edit = new Button();
-
-    private MaskCell(
-        String title,
-        MaskOption[] options,
-        Function<FxItemRowViewModel, String> label,
-        ToIntFunction<FxItemRowViewModel> mask,
-        BiConsumer<FxItemRowViewModel, Integer> update) {
-      this.title = title;
-      this.options = options;
-      this.label = label;
-      this.mask = mask;
-      this.update = update;
-      edit.setMaxWidth(Double.MAX_VALUE);
-      edit.setOnAction(_ -> showEditor());
-    }
-
-    @Override
-    protected void updateItem(FxItemRowViewModel row, boolean empty) {
-      super.updateItem(row, empty);
-      if (empty || row == null) {
-        setGraphic(null);
-        return;
-      }
-      String currentLabel = label.apply(row);
-      edit.setText(currentLabel.isBlank() ? "<Click to Edit>" : currentLabel);
-      setGraphic(edit);
-    }
-
-    private void showEditor() {
-      FxItemRowViewModel row = getItem();
-      if (row == null) {
-        return;
-      }
-      Dialog<Integer> dialog = new Dialog<>();
-      dialog.setTitle("Edit " + title);
-      dialog.setHeaderText(row.name());
-      DialogPane pane = dialog.getDialogPane();
-      pane.getStylesheets()
-          .add(
-              Objects.requireNonNull(FxItemsView.class.getResource("/editor.css"))
-                  .toExternalForm());
-      pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-      List<CheckBox> boxes = new ArrayList<>();
-      VBox content = new VBox(8);
-      content.setPadding(new Insets(8, 0, 0, 0));
-      int currentMask = mask.applyAsInt(row);
-      for (MaskOption option : options) {
-        CheckBox checkbox = new CheckBox(option.label());
-        checkbox.setSelected((currentMask & option.bit()) != 0);
-        boxes.add(checkbox);
-        content.getChildren().add(checkbox);
-      }
-      pane.setContent(content);
-      dialog.setResultConverter(
-          button -> button == ButtonType.OK ? selectedMask(boxes, options) : null);
-      dialog
-          .showAndWait()
-          .ifPresent(
-              selectedMask -> {
-                update.accept(row, selectedMask);
-                updateItem(row, false);
-              });
-    }
-
-    private static int selectedMask(List<CheckBox> boxes, MaskOption[] options) {
-      int mask = 0;
-      for (int i = 0; i < options.length; i++) {
-        if (boxes.get(i).isSelected()) {
-          mask |= options[i].bit();
-        }
-      }
-      return mask;
-    }
   }
 }

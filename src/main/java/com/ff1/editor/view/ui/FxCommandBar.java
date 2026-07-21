@@ -888,8 +888,8 @@ public final class FxCommandBar extends VBox {
     build.disableProperty().bind(task.runningProperty());
     load.disableProperty().bind(task.runningProperty());
     state.status(
-        "Building patched JAR with %d hero edit(s), %d magic matrix edit(s), "
-            + "%d equipment matrix edit(s), %d skill edit(s), %d item price edit(s), "
+        "Building patched JAR with %d hero edit(s), %d magic permission edit(s), "
+            + "%d equipment permission edit(s), %d skill edit(s), %d item price edit(s), "
             + "%d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), "
             + "%d monster stat edit(s)%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s..."
                 .formatted(

@@ -202,7 +202,7 @@ To make every class gain charges while leveling, we need both sides:
   `classId >= 3` to `classId >= 0`
 
 This only gives characters charges. They still need spell permissions from the
-Magic Matrix before they can learn and cast spells.
+Magic Permissions tab before they can learn and cast spells.
 
 The editor implements this as one global option. Load detection combines both
 required pieces: `cp0` chunk 4 must match the universal charge-growth data and
@@ -214,5 +214,5 @@ patch.
 
 Global growth patches are selected from the command-bar `Build Patched JAR`
 modal, following the VDDOH convention. The modal is separate from the Heroes and
-Magic Matrix tabs because these patches affect runtime behavior globally rather
+Magic Permissions tabs because these patches affect runtime behavior globally rather
 than one visible data table.

@@ -1,6 +1,7 @@
 package com.ff1.editor.view.magic;
 
 import static com.ff1.editor.view.ui.FxTableColumns.intColumn;
+import static com.ff1.editor.view.ui.FxTableColumns.maskColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
 import com.ff1.editor.data.EditorWorkspace;
@@ -18,10 +19,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -45,8 +44,8 @@ public final class FxMagicMatrixView extends BorderPane {
   }
 
   private HBox filters() {
-    search.setPromptText("Search spells, levels, schools, masks, or source offsets");
-    Button reset = new Button("Reset Matrix");
+    search.setPromptText("Search spells, levels, schools, classes, masks, or source offsets");
+    Button reset = new Button("Reset Permissions");
     reset.setOnAction(_ -> spells.forEach(FxMagicMatrixRowViewModel::reset));
     HBox controls = new HBox(8, new Label("Search"), search, reset);
     controls.getStyleClass().add("filter-row");
@@ -101,10 +100,16 @@ public final class FxMagicMatrixView extends BorderPane {
                 intColumn("ID", FxMagicMatrixRowViewModel::spellId, 56),
                 textColumn("Spell", FxMagicMatrixRowViewModel::name, 132),
                 intColumn("LV", FxMagicMatrixRowViewModel::level, 56),
-                intColumn("Slot", FxMagicMatrixRowViewModel::slot, 56)));
-    for (MagicClassBit bit : MagicClassBit.values()) {
-      table.getColumns().add(classColumn(bit));
-    }
+                intColumn("Slot", FxMagicMatrixRowViewModel::slot, 56),
+                maskColumn(
+                    "Classes",
+                    MagicClassBit.values(),
+                    FxMagicMatrixRowViewModel::allowedClasses,
+                    FxMagicMatrixRowViewModel::permissionMaskValue,
+                    FxMagicMatrixRowViewModel::permissionMaskValue,
+                    FxMagicMatrixRowViewModel::name,
+                    420),
+                textColumn("Description", FxMagicMatrixRowViewModel::description, 360)));
     table
         .getColumns()
         .addAll(
@@ -112,14 +117,5 @@ public final class FxMagicMatrixView extends BorderPane {
                 textColumn("Mask", FxMagicMatrixRowViewModel::maskHex, 82),
                 textColumn("Source", FxMagicMatrixRowViewModel::source, 170)));
     return table;
-  }
-
-  private static TableColumn<FxMagicMatrixRowViewModel, Boolean> classColumn(MagicClassBit bit) {
-    TableColumn<FxMagicMatrixRowViewModel, Boolean> column = new TableColumn<>(bit.displayName());
-    column.setCellValueFactory(cell -> cell.getValue().classBitProperty(bit));
-    column.setCellFactory(CheckBoxTableCell.forTableColumn(column));
-    column.setEditable(true);
-    column.setPrefWidth(92);
-    return column;
   }
 }

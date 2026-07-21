@@ -59,7 +59,7 @@ public final class FxEditorApplication extends Application {
     TabPane tabs = new TabPane();
     Tab heroes = new Tab("Heroes", new FxHeroesView(state));
     heroes.setClosable(false);
-    Tab magicMatrix = new Tab("Magic Matrix", new FxMagicMatrixView(state));
+    Tab magicMatrix = new Tab("Magic Permissions", new FxMagicMatrixView(state));
     magicMatrix.setClosable(false);
     Tab skills = new Tab("Skills", new FxSkillsView(state));
     skills.setClosable(false);

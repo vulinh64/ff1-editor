@@ -3,7 +3,7 @@ package com.ff1.editor.service.patcher;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.service.*;
 
-/** Patches cp0 learnable spell permission masks from the Magic Matrix editor tab. */
+/** Patches cp0 learnable spell permission masks from the Magic Permissions editor tab. */
 public final class MagicMatrixPatcher {
 
   private MagicMatrixPatcher() {}

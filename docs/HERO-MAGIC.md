@@ -124,11 +124,12 @@ black magic, patch `j.a[spell][9]` for those spell records. For a broad editor
 option, expose the 12 class bits per spell as checkboxes and write the resulting
 16-bit mask back to the `cp` spell metadata source.
 
-This is now implemented as the `Magic Matrix` tab. The table uses spells as rows
-and hero classes as columns, with White Magic and Black Magic split into sub-tabs.
-There is no broad "allow all classes" button by design; Warrior, Thief, Monk, and
-other non-casters can be enabled manually for experiments, but they still need
-spell charges from separate data/runtime behavior before those permissions matter.
+This is now implemented as the `Magic Permissions` tab. The table uses spells as
+rows with a compact class mask editor and decoded in-game description, with
+White Magic and Black Magic split into sub-tabs. There is no broad "allow all
+classes" button by design; Warrior, Thief, Monk, and other non-casters can be
+enabled manually for experiments, but they still need spell charges from
+separate data/runtime behavior before those permissions matter.
 
 Keep this separate from spell charges:
 
@@ -174,7 +175,7 @@ For the local jar, this makes White LV8 order `Full-Life`, `Holy`, `NulAll`,
 
 Renaming spells should be feasible, but it is not yet mapped. The likely first
 target is the same spell metadata/text loading path used by `b.class` and
-`Ff1TextService`. Keep names separate from the Magic Matrix: the matrix controls
+`Ff1TextService`. Keep names separate from Magic Permissions: that tab controls
 who can learn/cast a spell, while a later Magic tab can expose visible spell
 names, prices, elements, targeting, or other observable spell fields after their
 record bytes are confirmed.

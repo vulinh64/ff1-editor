@@ -11,6 +11,8 @@ public final class ItemEquipmentPatcher {
   public static final int WEAPON_MASK_OFFSET_IN_RECORD = 2;
   public static final int WEAPON_DAMAGE_OFFSET_IN_RECORD = 4;
   public static final int WEAPON_ACCURACY_OFFSET_IN_RECORD = 5;
+  public static final int WEAPON_AFFINITY_MASK_OFFSET_IN_RECORD = 7;
+  public static final int WEAPON_FAMILY_MASK_OFFSET_IN_RECORD = 8;
   public static final int ARMOR_MASK_OFFSET_IN_RECORD = 0;
   public static final int ARMOR_ABSORB_OFFSET_IN_RECORD = 2;
   public static final int ARMOR_EVASION_PENALTY_OFFSET_IN_RECORD = 3;
@@ -38,9 +40,13 @@ public final class ItemEquipmentPatcher {
   public static void applyWeaponStats(byte[] cp0, WeaponStatsEdit edit) {
     validateByte(edit.damage(), "Weapon damage");
     validateByte(edit.accuracy(), "Weapon accuracy");
+    validateByte(edit.affinityMask(), "Weapon affinity mask");
+    validateByte(edit.familyMask(), "Weapon family mask");
     int offset = weaponRecordOffset(cp0, edit.weaponItemId());
     cp0[offset + WEAPON_DAMAGE_OFFSET_IN_RECORD] = (byte) edit.damage();
     cp0[offset + WEAPON_ACCURACY_OFFSET_IN_RECORD] = (byte) edit.accuracy();
+    cp0[offset + WEAPON_AFFINITY_MASK_OFFSET_IN_RECORD] = (byte) edit.affinityMask();
+    cp0[offset + WEAPON_FAMILY_MASK_OFFSET_IN_RECORD] = (byte) edit.familyMask();
   }
 
   public static void applyArmorStats(byte[] cp0, ArmorStatsEdit edit) {

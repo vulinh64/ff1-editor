@@ -8,6 +8,8 @@ import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.MagicClassBit;
 import com.ff1.editor.data.MaskOption;
+import com.ff1.editor.data.MonsterArchetype;
+import com.ff1.editor.data.MonsterElementAffinity;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
 import java.util.Map;
@@ -31,6 +33,8 @@ public final class FxItemRowViewModel {
   private final IntegerProperty evasionPenalty;
   private final IntegerProperty armorResistanceMask;
   private final IntegerProperty equipmentPermissionMask;
+  private final IntegerProperty weaponAffinityMask;
+  private final IntegerProperty weaponFamilyMask;
 
   public FxItemRowViewModel(
       ItemSnapshot item,
@@ -51,6 +55,8 @@ public final class FxItemRowViewModel {
     this.evasionPenalty = new SimpleIntegerProperty(originalEvasionPenalty());
     this.armorResistanceMask = new SimpleIntegerProperty(originalArmorResistanceMask());
     this.equipmentPermissionMask = new SimpleIntegerProperty(originalEquipmentPermissionMask());
+    this.weaponAffinityMask = new SimpleIntegerProperty(originalWeaponAffinityMask());
+    this.weaponFamilyMask = new SimpleIntegerProperty(originalWeaponFamilyMask());
   }
 
   public int id() {
@@ -146,7 +152,10 @@ public final class FxItemRowViewModel {
 
   public boolean weaponStatsChanged() {
     return category() == ItemCategory.WEAPON
-        && (damage.get() != originalDamage() || accuracy.get() != originalAccuracy());
+        && (damage.get() != originalDamage()
+            || accuracy.get() != originalAccuracy()
+            || weaponAffinityMask.get() != originalWeaponAffinityMask()
+            || weaponFamilyMask.get() != originalWeaponFamilyMask());
   }
 
   public WeaponStatsEdit toWeaponStatsEdit() {
@@ -154,6 +163,8 @@ public final class FxItemRowViewModel {
         .weaponItemId(id())
         .damage(damage.get())
         .accuracy(accuracy.get())
+        .affinityMask(weaponAffinityMask.get())
+        .familyMask(weaponFamilyMask.get())
         .build();
   }
 
@@ -217,11 +228,40 @@ public final class FxItemRowViewModel {
     armorResistanceMask.set(mask);
   }
 
-  public String weaponSpecialBytes() {
-    if (item.weaponSpecialByte1() == null || item.weaponSpecialByte2() == null) {
-      return StringUtils.EMPTY;
-    }
-    return "%d, %d".formatted(item.weaponSpecialByte1(), item.weaponSpecialByte2());
+  public String weaponAffinityMask() {
+    return weaponAffinityMask.get() == 0
+        ? StringUtils.EMPTY
+        : "0x%02x".formatted(weaponAffinityMask.get());
+  }
+
+  public String weaponFamilyMask() {
+    return weaponFamilyMask.get() == 0
+        ? StringUtils.EMPTY
+        : "0x%02x".formatted(weaponFamilyMask.get());
+  }
+
+  public String weaponAffinities() {
+    return labelsForMask(weaponAffinityMask.get(), MonsterElementAffinity.values());
+  }
+
+  public int weaponAffinityMaskValue() {
+    return weaponAffinityMask.get();
+  }
+
+  public void weaponAffinityMaskValue(int mask) {
+    weaponAffinityMask.set(mask);
+  }
+
+  public String weaponFamilies() {
+    return labelsForMask(weaponFamilyMask.get(), MonsterArchetype.values());
+  }
+
+  public int weaponFamilyMaskValue() {
+    return weaponFamilyMask.get();
+  }
+
+  public void weaponFamilyMaskValue(int mask) {
+    weaponFamilyMask.set(mask);
   }
 
   public String weaponEffectiveness() {
@@ -229,8 +269,8 @@ public final class FxItemRowViewModel {
       return StringUtils.EMPTY;
     }
     return joinNonBlank(
-        labelsForMask(item.weaponSpecialByte1(), elementEffectivenessLabels, "Element"),
-        labelsForFamilyMask(item.weaponSpecialByte2()));
+        labelsForMask(weaponAffinityMask.get(), elementEffectivenessLabels, "Affinity"),
+        labelsForFamilyMask(weaponFamilyMask.get()));
   }
 
   public String source() {
@@ -255,6 +295,10 @@ public final class FxItemRowViewModel {
         || castSpell().toLowerCase().contains(normalized)
         || armorResistances().toLowerCase().contains(normalized)
         || resistanceMask().toLowerCase().contains(normalized)
+        || weaponAffinities().toLowerCase().contains(normalized)
+        || weaponFamilies().toLowerCase().contains(normalized)
+        || weaponAffinityMask().toLowerCase().contains(normalized)
+        || weaponFamilyMask().toLowerCase().contains(normalized)
         || weaponEffectiveness().toLowerCase().contains(normalized)
         || source().toLowerCase().contains(normalized)
         || notes().toLowerCase().contains(normalized);
@@ -290,6 +334,14 @@ public final class FxItemRowViewModel {
 
   private int originalEquipmentPermissionMask() {
     return item.equipMask() == null ? 0 : item.equipMask();
+  }
+
+  private int originalWeaponAffinityMask() {
+    return item.weaponSpecialByte1() == null ? 0 : item.weaponSpecialByte1();
+  }
+
+  private int originalWeaponFamilyMask() {
+    return item.weaponSpecialByte2() == null ? 0 : item.weaponSpecialByte2();
   }
 
   public static String castSpellLabel(int id, Map<Integer, String> skillNames) {

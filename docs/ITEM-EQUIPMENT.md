@@ -32,11 +32,11 @@ The JavaFX Equipment / Items tab reads these layouts through
 `ItemEquipmentDiscoveryService` and displays the decoded records in three tables:
 Weapons, Armor, and Items.
 Shared item prices are editable as unsigned 16-bit values and write back to
-`cp0` chunk `0`. Weapon damage, accuracy, and cast-on-use skill ids are editable
-and write back to `cp0` chunk `3`. Weapon equip class masks are edited from the
-same table and write back to `cp0` chunk `3`. Weapon effectiveness is shown as a
-read-only column derived from skill names, weapon descriptions, and the raw
-special masks; unknown bits remain raw instead of guessed. Armor absorb, evasion
+`cp0` chunk `0`. Weapon damage, accuracy, cast-on-use skill ids, affinity masks,
+family/type masks, and equip class masks are editable and write back to `cp0`
+chunk `3`. Weapon effectiveness is shown as a read-only column derived from
+skill names, weapon descriptions, and the raw special masks; unknown bits remain
+raw instead of guessed. Armor absorb, evasion
 lower, resistance masks, and equip class masks are editable and write back to
 `cp0` chunk `2`. Key/quest items are deliberately hidden from the Items sub-tab.
 The same discovery path can be smoke-tested with:
@@ -245,7 +245,8 @@ The equip mask uses the same class bits as spell permissions:
 The nonzero cast spell ids are confirmed in the battle command path: weapon use
 assigns `g.j = j.a[j.c[itemId - 7][5]][1]` before target selection. The editor
 writes this one-byte field from the Weapons table `Casts` dropdown.
-The editor also writes weapon damage and accuracy from the Weapons table.
+The editor writes weapon damage, accuracy, affinity masks, and family/type masks
+from the Weapons table.
 
 Battle execution also confirms that weapon casts use the same spell/effect
 helper as learned magic. In stock bytecode, that helper does not read the acting

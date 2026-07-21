@@ -166,7 +166,7 @@ The editor has two charge-oriented improvements:
 - **15 max spell charges** raises the per-level charge cap from 9 to 15 and
   adjusts recovery so inns and cottages can refill the larger pool.
 
-These patches are intentionally separate from the Magic Matrix. One controls who
+These patches are intentionally separate from Magic Permissions. One controls who
 may learn spells; the other controls whether the character has fuel to cast
 them.
 
