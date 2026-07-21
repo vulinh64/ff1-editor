@@ -2,7 +2,7 @@ package com.ff1.editor.data;
 
 import org.apache.commons.lang3.StringUtils;
 
-public enum MagicClassBit {
+public enum MagicClassBit implements MaskOption {
   WARRIOR(HeroClass.WARRIOR, 0x0001),
   THIEF(HeroClass.THIEF, 0x0002),
   MONK(HeroClass.MONK, 0x0004),
@@ -28,8 +28,16 @@ public enum MagicClassBit {
     return heroClass.displayName();
   }
 
+  public String label() {
+    return displayName();
+  }
+
   public int mask() {
     return mask;
+  }
+
+  public int bit() {
+    return mask();
   }
 
   public static String namesForMask(int mask) {

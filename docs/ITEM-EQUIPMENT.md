@@ -28,18 +28,18 @@ nameTextId = firstTextId + 2 * itemId
 descriptionTextId = nameTextId + 1
 ```
 
-The JavaFX Items tab reads these layouts through `ItemEquipmentDiscoveryService`
-and displays the decoded records in three tables: Weapons, Armor, and Items.
+The JavaFX Equipment / Items tab reads these layouts through
+`ItemEquipmentDiscoveryService` and displays the decoded records in three tables:
+Weapons, Armor, and Items.
 Shared item prices are editable as unsigned 16-bit values and write back to
 `cp0` chunk `0`. Weapon damage, accuracy, and cast-on-use skill ids are editable
-and write back to `cp0` chunk `3`. Weapon effectiveness is shown as a read-only
-column derived from skill names, weapon descriptions, and the raw special masks;
-unknown bits remain raw instead of guessed. Armor absorb and evasion lower are
-editable and write back to `cp0` chunk `2`. Key/quest items are deliberately
-hidden from the Items sub-tab. The Equipment Matrix tab edits weapon and armor
-class equip masks through Weapons and Armor sub-tabs, then writes those 16-bit
-masks back to `cp0` chunks `3` and `2`. The same discovery path can be
-smoke-tested with:
+and write back to `cp0` chunk `3`. Weapon equip class masks are edited from the
+same table and write back to `cp0` chunk `3`. Weapon effectiveness is shown as a
+read-only column derived from skill names, weapon descriptions, and the raw
+special masks; unknown bits remain raw instead of guessed. Armor absorb, evasion
+lower, resistance masks, and equip class masks are editable and write back to
+`cp0` chunk `2`. Key/quest items are deliberately hidden from the Items sub-tab.
+The same discovery path can be smoke-tested with:
 
 ```cmd
 java -jar target\ff1-data-editor-0.1.0.jar items ff1-jar

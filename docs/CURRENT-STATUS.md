@@ -27,23 +27,19 @@ This is the quick landing page for the FF1 J2ME editor project.
   - reads spell names from `PACK0_4`;
   - exposes each spell permission mask as class checkboxes;
   - writes masks back to `cp0`.
-- Equipment Matrix tab:
-  - splits Weapons and Armor into sub-tabs;
-  - exposes each equip permission mask as class checkboxes;
-  - writes weapon masks back to `cp0` chunk 3 and armor masks back to
-    `cp0` chunk 2.
-- Items tab:
+- Equipment / Items tab:
   - discovery/edit view split into Weapons, Armor, and Items;
   - shows item names/descriptions/prices from `PACK0_3` and `cp0` chunk 0;
   - edits shared item prices and writes them back to `cp0` chunk 0;
   - shows weapon damage/accuracy/cast spell/equip classes from `cp0` chunk 3;
-  - edits weapon damage, accuracy, and cast spell ids, writing them back to
-    `cp0` chunk 3;
+  - edits weapon damage, accuracy, cast spell ids, and equip class masks,
+    writing them back to `cp0` chunk 3;
   - shows read-only weapon effectiveness labels derived from skill names,
     weapon descriptions, and the raw special masks;
   - shows armor subtype/absorb/evasion lower/cast spell/resistance/equip classes from
     `cp0` chunk 2.
-  - edits armor absorb and evasion lower, writing them back to `cp0` chunk 2.
+  - edits armor absorb, evasion lower, resistance masks, and equip class masks,
+    writing them back to `cp0` chunk 2.
   - hides key/quest items from the Items sub-tab because those are not normal
     shop or inventory-balance data.
 - Monsters tab:

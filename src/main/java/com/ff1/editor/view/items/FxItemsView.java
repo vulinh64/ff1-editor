@@ -7,9 +7,11 @@ import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 import com.ff1.editor.data.ArmorResistance;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EditorWorkspace;
+import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
+import com.ff1.editor.data.MagicClassBit;
 import com.ff1.editor.data.MaskOption;
 import com.ff1.editor.data.SkillEffectKind;
 import com.ff1.editor.data.SkillSnapshot;
@@ -75,6 +77,7 @@ public final class FxItemsView extends BorderPane {
     search.textProperty().addListener((_, _, _) -> refilter());
     state.workspaceProperty().addListener((_, _, workspace) -> load(workspace));
     state.itemPriceEditSupplier(this::itemPriceEdits);
+    state.equipmentPermissionEditSupplier(this::equipmentPermissionEdits);
     state.weaponCastSpellEditSupplier(this::weaponCastSpellEdits);
     state.weaponStatsEditSupplier(this::weaponStatsEdits);
     state.armorStatsEditSupplier(this::armorStatsEdits);
@@ -153,6 +156,13 @@ public final class FxItemsView extends BorderPane {
         .toList();
   }
 
+  private List<EquipmentPermissionEdit> equipmentPermissionEdits() {
+    return items.stream()
+        .filter(FxItemRowViewModel::equipmentPermissionChanged)
+        .map(FxItemRowViewModel::toEquipmentPermissionEdit)
+        .toList();
+  }
+
   private void refilter() {
     weapons.setPredicate(
         item -> item.category() == ItemCategory.WEAPON && item.matches(search.getText()));
@@ -192,7 +202,13 @@ public final class FxItemsView extends BorderPane {
                 editableIntColumn("Damage", FxItemRowViewModel::damageProperty, 78, 0, 255),
                 editableIntColumn("Accuracy", FxItemRowViewModel::accuracyProperty, 82, 0, 255),
                 weaponCastSpellColumn(),
-                textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),
+                maskColumn(
+                    "Classes",
+                    MagicClassBit.values(),
+                    FxItemRowViewModel::allowedClasses,
+                    FxItemRowViewModel::equipmentPermissionMaskValue,
+                    FxItemRowViewModel::equipmentPermissionMaskValue,
+                    420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
                 textColumn("Effective Against", FxItemRowViewModel::weaponEffectiveness, 320),
                 textColumn("Special", FxItemRowViewModel::weaponSpecialBytes, 92),
@@ -246,12 +262,20 @@ public final class FxItemsView extends BorderPane {
                     "Evasion Lower", FxItemRowViewModel::evasionPenaltyProperty, 112, 0, 255),
                 textColumn("Casts", FxItemRowViewModel::castSpell, 122),
                 maskColumn(
+                    "Resists",
                     ArmorResistance.values(),
                     FxItemRowViewModel::armorResistances,
                     FxItemRowViewModel::armorResistanceMaskValue,
-                    FxItemRowViewModel::armorResistanceMaskValue),
+                    FxItemRowViewModel::armorResistanceMaskValue,
+                    220),
                 textColumn("Resist Mask", FxItemRowViewModel::resistanceMask, 96),
-                textColumn("Classes", FxItemRowViewModel::allowedClasses, 420),
+                maskColumn(
+                    "Classes",
+                    MagicClassBit.values(),
+                    FxItemRowViewModel::allowedClasses,
+                    FxItemRowViewModel::equipmentPermissionMaskValue,
+                    FxItemRowViewModel::equipmentPermissionMaskValue,
+                    420),
                 textColumn("Mask", FxItemRowViewModel::equipMask, 82),
                 textColumn(DESCRIPTION_TITLE, FxItemRowViewModel::description, 360),
                 textColumn(SOURCE_TITLE, FxItemRowViewModel::source, 170)));
@@ -281,14 +305,16 @@ public final class FxItemsView extends BorderPane {
   }
 
   private static TableColumn<FxItemRowViewModel, FxItemRowViewModel> maskColumn(
+      String title,
       MaskOption[] options,
       Function<FxItemRowViewModel, String> label,
       ToIntFunction<FxItemRowViewModel> mask,
-      BiConsumer<FxItemRowViewModel, Integer> update) {
-    TableColumn<FxItemRowViewModel, FxItemRowViewModel> column = new TableColumn<>("Resists");
+      BiConsumer<FxItemRowViewModel, Integer> update,
+      int width) {
+    TableColumn<FxItemRowViewModel, FxItemRowViewModel> column = new TableColumn<>(title);
     column.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));
-    column.setCellFactory(_ -> new MaskCell("Resists", options, label, mask, update));
-    column.setPrefWidth(220);
+    column.setCellFactory(_ -> new MaskCell(title, options, label, mask, update));
+    column.setPrefWidth(width);
     return column;
   }
 

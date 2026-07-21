@@ -2,9 +2,11 @@ package com.ff1.editor.view.items;
 
 import com.ff1.editor.data.ArmorResistance;
 import com.ff1.editor.data.ArmorStatsEdit;
+import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
+import com.ff1.editor.data.MagicClassBit;
 import com.ff1.editor.data.MaskOption;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
@@ -28,6 +30,7 @@ public final class FxItemRowViewModel {
   private final IntegerProperty absorb;
   private final IntegerProperty evasionPenalty;
   private final IntegerProperty armorResistanceMask;
+  private final IntegerProperty equipmentPermissionMask;
 
   public FxItemRowViewModel(
       ItemSnapshot item,
@@ -47,6 +50,7 @@ public final class FxItemRowViewModel {
     this.absorb = new SimpleIntegerProperty(originalAbsorb());
     this.evasionPenalty = new SimpleIntegerProperty(originalEvasionPenalty());
     this.armorResistanceMask = new SimpleIntegerProperty(originalArmorResistanceMask());
+    this.equipmentPermissionMask = new SimpleIntegerProperty(originalEquipmentPermissionMask());
   }
 
   public int id() {
@@ -94,11 +98,34 @@ public final class FxItemRowViewModel {
   }
 
   public String equipMask() {
-    return item.equipMask() == null ? StringUtils.EMPTY : "0x%04x".formatted(item.equipMask());
+    return item.equipMask() == null
+        ? StringUtils.EMPTY
+        : "0x%04x".formatted(equipmentPermissionMask.get());
   }
 
   public String allowedClasses() {
-    return item.allowedClasses();
+    return MagicClassBit.namesForMask(equipmentPermissionMask.get());
+  }
+
+  public int equipmentPermissionMaskValue() {
+    return equipmentPermissionMask.get();
+  }
+
+  public void equipmentPermissionMaskValue(int mask) {
+    equipmentPermissionMask.set(mask);
+  }
+
+  public boolean equipmentPermissionChanged() {
+    return (category() == ItemCategory.WEAPON || category() == ItemCategory.ARMOR)
+        && equipmentPermissionMask.get() != originalEquipmentPermissionMask();
+  }
+
+  public EquipmentPermissionEdit toEquipmentPermissionEdit() {
+    return EquipmentPermissionEdit.builder()
+        .category(category())
+        .itemId(id())
+        .permissionMask(equipmentPermissionMask.get())
+        .build();
   }
 
   public String damage() {
@@ -259,6 +286,10 @@ public final class FxItemRowViewModel {
 
   private int originalArmorResistanceMask() {
     return item.resistanceMask() == null ? 0 : item.resistanceMask();
+  }
+
+  private int originalEquipmentPermissionMask() {
+    return item.equipMask() == null ? 0 : item.equipMask();
   }
 
   public static String castSpellLabel(int id, Map<Integer, String> skillNames) {
