@@ -1,8 +1,8 @@
 package com.ff1.editor.view.monsters;
 
+import com.ff1.editor.data.MaskOption;
 import com.ff1.editor.data.MonsterArchetype;
 import com.ff1.editor.data.MonsterElementAffinity;
-import com.ff1.editor.data.MonsterMaskOption;
 import com.ff1.editor.data.MonsterSnapshot;
 import com.ff1.editor.data.MonsterStatsEdit;
 import javafx.beans.property.IntegerProperty;
@@ -244,9 +244,9 @@ public final class FxMonsterRowViewModel {
     return out.toString();
   }
 
-  private static void appendKnownLabels(StringBuilder out, int mask, MonsterMaskOption[] options) {
+  private static void appendKnownLabels(StringBuilder out, int mask, MaskOption[] options) {
     int unknownBits = mask;
-    for (MonsterMaskOption option : options) {
+    for (MaskOption option : options) {
       if ((mask & option.bit()) == 0) {
         continue;
       }

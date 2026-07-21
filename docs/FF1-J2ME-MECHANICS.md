@@ -358,6 +358,36 @@ matching resistance: -148 chance
 So resistance is extremely powerful for status prevention. When both weakness
 and resistance are set in stock data, resistance usually dominates.
 
+### Armor resistance
+
+Each equipped armor piece contributes two different things:
+
+- `Absorb` is normal physical defense and is summed across body, shield, helm,
+  and gloves.
+- `Resistance` is a bitmask and is ORed across those four slots.
+
+Duplicate resistance does not stack. Wearing two pieces with `0x40` still gives
+one thunder resistance flag, but both pieces still add their absorb to physical
+defense.
+
+Confirmed armor resistance examples:
+
+| Equipment | Resistance result |
+|-----------|-------------------|
+| Flame Mail or Flame Shield | `0x20`, resists ice |
+| Ice Armor or Ice Shield | `0x10`, resists fire |
+| Diamond Armor or Diamond Shield | `0x40`, resists thunder |
+| Dragon Mail | `0x70`, resists fire, ice, and thunder |
+| Ribbon | `0xff`, resists every current mask bit |
+| Protect Ring | `0x08`, resists instant death |
+
+For spell damage, a matching armor resistance bit halves the base damage before
+randomness and possible doubling. For normal status chances, matching resistance
+subtracts `148` from the chance. For conditional statuses such as Kill, matching
+resistance makes the effect fail. Enemy physical attacks with on-hit status also
+consult this same armor resistance mask, so matching gear can block attached
+statuses such as poison-style effects.
+
 ### Healing
 
 Cure-like and Heal-like spells use a negative HP-restoration result internally:
@@ -625,7 +655,6 @@ players choose which rough edges to sand down.
 The current confirmed guide is not complete. Good future deep-dive targets:
 
 - remaining monster record fields beyond the exposed combat stats and masks;
-- armor resistance behavior in full detail;
 - spell naming/text editing;
 - whether support spells such as Haste, Temper, Saber, and Dia-like spells
   deserve their own optional INT scaling model;

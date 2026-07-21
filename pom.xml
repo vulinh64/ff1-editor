@@ -23,6 +23,7 @@
         <junit.jupiter.version>5.14.1</junit.jupiter.version>
         <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
         <maven.antrun.version>3.1.0</maven.antrun.version>
+        <fmt.maven.plugin.version>2.29</fmt.maven.plugin.version>
         <maven.shade.version>3.6.1</maven.shade.version>
         <maven.surefire.version>3.5.4</maven.surefire.version>
     </properties>
@@ -79,6 +80,11 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify.fmt</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>${fmt.maven.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

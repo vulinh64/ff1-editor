@@ -14,6 +14,7 @@ public final class ItemEquipmentPatcher {
   public static final int ARMOR_MASK_OFFSET_IN_RECORD = 0;
   public static final int ARMOR_ABSORB_OFFSET_IN_RECORD = 2;
   public static final int ARMOR_EVASION_PENALTY_OFFSET_IN_RECORD = 3;
+  public static final int ARMOR_RESISTANCE_MASK_OFFSET_IN_RECORD = 5;
   private static final int KNOWN_CLASS_MASK_BITS = 0x3f3f;
 
   private ItemEquipmentPatcher() {}
@@ -45,9 +46,11 @@ public final class ItemEquipmentPatcher {
   public static void applyArmorStats(byte[] cp0, ArmorStatsEdit edit) {
     validateByte(edit.absorb(), "Armor absorb");
     validateByte(edit.evasionPenalty(), "Armor evasion lower");
+    validateByte(edit.resistanceMask(), "Armor resistance mask");
     int offset = armorRecordOffset(cp0, edit.armorItemId());
     cp0[offset + ARMOR_ABSORB_OFFSET_IN_RECORD] = (byte) edit.absorb();
     cp0[offset + ARMOR_EVASION_PENALTY_OFFSET_IN_RECORD] = (byte) edit.evasionPenalty();
+    cp0[offset + ARMOR_RESISTANCE_MASK_OFFSET_IN_RECORD] = (byte) edit.resistanceMask();
   }
 
   private static int weaponMaskOffset(byte[] cp0, int itemId) {

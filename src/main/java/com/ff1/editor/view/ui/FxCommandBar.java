@@ -91,8 +91,7 @@ public final class FxCommandBar extends VBox {
   private final CheckBox alwaysSuccessfulRun = new CheckBox("Always successful run");
   private final CheckBox partyActionOrder = new CheckBox("Party action order");
   private final CheckBox enemyCriticalDefense = new CheckBox("Enemy crits respect party defense");
-  private final CheckBox weaponAffinityDamage =
-      new CheckBox("Weapon affinity damage bonus");
+  private final CheckBox weaponAffinityDamage = new CheckBox("Weapon affinity damage bonus");
   private final CheckBox cottageRevive = new CheckBox("Cottage revives KO");
   private final CheckBox airshipLanding = new CheckBox("Airship lands on safe terrain");
   private final Button build = new Button(BUILD_PATCHED_JAR_LABEL);

@@ -1,9 +1,11 @@
 package com.ff1.editor.view.items;
 
+import com.ff1.editor.data.ArmorResistance;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.ItemSnapshot;
+import com.ff1.editor.data.MaskOption;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
 import java.util.Map;
@@ -25,6 +27,7 @@ public final class FxItemRowViewModel {
   private final IntegerProperty accuracy;
   private final IntegerProperty absorb;
   private final IntegerProperty evasionPenalty;
+  private final IntegerProperty armorResistanceMask;
 
   public FxItemRowViewModel(
       ItemSnapshot item,
@@ -43,6 +46,7 @@ public final class FxItemRowViewModel {
     this.accuracy = new SimpleIntegerProperty(originalAccuracy());
     this.absorb = new SimpleIntegerProperty(originalAbsorb());
     this.evasionPenalty = new SimpleIntegerProperty(originalEvasionPenalty());
+    this.armorResistanceMask = new SimpleIntegerProperty(originalArmorResistanceMask());
   }
 
   public int id() {
@@ -136,7 +140,9 @@ public final class FxItemRowViewModel {
 
   public boolean armorStatsChanged() {
     return category() == ItemCategory.ARMOR
-        && (absorb.get() != originalAbsorb() || evasionPenalty.get() != originalEvasionPenalty());
+        && (absorb.get() != originalAbsorb()
+            || evasionPenalty.get() != originalEvasionPenalty()
+            || armorResistanceMask.get() != originalArmorResistanceMask());
   }
 
   public ArmorStatsEdit toArmorStatsEdit() {
@@ -144,6 +150,7 @@ public final class FxItemRowViewModel {
         .armorItemId(id())
         .absorb(absorb.get())
         .evasionPenalty(evasionPenalty.get())
+        .resistanceMask(armorResistanceMask.get())
         .build();
   }
 
@@ -166,9 +173,21 @@ public final class FxItemRowViewModel {
   }
 
   public String resistanceMask() {
-    return item.resistanceMask() == null || item.resistanceMask() == 0
+    return armorResistanceMask.get() == 0
         ? StringUtils.EMPTY
-        : "0x%02x".formatted(item.resistanceMask());
+        : "0x%02x".formatted(armorResistanceMask.get());
+  }
+
+  public String armorResistances() {
+    return labelsForMask(armorResistanceMask.get(), ArmorResistance.values());
+  }
+
+  public int armorResistanceMaskValue() {
+    return armorResistanceMask.get();
+  }
+
+  public void armorResistanceMaskValue(int mask) {
+    armorResistanceMask.set(mask);
   }
 
   public String weaponSpecialBytes() {
@@ -207,6 +226,8 @@ public final class FxItemRowViewModel {
         || armorSubtype().toLowerCase().contains(normalized)
         || allowedClasses().toLowerCase().contains(normalized)
         || castSpell().toLowerCase().contains(normalized)
+        || armorResistances().toLowerCase().contains(normalized)
+        || resistanceMask().toLowerCase().contains(normalized)
         || weaponEffectiveness().toLowerCase().contains(normalized)
         || source().toLowerCase().contains(normalized)
         || notes().toLowerCase().contains(normalized);
@@ -234,6 +255,10 @@ public final class FxItemRowViewModel {
 
   private int originalEvasionPenalty() {
     return item.evasionPenalty() == null ? 0 : item.evasionPenalty();
+  }
+
+  private int originalArmorResistanceMask() {
+    return item.resistanceMask() == null ? 0 : item.resistanceMask();
   }
 
   public static String castSpellLabel(int id, Map<Integer, String> skillNames) {
@@ -277,6 +302,27 @@ public final class FxItemRowViewModel {
     for (int bit = 1; bit <= 0x80; bit <<= 1) {
       if ((unknownBits & bit) != 0) {
         append(out, "%s 0x%02x".formatted(fallbackPrefix, bit));
+      }
+    }
+    return out.toString();
+  }
+
+  private static String labelsForMask(int mask, MaskOption[] options) {
+    if (mask == 0) {
+      return StringUtils.EMPTY;
+    }
+    StringBuilder out = new StringBuilder();
+    int unknownBits = mask;
+    for (MaskOption option : options) {
+      if ((mask & option.bit()) == 0) {
+        continue;
+      }
+      append(out, option.label());
+      unknownBits &= ~option.bit();
+    }
+    for (int bit = 1; bit <= 0x80; bit <<= 1) {
+      if ((unknownBits & bit) != 0) {
+        append(out, "0x%02x".formatted(bit));
       }
     }
     return out.toString();

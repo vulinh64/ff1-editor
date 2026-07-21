@@ -190,7 +190,9 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Runtime armor item
   ids are offset by 48 and split into body armor, shields, helms, and gloves.
   Record bytes `0..1` are editable as the equip class mask. Record bytes `2`
-  and `3` are editable as absorb and evasion lower.
+  and `3` are editable as absorb and evasion lower. Record byte `5` is an armor
+  resistance mask; battle setup ORs the four equipped armor masks into the hero's
+  spell/status resistance field.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
   field is the shop price.
 - Runtime level-up and spell-charge logic: `g.class`, method `F()`.
@@ -244,6 +246,10 @@ This is the quick landing page for the FF1 J2ME editor project.
   share the spell-charge recovery amount.
 - Airship landing check: `i.class`, private method `L()`. Stock accepts terrain
   `0` and `10..14`; the optional patch accepts terrain `0` and `10..33`.
+- Armor resistance aggregation: `j.class`, method `g(hero)`, ORs byte `5` from
+  body, shield, helm, and gloves. `g.class` spell/effect logic halves matching
+  damage, heavily lowers matching status chance, and hard-blocks matching
+  conditional status. Physical on-hit statuses also consult this mask.
 
 ## Confirmed Game Behavior
 

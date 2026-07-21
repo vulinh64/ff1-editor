@@ -1,6 +1,6 @@
 package com.ff1.editor.data;
 
-public interface MonsterMaskOption {
+public interface MaskOption {
 
   int bit();
 

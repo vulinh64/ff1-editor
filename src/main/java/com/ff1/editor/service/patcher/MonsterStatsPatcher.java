@@ -39,8 +39,7 @@ public final class MonsterStatsPatcher {
       throw new IllegalArgumentException("Monster archetypes are limited to 3 selections.");
     }
     if ((edit.weaknessMask() & edit.resistanceMask()) != 0) {
-      throw new IllegalArgumentException(
-          "Monster weakness and resistance masks cannot overlap.");
+      throw new IllegalArgumentException("Monster weakness and resistance masks cannot overlap.");
     }
 
     int offset = monsterRecordOffset(cp0, edit.monsterId());

@@ -5,15 +5,18 @@ import static com.ff1.editor.view.ui.FxTableColumns.intColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
 import com.ff1.editor.data.EditorWorkspace;
+import com.ff1.editor.data.MaskOption;
 import com.ff1.editor.data.MonsterArchetype;
 import com.ff1.editor.data.MonsterElementAffinity;
-import com.ff1.editor.data.MonsterMaskOption;
 import com.ff1.editor.data.MonsterStatsEdit;
 import com.ff1.editor.service.MonsterDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -36,13 +39,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
 
 public final class FxMonstersView extends BorderPane {
 
-  private final ObservableList<FxMonsterRowViewModel> monsters = FXCollections.observableArrayList();
+  private final ObservableList<FxMonsterRowViewModel> monsters =
+      FXCollections.observableArrayList();
   private final FilteredList<FxMonsterRowViewModel> normalMonsters = new FilteredList<>(monsters);
   private final FilteredList<FxMonsterRowViewModel> bossMonsters = new FilteredList<>(monsters);
   private final TextField search = new TextField();
@@ -79,7 +80,8 @@ public final class FxMonstersView extends BorderPane {
   private void refilter() {
     normalMonsters.setPredicate(
         monster -> !monster.bossOrFixed() && monster.matches(search.getText()));
-    bossMonsters.setPredicate(monster -> monster.bossOrFixed() && monster.matches(search.getText()));
+    bossMonsters.setPredicate(
+        monster -> monster.bossOrFixed() && monster.matches(search.getText()));
   }
 
   private List<MonsterStatsEdit> monsterStatsEdits() {
@@ -160,7 +162,7 @@ public final class FxMonstersView extends BorderPane {
 
   private static TableColumn<FxMonsterRowViewModel, FxMonsterRowViewModel> maskColumn(
       String title,
-      MonsterMaskOption[] options,
+      MaskOption[] options,
       Function<FxMonsterRowViewModel, String> label,
       ToIntFunction<FxMonsterRowViewModel> mask,
       BiConsumer<FxMonsterRowViewModel, Integer> update,
@@ -179,7 +181,7 @@ public final class FxMonstersView extends BorderPane {
       extends TableCell<FxMonsterRowViewModel, FxMonsterRowViewModel> {
 
     private final String title;
-    private final MonsterMaskOption[] options;
+    private final MaskOption[] options;
     private final Function<FxMonsterRowViewModel, String> label;
     private final ToIntFunction<FxMonsterRowViewModel> mask;
     private final BiConsumer<FxMonsterRowViewModel, Integer> update;
@@ -189,7 +191,7 @@ public final class FxMonstersView extends BorderPane {
 
     private MaskCell(
         String title,
-        MonsterMaskOption[] options,
+        MaskOption[] options,
         Function<FxMonsterRowViewModel, String> label,
         ToIntFunction<FxMonsterRowViewModel> mask,
         BiConsumer<FxMonsterRowViewModel, Integer> update,
@@ -238,7 +240,7 @@ public final class FxMonstersView extends BorderPane {
       content.setPadding(new Insets(8, 0, 0, 0));
       int currentMask = mask.applyAsInt(row);
       int blockedMask = opposingMask.applyAsInt(row);
-      for (MonsterMaskOption option : options) {
+      for (MaskOption option : options) {
         CheckBox checkbox = new CheckBox(option.label());
         checkbox.setSelected((currentMask & option.bit()) != 0);
         if ((blockedMask & option.bit()) != 0 && !checkbox.isSelected()) {
@@ -269,7 +271,8 @@ public final class FxMonstersView extends BorderPane {
         }
       }
       pane.setContent(content);
-      dialog.setResultConverter(button -> button == ButtonType.OK ? selectedMask(boxes, options) : null);
+      dialog.setResultConverter(
+          button -> button == ButtonType.OK ? selectedMask(boxes, options) : null);
       dialog
           .showAndWait()
           .ifPresent(
@@ -283,7 +286,7 @@ public final class FxMonstersView extends BorderPane {
       return (int) boxes.stream().filter(CheckBox::isSelected).count();
     }
 
-    private static int selectedMask(List<CheckBox> boxes, MonsterMaskOption[] options) {
+    private static int selectedMask(List<CheckBox> boxes, MaskOption[] options) {
       int mask = 0;
       for (int i = 0; i < options.length; i++) {
         if (boxes.get(i).isSelected()) {

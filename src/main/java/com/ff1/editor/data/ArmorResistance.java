@@ -1,10 +1,10 @@
 package com.ff1.editor.data;
 
-public enum MonsterElementAffinity implements MaskOption {
-  POISON_STONE(0x01, "Poison/Stone"),
-  DEATH(0x02, "Death"),
-  STATUS(0x04, "Status"),
-  TIME(0x08, "Time"),
+public enum ArmorResistance implements MaskOption {
+  POISON_STATUS(0x01, "Poison/Status"),
+  STONE(0x02, "Stone"),
+  TIME_STOP(0x04, "Time/Stop"),
+  DEATH(0x08, "Death"),
   FIRE(0x10, "Fire"),
   ICE(0x20, "Ice"),
   THUNDER(0x40, "Thunder"),
@@ -13,7 +13,7 @@ public enum MonsterElementAffinity implements MaskOption {
   private final int bit;
   private final String label;
 
-  MonsterElementAffinity(int bit, String label) {
+  ArmorResistance(int bit, String label) {
     this.bit = bit;
     this.label = label;
   }

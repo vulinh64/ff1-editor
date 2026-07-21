@@ -136,11 +136,11 @@ class DataPatcherIntegrityTest {
   }
 
   @Test
-  void armorStatsPatchWritesAbsorbAndEvasionLower() {
+  void armorStatsPatchWritesAbsorbEvasionLowerAndResistanceMask() {
     byte[] cp0 = standardCp0();
     Cp0ChunkTable table = new Cp0ChunkTable(cp0);
 
-    ItemEquipmentPatcher.applyArmorStats(cp0, new ArmorStatsEdit(80, 1, 1));
+    ItemEquipmentPatcher.applyArmorStats(cp0, new ArmorStatsEdit(80, 1, 1, 0xff));
 
     int offset =
         table.chunkOffset(ItemEquipmentDiscoveryService.ARMOR_CHUNK_INDEX)
@@ -149,6 +149,8 @@ class DataPatcherIntegrityTest {
     assertEquals(1, cp0[offset + ItemEquipmentPatcher.ARMOR_ABSORB_OFFSET_IN_RECORD] & 0xff);
     assertEquals(
         1, cp0[offset + ItemEquipmentPatcher.ARMOR_EVASION_PENALTY_OFFSET_IN_RECORD] & 0xff);
+    assertEquals(
+        0xff, cp0[offset + ItemEquipmentPatcher.ARMOR_RESISTANCE_MASK_OFFSET_IN_RECORD] & 0xff);
   }
 
   @Test

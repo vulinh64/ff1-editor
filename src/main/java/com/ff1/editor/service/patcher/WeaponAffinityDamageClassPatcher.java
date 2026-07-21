@@ -162,7 +162,8 @@ public final class WeaponAffinityDamageClassPatcher {
   private static int patchedAccuracyClampSites(List<Instruction> instructions) {
     int matches = 0;
     for (int i = 0; i <= instructions.size() - 2; i++) {
-      if (isPush(instructions.get(i), 255) && isIntStore(instructions.get(i + 1), HIT_CHANCE_LOCAL)) {
+      if (isPush(instructions.get(i), 255)
+          && isIntStore(instructions.get(i + 1), HIT_CHANCE_LOCAL)) {
         matches++;
       }
     }

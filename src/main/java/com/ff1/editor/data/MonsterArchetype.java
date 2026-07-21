@@ -1,6 +1,6 @@
 package com.ff1.editor.data;
 
-public enum MonsterArchetype implements MonsterMaskOption {
+public enum MonsterArchetype implements MaskOption {
   MAGICAL(0x01, "Magical"),
   DRAGON(0x02, "Dragon"),
   GIANT_OGRE_GOBLIN(0x04, "Giant/Ogre/Goblin"),

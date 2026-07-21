@@ -286,6 +286,52 @@ The table labels this byte as `Evasion Lower` because larger values reduce the
 hero's evasion; heavy armor such as Knight's Armor carries a large penalty.
 The editor writes absorb and evasion lower from the Armor table.
 
+Armor resistance is confirmed by `j.g(hero)`: the game ORs byte `5` from all
+four equipped armor slots into one hero resistance mask.
+
+```text
+resistance = body[4] | shield[4] | helm[4] | gloves[4]
+```
+
+The battle spell/effect helper then compares that mask with the spell/effect
+element/status mask:
+
+- damage kind `1`: matching resistance halves the base damage before randomness
+  and the strong-hit double;
+- status/chance kinds `3`, `4`, `5`, and `17`: matching resistance subtracts
+  `148` from the success chance;
+- conditional status kind `18`: matching resistance makes the effect fail;
+- physical attacks with an on-hit status also check the target armor resistance
+  mask and can have their status chance reduced to zero by a matching bit.
+
+Known armor resistance bits use the same spell/effect mask family:
+
+| Bit | Meaning |
+|-----|---------|
+| `0x01` | Poison / broad status |
+| `0x02` | Stone |
+| `0x04` | Time / stop-style status |
+| `0x08` | Death / instant death |
+| `0x10` | Fire |
+| `0x20` | Ice |
+| `0x40` | Thunder |
+| `0x80` | Earth |
+
+Examples:
+
+- Flame Mail and Flame Shield each add `0x20`, so they resist ice attacks.
+- Ice Armor and Ice Shield each add `0x10`, so they resist fire attacks.
+- Diamond Armor and Diamond Shield each add `0x40`, so they resist thunder
+  attacks. Diamond Helm and Diamond Gloves add defense but no resistance.
+- Dragon Mail adds `0x70`, so it resists fire, ice, and thunder.
+- Ribbon adds `0xff`, so it supplies every current resistance bit.
+- Protect Ring adds `0x08`, matching Death, Kill, Deadly Gas, and similar
+  instant-death masks.
+
+Because resistance masks are ORed, duplicate pieces do not stack resistance
+strength. `Diamond Armor + Diamond Shield` gives the same thunder resistance
+mask as either one alone, but both pieces still contribute their normal absorb.
+
 ### Armor Permissions
 
 | ID | Type | Armor | Absorb | Evasion Lower | Casts | Resistance | Allowed Classes |
@@ -352,6 +398,5 @@ patch notes. Current shop category mapping:
   fuller pass before editing.
 - Name the unknown weapon bytes `0` and `1`.
 - Name the shared item metadata bytes `2` and `3`.
-- Decode resistance/special mask bits for armor.
 - Refine the weapon family/type labels for bits `0x01` and `0x40`
   against more monster behavior and in-game expectations.
