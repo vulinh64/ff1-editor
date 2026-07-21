@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 public final class FxItemRowViewModel {
 
   public static final String FAMILY_MASK_PATTERN = "%s (0x%02x)";
+  public static final String RESISTANCE_BIT_MASK_PATTERN = "0x%02x";
   private final ItemSnapshot item;
   private final Map<Integer, String> skillNames;
   private final Map<Integer, String> elementEffectivenessLabels;
@@ -213,7 +214,7 @@ public final class FxItemRowViewModel {
   public String resistanceMask() {
     return armorResistanceMask.get() == 0
         ? StringUtils.EMPTY
-        : "0x%02x".formatted(armorResistanceMask.get());
+        : RESISTANCE_BIT_MASK_PATTERN.formatted(armorResistanceMask.get());
   }
 
   public String armorResistances() {
@@ -231,13 +232,13 @@ public final class FxItemRowViewModel {
   public String weaponAffinityMask() {
     return weaponAffinityMask.get() == 0
         ? StringUtils.EMPTY
-        : "0x%02x".formatted(weaponAffinityMask.get());
+        : RESISTANCE_BIT_MASK_PATTERN.formatted(weaponAffinityMask.get());
   }
 
   public String weaponFamilyMask() {
     return weaponFamilyMask.get() == 0
         ? StringUtils.EMPTY
-        : "0x%02x".formatted(weaponFamilyMask.get());
+        : RESISTANCE_BIT_MASK_PATTERN.formatted(weaponFamilyMask.get());
   }
 
   public String weaponAffinities() {
@@ -405,7 +406,7 @@ public final class FxItemRowViewModel {
     }
     for (int bit = 1; bit <= 0x80; bit <<= 1) {
       if ((unknownBits & bit) != 0) {
-        append(out, "0x%02x".formatted(bit));
+        append(out, RESISTANCE_BIT_MASK_PATTERN.formatted(bit));
       }
     }
     return out.toString();

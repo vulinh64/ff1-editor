@@ -186,14 +186,6 @@ public final class WeaponAffinityDamageClassPatcher {
         && isIncrement(instructions.get(1), HIT_CHANCE_LOCAL, 40);
   }
 
-  private static boolean isCriticalClampStart(List<Instruction> instructions) {
-    return instructions.size() == 3
-        && isIntLoad(instructions.get(0), CRITICAL_THRESHOLD_LOCAL)
-        && isIntLoad(instructions.get(1), HIT_CHANCE_LOCAL)
-        && instructions.get(2) instanceof BranchInstruction branch
-        && branch.opcode() == Opcode.IF_ICMPLT;
-  }
-
   private static boolean isPatchedWeaponDamageWindow(List<Instruction> instructions) {
     return instructions.size() == 10
         && isIntLoad(instructions.get(0), ATTACK_LOCAL)
@@ -279,6 +271,14 @@ public final class WeaponAffinityDamageClassPatcher {
 
     private WeaponAffinityDamageCodeTransform(PatchCounter counter) {
       this.counter = counter;
+    }
+
+    private static boolean isCriticalClampStart(List<Instruction> instructions) {
+      return instructions.size() == 3
+          && isIntLoad(instructions.get(0), CRITICAL_THRESHOLD_LOCAL)
+          && isIntLoad(instructions.get(1), HIT_CHANCE_LOCAL)
+          && instructions.get(2) instanceof BranchInstruction branch
+          && branch.opcode() == Opcode.IF_ICMPLT;
     }
 
     @Override
