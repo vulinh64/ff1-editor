@@ -117,9 +117,10 @@ nameTextId = 346 + 2 * itemId
 descriptionTextId = nameTextId + 1
 ```
 
-This means item ids `7..47` are weapons. Text id `360` / item id `7` is blank,
-so the first visible weapon is item id `8` (`Nunchaku`). `Knife` is item id `9`,
-not item id `7`.
+This means item ids `7..47` line up with weapon record indices, but item id `7`
+is blank and treated as an unused/sentinel entry by the editor. The first
+visible weapon is item id `8` (`Nunchaku`). `Knife` is item id `9`, not item id
+`7`.
 
 ## Cornelia Weapon Shop
 
@@ -224,7 +225,7 @@ Known armor-shop rows:
 |   1 | `0x00001a36` | `1, 2, 4, 5, 0`  | Potion, Antidote, Sleeping Bag, Tent               | confirmed Pravoka item shop |
 |   2 | `0x00001a3b` | `1, 2, 5, 6, 3`  | Potion, Antidote, Tent, Cottage, Gold Needle       | confirmed Elfheim item shop |
 |   3 | `0x00001a40` | `1, 2, 5, 6, 0`  | Potion, Antidote, Tent, Cottage                    | unknown town/event |
-|   4 | `0x00001a45` | `1, 2, 5, 6, 0`  | Potion, Antidote, Tent, Cottage                    | likely Crescent Lake item shop; inventory confirmed in-game, row shares contents with row `3` |
+|   4 | `0x00001a45` | `1, 2, 5, 6, 0`  | Potion, Antidote, Tent, Cottage                    | unknown town/event; possible Crescent Lake item shop, but row shares contents with row `3` |
 |   5 | `0x00001a4a` | `1, 2, 5, 6, 3`  | Potion, Antidote, Tent, Cottage, Gold Needle       | unknown town/event |
 |   6 | `0x00001a4f` | `104, 0, 0, 0, 0` | Bottled Faerie                                    | duplicate Caravan-looking raw row; no `m0` event-script opener found |
 
@@ -345,5 +346,6 @@ records as `j.d[itemId - 48]`. Use the armor-shop row for buyable armor.
   needs a bytecode-backed item id/effect route before shop rows alone are useful.
 - Confirm whether item id `7` is intentionally an unused/blank weapon sentinel
   or has a hidden menu purpose.
-- Decode the eight weapon record fields far enough to expose weapon stats in a
-  future equipment tab.
+- Name the remaining weapon record bytes `0` and `1`; the Equipment / Items tab
+  already exposes equip masks, damage, accuracy, cast spell id, affinity mask,
+  and family/type mask.

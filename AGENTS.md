@@ -45,13 +45,18 @@ Default paths:
 - Startup launches JavaFX and opens a JAR chooser.
 - Manifest validation expects the Namco Bandai `Final Fantasy` MIDlet.
 - Heroes tab edits base-class starting HP/STR/AGL/INT/STA/LCK from `cp0`.
-- Magic Matrix tab edits class permission masks for learnable spells and reads
+- Magic Permissions tab edits class permission masks for learnable spells and reads
   spell names from `PACK0_4`.
-- Equipment Matrix tab edits weapon and armor equip permission masks.
-- Items tab shows decoded item/equipment names, descriptions, prices,
-  equipment stats, equip masks, and cast spell ids. Shared item prices, weapon
-  damage/accuracy/cast spell ids, and armor absorb/evasion lower are editable.
-  Key/quest items are hidden from the Items sub-tab.
+- Equipment / Items tab shows decoded item/equipment names, descriptions,
+  prices, equipment stats, equip masks, cast spell ids, and weapon
+  effectiveness labels. Shared item prices, weapon damage/accuracy/cast spell
+  ids, weapon affinity/family masks, armor absorb/evasion lower, armor
+  resistance masks, and equip masks are editable. Key/quest items are hidden
+  from the Items sub-tab.
+- Shops tab edits confirmed and documented shop inventory rows, shows shop
+  prices as references, and edits Inn Bed service prices.
+- Monsters tab edits confirmed rewards, HP, attack, hit count, defense,
+  evasion, magic defense, archetype, weakness, and resistance fields.
 - Skills tab shows all 94 spell/effect records and edits price,
   `power/status`, and `accuracy`.
 - The command bar `Build Patched JAR` button opens a VDDOH-style modal for
@@ -62,8 +67,10 @@ Default paths:
   - 15 max spell charges via `cp0`, `g.class`, and `i.class`;
   - damage-causing spells scale with INT via `g.class`;
   - healing spells scale with INT via `g.class`;
+  - INT+STA reduces enemy spell effects via `g.class`;
   - always-successful Run, party action order, and enemy crit defense behavior
     via `g.class`;
+  - weapon affinity damage bonus via `g.class`;
   - Cottage revives KO and airship lands on safe terrain via `i.class`.
 
 ## Important Discoveries
@@ -135,7 +142,9 @@ ignored; on fresh clones download CFR 0.152 with the command documented in
 
 ## Near-Term Work
 
-- Decode remaining unknown item, weapon, armor, and monster fields.
+- Decode remaining unknown item, weapon, armor, spell/effect, and monster
+  fields.
+- Map remaining ambiguous shop rows and service prices.
 - Investigate spell/name text editing beyond the current read-only decoded
   labels.
 - Investigate an optional unsigned/wider starting-HP engine patch.

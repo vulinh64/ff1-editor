@@ -72,13 +72,13 @@ The JavaFX app opens with a JAR chooser and validates that the selected file is 
 
 * `Heroes`: edits base-class starting HP, STR, AGL, INT, STA, and LCK. Upgraded classes are shown as read-only mirror rows because class change inherits live character stats.
 
-* `Magic Matrix`: edits which classes can learn each White and Black Magic spell.
+* `Magic Permissions`: edits which classes can learn each White and Black Magic spell.
 
-* `Equipment Matrix`: edits weapon and armor equip permission masks.
+* `Equipment / Items`: shows item/equipment names, descriptions, prices, equipment stats, equip classes, cast spell ids, and weapon effectiveness labels. Shared item prices, weapon damage/hit rate/cast spell ids, weapon affinity/family masks, armor absorb/evasion lower, and armor resistance masks are editable. Key/quest items are hidden.
 
 * `Skills`: shows all 94 spell/effect entries and edits spell shop price, effect strength, status behavior, and success rate.
 
-* `Items`: shows item/equipment names, descriptions, prices, equipment stats, equip classes, cast spell ids, and weapon effectiveness labels. Shared item prices, weapon damage/hit rate/cast spell ids, and armor absorb/evasion lower are editable. Key/quest items are hidden.
+* `Shops`: edits confirmed and documented shop inventory rows, keeps ambiguous rows under `<Unknown>`, shows shop prices as references, and edits Inn Bed service prices.
 
 * `Monsters`: splits normal monsters from bosses/fixed encounters and edits confirmed rewards, HP, attack, hits, defense, evasion, magic defense, archetypes, weaknesses, and resistances. Archetypes are capped to three selections; weaknesses and resistances cannot overlap on the same element.
 
@@ -86,7 +86,7 @@ The `Build Patched JAR` command opens a global patch dialog. These options chang
 
 * Strong level-ups: every level-up takes the strong HP/stat growth path. HP always receives the strong-growth bonus plus the normal stamina contribution, and STR, AGL, INT, STA, and LCK each gain at least `+1` when leveling. This makes long-term growth much less swingy; by level 20, each body stat has received at least 19 guaranteed level-up points after level 1.
 
-* Universal spell-charge growth: Warrior, Thief, Monk, and their upgraded classes can gain spell charges from the growth table while leveling, instead of spell-charge growth being gated to mage-style classes only. Spell permissions are still separate, so classes still need Magic Matrix access before they can learn and cast spells.
+* Universal spell-charge growth: Warrior, Thief, Monk, and their upgraded classes can gain spell charges from the growth table while leveling, instead of spell-charge growth being gated to mage-style classes only. Spell permissions are still separate, so classes still need Magic Permissions access before they can learn and cast spells.
 
 * 15 max spell charges: raises the per-level spell charge cap from `9` to `15`, rewrites charge growth so every class can eventually reach 15 charges per spell level, and updates field recovery so inns/cottages can refill the larger pool.
 

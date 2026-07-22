@@ -126,6 +126,13 @@ effect labels derived from item names. Price, `power/status`, and `accuracy` are
 editable; the remaining raw fields stay read-only until their behavior is fully
 named.
 
+The Shops tab is location-first. Confirmed, wiki-backed, likely, and
+unconfirmed service mappings are grouped by town, with ambiguous rows kept under
+`<Unknown>`. Inventory shop slots are editable for `cp0` chunks `6..11`; item,
+weapon, armor, and spell prices are shown as read-only references because those
+prices belong to the Equipment / Items and Skills tabs. Inn `Bed` service
+prices are editable through `cp0` chunk `14`.
+
 The Monsters tab is a discovery/edit surface split into Normal and Bosses /
 Fixed. Monster names come from `PACK0_14`; records come from `cp0` chunk `15`.
 The Bosses / Fixed split is derived from encounter data, not a confirmed
@@ -146,6 +153,11 @@ The current global patch modal supports:
   `g.class` class-gate patch.
 - 15 max spell charges through a hybrid `cp0` growth schedule, `g.class` cap/gate
   patch, and `i.class` recovery patch.
+- damage-causing spells scale with INT through a `g.class` spell-effect helper
+  patch.
+- healing spells scale with INT through a `g.class` spell-effect helper patch.
+- INT+STA reduce enemy spell effects through a `g.class` spell-effect helper
+  patch.
 - an always-successful Run patch in `g.class` that preserves the encounter
   no-run/boss gate.
 - a party action-order patch in `g.class` that changes only normal battle queue

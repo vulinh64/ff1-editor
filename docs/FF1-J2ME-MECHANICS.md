@@ -658,6 +658,9 @@ The current confirmed guide is not complete. Good future deep-dive targets:
 - spell naming/text editing;
 - whether support spells such as Haste, Temper, Saber, and Dia-like spells
   deserve their own optional INT scaling model;
+- whether TEMPER or SABER should gain an optional engine patch that grants
+  guaranteed critical hits, or a capped critical-threshold bonus, for landed
+  physical attacks;
 - a safe unsigned or wider starting-HP patch for values above 127.
 
 Until those are confirmed, the editor should keep the relevant fields read-only

@@ -176,9 +176,10 @@ For the local jar, this makes White LV8 order `Full-Life`, `Holy`, `NulAll`,
 Renaming spells should be feasible, but it is not yet mapped. The likely first
 target is the same spell metadata/text loading path used by `b.class` and
 `Ff1TextService`. Keep names separate from Magic Permissions: that tab controls
-who can learn/cast a spell, while a later Magic tab can expose visible spell
-names, prices, elements, targeting, or other observable spell fields after their
-record bytes are confirmed.
+who can learn/cast a spell. The Skills tab already exposes spell/effect prices,
+`power/status`, and `accuracy`; visible spell names, elements, targeting, and
+other raw spell fields remain future work after their record bytes are
+confirmed.
 
 ## INT Damage Scaling Patch
 

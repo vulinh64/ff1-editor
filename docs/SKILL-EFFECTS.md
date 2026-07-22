@@ -136,6 +136,21 @@ renamed and broadened. Current design notes:
   1% extra effect per INT, making White Mage more useful against undead while
   preserving Dia as a niche holy/anti-undead line.
 
+## Future Critical-Buff Patch Idea
+
+TEMPER and SABER cannot grant guaranteed critical hits through skill-record data
+alone. Stock TEMPER is effect kind `13` and adds `power/status` to the battle
+attack bonus; stock SABER is effect kind `11` and adds `power/status` to attack
+plus `accuracy` to hit rate. Critical hits are decided later by the physical
+attack helper from the equipped weapon index and hit roll.
+
+A future optional `g.class` patch could make either TEMPER or SABER also mark
+the target with a battle-only guaranteed-critical flag. The physical attack
+helper would then force the critical branch for landed player hits while that
+flag is active. Keep this separate from INT scaling and consider a capped
+critical-threshold bonus as a safer alternative, because guaranteed crits combine
+very strongly with Masamune, Haste, and high hit count.
+
 Known field uses from that helper:
 
 - `j.a[id][4]`: effect kind switch.

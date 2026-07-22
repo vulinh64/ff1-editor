@@ -303,6 +303,10 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
   Dia-like undead-damage spells. Keep these separate from the current
   damage-only and healing-only patches unless the patch behavior is
   intentionally renamed.
+- Design an optional critical-buff engine patch where either TEMPER or SABER
+  grants guaranteed critical hits, or a capped critical-threshold bonus, through
+  `g.class`. This is not possible as a skill-record-only edit because physical
+  critical hits are resolved later from weapon index and hit roll.
 - Continue decoding monster record fields beyond the currently exposed combat,
   type, weakness, resistance, and raw leading bytes.
 - Investigate an optional unsigned/wider starting-HP engine patch.

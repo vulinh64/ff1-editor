@@ -10,7 +10,6 @@ import com.ff1.editor.view.FxEditorApplication;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
