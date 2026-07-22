@@ -7,6 +7,8 @@ import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
 import com.ff1.editor.data.MonsterStatsEdit;
+import com.ff1.editor.data.ShopInventoryEdit;
+import com.ff1.editor.data.ShopPriceEdit;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
@@ -30,9 +32,6 @@ public final class FxEditorState {
   private final BooleanProperty intelligenceSpellDamage = new SimpleBooleanProperty(false);
   private final BooleanProperty intelligenceSpellHealing = new SimpleBooleanProperty(false);
   private final BooleanProperty heroMagicResistance = new SimpleBooleanProperty(false);
-  private final BooleanProperty corneliaMasamune = new SimpleBooleanProperty(false);
-  private final BooleanProperty corneliaExcalibur = new SimpleBooleanProperty(false);
-  private final BooleanProperty corneliaRibbonProtectRing = new SimpleBooleanProperty(false);
   private final BooleanProperty alwaysSuccessfulRun = new SimpleBooleanProperty(false);
   private final BooleanProperty partyActionOrder = new SimpleBooleanProperty(false);
   private final BooleanProperty enemyCriticalDefense = new SimpleBooleanProperty(false);
@@ -48,6 +47,8 @@ public final class FxEditorState {
   private Supplier<List<WeaponStatsEdit>> weaponStatsEditSupplier = List::of;
   private Supplier<List<ArmorStatsEdit>> armorStatsEditSupplier = List::of;
   private Supplier<List<MonsterStatsEdit>> monsterStatsEditSupplier = List::of;
+  private Supplier<List<ShopInventoryEdit>> shopInventoryEditSupplier = List::of;
+  private Supplier<List<ShopPriceEdit>> shopPriceEditSupplier = List::of;
 
   public ObjectProperty<EditorWorkspace> workspaceProperty() {
     return workspace;
@@ -131,42 +132,6 @@ public final class FxEditorState {
 
   public void heroMagicResistance(boolean enabled) {
     heroMagicResistance.set(enabled);
-  }
-
-  public BooleanProperty corneliaMasamuneProperty() {
-    return corneliaMasamune;
-  }
-
-  public boolean corneliaMasamune() {
-    return corneliaMasamune.get();
-  }
-
-  public void corneliaMasamune(boolean enabled) {
-    corneliaMasamune.set(enabled);
-  }
-
-  public BooleanProperty corneliaExcaliburProperty() {
-    return corneliaExcalibur;
-  }
-
-  public boolean corneliaExcalibur() {
-    return corneliaExcalibur.get();
-  }
-
-  public void corneliaExcalibur(boolean enabled) {
-    corneliaExcalibur.set(enabled);
-  }
-
-  public BooleanProperty corneliaRibbonProtectRingProperty() {
-    return corneliaRibbonProtectRing;
-  }
-
-  public boolean corneliaRibbonProtectRing() {
-    return corneliaRibbonProtectRing.get();
-  }
-
-  public void corneliaRibbonProtectRing(boolean enabled) {
-    corneliaRibbonProtectRing.set(enabled);
   }
 
   public BooleanProperty alwaysSuccessfulRunProperty() {
@@ -311,6 +276,22 @@ public final class FxEditorState {
 
   public List<MonsterStatsEdit> monsterStatsEdits() {
     return monsterStatsEditSupplier.get();
+  }
+
+  public void shopInventoryEditSupplier(Supplier<List<ShopInventoryEdit>> supplier) {
+    shopInventoryEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<ShopInventoryEdit> shopInventoryEdits() {
+    return shopInventoryEditSupplier.get();
+  }
+
+  public void shopPriceEditSupplier(Supplier<List<ShopPriceEdit>> supplier) {
+    shopPriceEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<ShopPriceEdit> shopPriceEdits() {
+    return shopPriceEditSupplier.get();
   }
 
   public StringProperty statusProperty() {

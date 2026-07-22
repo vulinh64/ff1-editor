@@ -61,10 +61,6 @@ public final class EditorLoadService {
         PatchState.from(IntelligenceSpellHealingClassPatcher.state(gClass));
     PatchState heroMagicResistanceState =
         PatchState.from(HeroMagicResistanceClassPatcher.state(gClass));
-    PatchState corneliaMasamuneState = PatchState.from(CorneliaWeaponShopPatcher.state(cp0));
-    PatchState corneliaExcaliburState = PatchState.from(CorneliaExcaliburShopPatcher.state(cp0));
-    PatchState corneliaRibbonProtectRingState =
-        PatchState.from(CorneliaArmorShopPatcher.state(cp0));
     PatchState alwaysSuccessfulRunState =
         PatchState.from(AlwaysSuccessfulRunClassPatcher.state(gClass));
     PatchState partyActionOrderState = PatchState.from(PartyActionOrderClassPatcher.state(gClass));
@@ -85,9 +81,6 @@ public final class EditorLoadService {
         .intelligenceSpellDamageState(intelligenceSpellDamageState)
         .intelligenceSpellHealingState(intelligenceSpellHealingState)
         .heroMagicResistanceState(heroMagicResistanceState)
-        .corneliaMasamuneState(corneliaMasamuneState)
-        .corneliaExcaliburState(corneliaExcaliburState)
-        .corneliaRibbonProtectRingState(corneliaRibbonProtectRingState)
         .alwaysSuccessfulRunState(alwaysSuccessfulRunState)
         .partyActionOrderState(partyActionOrderState)
         .enemyCriticalDefenseState(enemyCriticalDefenseState)

@@ -78,6 +78,39 @@ Confirmed shop-stock consumables:
 |   6 | Cottage        |  3000 |
 | 104 | Bottled Faerie | 50000 |
 
+## Consumable Effects
+
+Battle consumables are currently hardcoded to three item ids:
+
+| Item ID | Item        | Effect Record |
+|--------:|-------------|--------------:|
+|       1 | Potion      |            91 |
+|       2 | Antidote    |            92 |
+|       3 | Gold Needle |            93 |
+
+The battle item command maps those ids directly to `cp0` chunk `1`
+spell/effect records. Normal item metadata does not yet expose a data-driven
+consumable effect id like weapon and armor cast-on-use records do. Sleeping Bag,
+Tent, and Cottage are separate field recovery paths, not spell/effect records.
+
+Potential later enhancement: create a Phoenix Down-style item. The best current
+candidate is blank item id `89`, but it is just before the key-item range and
+does not naturally behave as a stackable consumable in the confirmed code paths.
+Making it a real Phoenix Down would likely require:
+
+- text and price changes for item id `89`;
+- a bytecode patch so item id `89` is treated as a normal consumable/stackable
+  item instead of a blank/key-adjacent slot;
+- a bytecode patch that routes item id `89` to Life (`18`) or to a copied
+  Life-like effect record;
+- shop table patches after confirming every town item-shop row that should sell
+  it.
+
+Records `91..93` can be edited to change the existing consumables, but using one
+for Phoenix Down would replace Potion, Antidote, or Gold Needle behavior. Records
+`65..90` look internal/enemy-oriented and should not be treated as free scratch
+space until enemy AI references are fully traced.
+
 ## Inn And Shelter Field Recovery
 
 Inn, Sleeping Bag, Tent, and Cottage behavior is hardcoded in `i.class`, private

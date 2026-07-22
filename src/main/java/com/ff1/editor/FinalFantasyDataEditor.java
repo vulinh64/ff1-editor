@@ -10,16 +10,20 @@ import com.ff1.editor.view.FxEditorApplication;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class FinalFantasyDataEditor {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class FinalFantasyDataEditor {
 
-  public static final String FF_1_JAR = "ff1-jar";
+  static final Path FF1_JAR_PATH = Path.of("ff1-jar");
 
-  private FinalFantasyDataEditor() {}
-
-  static void main(String[] args) throws Exception {
+  @SneakyThrows
+  static void main(String[] args) {
     if (args.length == 0) {
       FxEditorApplication.launchEditor(args);
       return;
@@ -62,7 +66,11 @@ public final class FinalFantasyDataEditor {
       Ff1TextService textService = new Ff1TextService(extractedDir);
       for (int id = startInclusive; id < endExclusive; id++) {
         byte[] encoded = textService.readChunk(prefix, boundaries, id);
-        log.info("{}: {}", "%03d".formatted(id), textService.decodeText(encoded));
+        log.atInfo()
+            .setMessage("{}: {}")
+            .addArgument("%03d".formatted(id))
+            .addArgument(textService.decodeText(encoded))
+            .log();
       }
       return;
     }
@@ -81,13 +89,13 @@ public final class FinalFantasyDataEditor {
     }
 
     if ("heroes".equals(args[0])) {
-      Path extractedDir = args.length >= 2 ? Path.of(args[1]) : Path.of(FF_1_JAR);
+      Path extractedDir = args.length >= 2 ? Path.of(args[1]) : FF1_JAR_PATH;
       new HeroClassDiscoveryService(extractedDir).discover().forEach(hero -> log.info("{}", hero));
       return;
     }
 
     if ("items".equals(args[0])) {
-      Path extractedDir = args.length >= 2 ? Path.of(args[1]) : Path.of(FF_1_JAR);
+      Path extractedDir = args.length >= 2 ? Path.of(args[1]) : FF1_JAR_PATH;
       new ItemEquipmentDiscoveryService(extractedDir)
           .discover()
           .forEach(item -> log.info("{}", item));
@@ -95,7 +103,7 @@ public final class FinalFantasyDataEditor {
     }
 
     if ("skills".equals(args[0])) {
-      Path extractedDir = args.length >= 2 ? Path.of(args[1]) : Path.of(FF_1_JAR);
+      Path extractedDir = args.length >= 2 ? Path.of(args[1]) : FF1_JAR_PATH;
       new SkillDiscoveryService(extractedDir).discover().forEach(skill -> log.info("{}", skill));
       return;
     }
@@ -127,17 +135,17 @@ public final class FinalFantasyDataEditor {
   private static void printUsage() {
     log.info(
         """
-                Usage: java -jar ff1-data-editor-0.1.0.jar
-                       Opens the JavaFX editor.
+                        Usage: java -jar ff1-data-editor-0.1.0.jar
+                               Opens the JavaFX editor.
 
-                Developer commands:
-                       java -jar ff1-data-editor-0.1.0.jar <ff1.jar> [--catalog target\\ff1-catalog.md]
-                       java -jar ff1-data-editor-0.1.0.jar dump-int-arrays <ff1.jar> <className>
-                       java -jar ff1-data-editor-0.1.0.jar dump-text <extractedDir> <prefix> <boundariesCsv> <startInclusive> [endExclusive]
-                       java -jar ff1-data-editor-0.1.0.jar search-text <extractedDir> <text> [moreText...]
-                       java -jar ff1-data-editor-0.1.0.jar heroes [extractedDir]
-                       java -jar ff1-data-editor-0.1.0.jar items [extractedDir]
-                       java -jar ff1-data-editor-0.1.0.jar skills [extractedDir]
-                       java -jar ff1-data-editor-0.1.0.jar --fx [input.jar]""");
+                        Developer commands:
+                               java -jar ff1-data-editor-0.1.0.jar <ff1.jar> [--catalog target\\ff1-catalog.md]
+                               java -jar ff1-data-editor-0.1.0.jar dump-int-arrays <ff1.jar> <className>
+                               java -jar ff1-data-editor-0.1.0.jar dump-text <extractedDir> <prefix> <boundariesCsv> <startInclusive> [endExclusive]
+                               java -jar ff1-data-editor-0.1.0.jar search-text <extractedDir> <text> [moreText...]
+                               java -jar ff1-data-editor-0.1.0.jar heroes [extractedDir]
+                               java -jar ff1-data-editor-0.1.0.jar items [extractedDir]
+                               java -jar ff1-data-editor-0.1.0.jar skills [extractedDir]
+                               java -jar ff1-data-editor-0.1.0.jar --fx [input.jar]""");
   }
 }

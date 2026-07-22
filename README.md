@@ -96,12 +96,6 @@ The `Build Patched JAR` command opens a global patch dialog. These options chang
 
 * INT+STA reduce enemy spell effects (experimental): enemy-cast direct spell damage and normal spell/effect success chances against heroes are reduced by the target hero's Intelligence plus Stamina. At the capped resistance value, affected damage is reduced by 30% and affected positive success chances are reduced by 20%. Player-cast spells, healing/buffs, Dia-style undead damage, conditional status effects, physical attacks, and physical status-on-hit stay unchanged.
 
-* Cornelia sells Masamune: replaces Cornelia weapon shop's Knife slot with Masamune.
-
-* Cornelia sells Excalibur: replaces Cornelia weapon shop's Nunchaku slot with Excalibur.
-
-* Cornelia armor shop sells Ribbon and Protect Ring: fills Cornelia armor shop's two empty inventory slots with Ribbon and Protect Ring.
-
 * Always successful Run: normal escape attempts always succeed, while boss/no-run encounters still block running.
 
 * Party action order: changes normal battle turn order so party actions resolve before enemies. Party commands are grouped as `Magic -> Item -> Attack -> Run/other`, preserving party slot order inside each group; enemies act afterward in randomized enemy-only order. Ambush first turns keep the original enemy-control behavior.

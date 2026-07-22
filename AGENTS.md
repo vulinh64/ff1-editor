@@ -62,8 +62,6 @@ Default paths:
   - 15 max spell charges via `cp0`, `g.class`, and `i.class`;
   - damage-causing spells scale with INT via `g.class`;
   - healing spells scale with INT via `g.class`;
-  - Cornelia sells Masamune and Cornelia sells Excalibur via `cp0`;
-  - Cornelia armor shop sells Ribbon and Protect Ring via `cp0`;
   - always-successful Run, party action order, and enemy crit defense behavior
     via `g.class`;
   - Cottage revives KO and airship lands on safe terrain via `i.class`.

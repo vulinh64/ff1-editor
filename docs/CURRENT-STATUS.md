@@ -43,6 +43,14 @@ This is the quick landing page for the FF1 J2ME editor project.
     writing them back to `cp0` chunk 2.
   - hides key/quest items from the Items sub-tab because those are not normal
     shop or inventory-balance data.
+- Shops tab:
+  - location-first view with confirmed, wiki-backed, and likely town/service
+    mappings plus an `<Unknown>` location for unconfirmed shop rows;
+  - edits shop inventory slot ids in `cp0` chunks `6..11`, so goods can be
+    replaced or added to empty slots;
+  - shows decoded good names and prices as reference only; weapon, armor, item,
+    and spell price edits remain in their respective editor tabs;
+  - edits Inn service `Bed` prices from `cp0` chunk `14`.
 - Monsters tab:
   - discovery/edit view split into Normal and Bosses / Fixed;
   - reads monster names from `PACK0_14` and monster records from `cp0` chunk 15;
@@ -109,21 +117,6 @@ This is the quick landing page for the FF1 J2ME editor project.
   - affects kinds `1`, `3`, `4`, `5`, and `17`;
   - leaves player casts, healing/buffs, Dia-style kind `2`, conditional-status
     kind `18`, physical attacks, and physical status-on-hit unchanged.
-- Cornelia sells Masamune:
-  - data patch in `cp0`;
-  - changes the Cornelia weapon shop Knife slot from item id `9` to item id
-    `47`;
-  - leaves the input jar untouched and writes the change only to patched output.
-- Cornelia sells Excalibur:
-  - data patch in `cp0`;
-  - changes the Cornelia weapon shop Nunchaku slot from item id `8` to item id
-    `46`;
-  - compatible with the separate Knife-to-Masamune shop patch.
-- Cornelia armor shop sells Ribbon and Protect Ring:
-  - data patch in `cp0`;
-  - fills the two empty Cornelia armor-shop slots with item ids `80` and `88`;
-  - uses the armor-shop path because item shops skip armor-specific preview and
-    equipment handling.
 - Always successful run:
   - bytecode patch in `g.class`;
   - rewrites the Run success helper so normal escapes always succeed;
@@ -179,6 +172,17 @@ This is the quick landing page for the FF1 J2ME editor project.
   (`power/status`), and `j.a[id][8]` (`accuracy`).
 - Shop inventory rows: `cp0` chunks `6..11` via the shop chunk source array
   documented in `SHOP-INVENTORY.md`.
+- Shop event openers: `m0` map scripts use opcode `8` followed by shop type
+  and row for inventory shops, and opcode `9` followed by service column and
+  row for service prices. A full map-script scan found no opener for ordinary
+  item-shop row `6`; Caravan uses special shop type `5`, row `0`, with runtime
+  switching to special row `1` after the Bottled Faerie flag.
+- Shops tab named mappings now include Cornelia, Pravoka, Elfheim, Melmond,
+  Crescent Lake, Gaia, Onrac, Caravan, and Lufenia. Ambiguous exact item-shop
+  rows and unconfirmed Inn/service rows remain grouped under `<Unknown>`.
+- Inn/service prices: `cp0` chunk `14`, seven rows of two big-endian unsigned
+  16-bit prices. Confirmed Cornelia Inn `Bed` price is row `0`, column `0`,
+  value `30`.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Runtime weapon item
   ids are offset by 7, so `Knife` is item id `9` and `Masamune` is item id `47`.
   Record bytes `2..3` are editable as the equip class mask. Record bytes `4`
@@ -193,6 +197,12 @@ This is the quick landing page for the FF1 J2ME editor project.
   spell/status resistance field.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
   field is the shop price.
+- Consumable battle effects are hardcoded for item ids `1..3`: Potion routes to
+  effect record `91`, Antidote to `92`, and Gold Needle to `93`. Shelters use
+  hardcoded field recovery kinds instead of spell/effect records. A Phoenix
+  Down-style item is a later enhancement candidate, likely using blank item id
+  `89` plus bytecode and shop-table patches after all town item shops are
+  mapped.
 - Runtime level-up and spell-charge logic: `g.class`, method `F()`.
 - Spell metadata loader: `b.class`, private static method `C()`.
 - Spell learn check: `i.class`, private method `l(int spellId, int characterIndex)`.
@@ -263,12 +273,12 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Black Wizard has all Black Magic permissions and no White Magic permissions.
 - Red Wizard has broader access than Red Mage, but Red Mage and Red Wizard are
   distinct permission bits.
-- Cornelia weapon-shop replacement patches are confirmed in-game:
-  `cp0[0x1a56] = 0x2e` updates `Nunchaku -> Excalibur`, and
-  `cp0[0x1a57] = 0x2f` updates `Knife -> Masamune`.
-- Cornelia armor-shop fill patch is confirmed in-game:
+- Cornelia shop byte edits are confirmed in-game:
+  `cp0[0x1a56] = 0x2e` updates `Nunchaku -> Excalibur`,
+  `cp0[0x1a57] = 0x2f` updates `Knife -> Masamune`, and
   `cp0[0x1a79..0x1a7a] = 0x50,0x58` adds Ribbon and Protect Ring to the
-  Cornelia town armor shop display and purchase result.
+  Cornelia armor shop display and purchase result. These are now ordinary Shops
+  tab inventory edits, not separate global patch options.
 
 ## Useful Build Commands
 
@@ -285,6 +295,8 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
 
 - Decode the remaining unknown item, weapon, armor, spell/effect, and monster
   fields.
+- Map the remaining ambiguous town item-shop rows and revisit a bytecode-backed
+  Phoenix Down-style consumable using blank item id `89`.
 - Investigate spell/name text editing beyond the current read-only decoded
   labels.
 - Design optional INT-scaling follow-up patches for Haste, Temper, Saber, and

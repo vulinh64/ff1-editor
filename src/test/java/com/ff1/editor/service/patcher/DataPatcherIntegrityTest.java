@@ -10,12 +10,14 @@ import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemPriceEdit;
 import com.ff1.editor.data.MagicMatrixEdit;
+import com.ff1.editor.data.ShopPriceEdit;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
 import com.ff1.editor.service.Cp0ChunkTable;
 import com.ff1.editor.service.ItemEquipmentDiscoveryService;
 import com.ff1.editor.service.MagicMatrixDiscoveryService;
+import com.ff1.editor.service.ShopDiscoveryService;
 import com.ff1.editor.service.SkillDiscoveryService;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
@@ -171,6 +173,17 @@ class DataPatcherIntegrityTest {
   }
 
   @Test
+  void shopPricePatchWritesInnPrice() {
+    byte[] cp0 = standardCp0();
+    Cp0ChunkTable table = new Cp0ChunkTable(cp0);
+
+    ShopPatcher.applyPrice(cp0, new ShopPriceEdit(0, 0, 30));
+
+    int offset = table.chunkOffset(ShopDiscoveryService.SERVICE_PRICE_CHUNK_INDEX) + 2;
+    assertArrayEquals(new byte[] {0, 30}, Arrays.copyOfRange(cp0, offset, offset + 2));
+  }
+
+  @Test
   void skillEffectPatchWritesPricePowerAndAccuracy() {
     byte[] cp0 = standardCp0();
     int chunkOffset = new Cp0ChunkTable(cp0).chunkOffset(SkillDiscoveryService.SPELL_CHUNK_INDEX);
@@ -199,27 +212,6 @@ class DataPatcherIntegrityTest {
     assertEquals(10, cp0[offset] & 0xff);
   }
 
-  @Test
-  void corneliaArmorPatchFillsOnlyConfirmedEmptySlots() {
-    byte[] cp0 = standardCp0();
-
-    assertEquals(CorneliaArmorShopPatcher.State.ORIGINAL, CorneliaArmorShopPatcher.state(cp0));
-    CorneliaArmorShopPatcher.apply(cp0);
-
-    int offset = CorneliaArmorShopPatcher.corneliaArmorShopRowOffset(cp0);
-    assertArrayEquals(new byte[] {49, 50, 51, 80, 88}, Arrays.copyOfRange(cp0, offset, offset + 5));
-    assertEquals(CorneliaArmorShopPatcher.State.PATCHED, CorneliaArmorShopPatcher.state(cp0));
-  }
-
-  @Test
-  void corneliaArmorPatchRejectsUnexpectedShopRow() {
-    byte[] cp0 = standardCp0();
-    cp0[CorneliaArmorShopPatcher.corneliaArmorShopRowOffset(cp0)] = 52;
-
-    assertEquals(CorneliaArmorShopPatcher.State.UNKNOWN, CorneliaArmorShopPatcher.state(cp0));
-    assertThrows(IllegalStateException.class, () -> CorneliaArmorShopPatcher.apply(cp0));
-  }
-
   private static byte[] standardCp0() {
     byte[] itemMetadata =
         chunk(
@@ -244,16 +236,9 @@ class DataPatcherIntegrityTest {
                     * ItemEquipmentDiscoveryService.WEAPON_RECORD_SIZE,
             ItemEquipmentDiscoveryService.WEAPON_COUNT);
     byte[] itemShop = shopChunk(7, new int[] {1, 2, 4, 0, 0}, new int[] {1, 2, 3, 4, 5, 6});
-    byte[] weaponShop =
-        shopChunk(
-            CorneliaWeaponShopPatcher.SHOP_ROW_COUNT,
-            new int[] {8, 9, 10, 11, 12},
-            new int[] {8, 9, 10, 11, 12});
-    byte[] armorShop =
-        shopChunk(
-            CorneliaArmorShopPatcher.SHOP_ROW_COUNT,
-            new int[] {49, 50, 51, 0, 0},
-            new int[] {49, 50, 51, 0, 0});
+    byte[] weaponShop = shopChunk(6, new int[] {8, 9, 10, 11, 12}, new int[] {8, 9, 10, 11, 12});
+    byte[] armorShop = shopChunk(6, new int[] {49, 50, 51, 0, 0}, new int[] {49, 50, 51, 0, 0});
+    byte[] servicePrices = chunk(2 + 7 * ShopDiscoveryService.SERVICE_PRICE_RECORD_SIZE, 7);
     return cp0(
         itemMetadata,
         spells,
@@ -263,7 +248,13 @@ class DataPatcherIntegrityTest {
         new byte[0],
         itemShop,
         weaponShop,
-        armorShop);
+        armorShop,
+        new byte[0],
+        new byte[0],
+        new byte[0],
+        new byte[0],
+        new byte[0],
+        servicePrices);
   }
 
   private static byte[] shopChunk(int rows, int[] firstRow, int[] fillerRow) {
