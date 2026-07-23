@@ -34,6 +34,7 @@ import com.ff1.editor.service.patcher.IntelligenceSpellDamageClassPatcher;
 import com.ff1.editor.service.patcher.IntelligenceSpellHealingClassPatcher;
 import com.ff1.editor.service.patcher.ItemEquipmentPatcher;
 import com.ff1.editor.service.patcher.ItemPricePatcher;
+import com.ff1.editor.service.patcher.LegendaryWeaponCriticalClassPatcher;
 import com.ff1.editor.service.patcher.MagicMatrixPatcher;
 import com.ff1.editor.service.patcher.MonsterStatsPatcher;
 import com.ff1.editor.service.patcher.PartyActionOrderClassPatcher;
@@ -62,6 +63,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -88,6 +90,8 @@ public final class FxCommandBar extends VBox {
   private final CheckBox partyActionOrder = new CheckBox("Party action order");
   private final CheckBox enemyCriticalDefense = new CheckBox("Enemy crits respect party defense");
   private final CheckBox weaponAffinityDamage = new CheckBox("Weapon affinity damage bonus");
+  private final CheckBox legendaryWeaponCritical =
+      new CheckBox("Masamune and Excalibur always crit");
   private final CheckBox cottageRevive = new CheckBox("Cottage revives KO");
   private final CheckBox airshipLanding = new CheckBox("Airship lands on safe terrain");
   private final Button build = new Button(BUILD_PATCHED_JAR_LABEL);
@@ -119,6 +123,9 @@ public final class FxCommandBar extends VBox {
     partyActionOrder.selectedProperty().bindBidirectional(state.partyActionOrderProperty());
     enemyCriticalDefense.selectedProperty().bindBidirectional(state.enemyCriticalDefenseProperty());
     weaponAffinityDamage.selectedProperty().bindBidirectional(state.weaponAffinityDamageProperty());
+    legendaryWeaponCritical
+        .selectedProperty()
+        .bindBidirectional(state.legendaryWeaponCriticalProperty());
     cottageRevive.selectedProperty().bindBidirectional(state.cottageReviveProperty());
     airshipLanding.selectedProperty().bindBidirectional(state.airshipLandingProperty());
     forceStrongLevelUps.setDisable(true);
@@ -131,6 +138,7 @@ public final class FxCommandBar extends VBox {
     partyActionOrder.setDisable(true);
     enemyCriticalDefense.setDisable(true);
     weaponAffinityDamage.setDisable(true);
+    legendaryWeaponCritical.setDisable(true);
     cottageRevive.setDisable(true);
     airshipLanding.setDisable(true);
     build.setOnAction(_ -> showPatchOptionsDialog());
@@ -180,7 +188,7 @@ public final class FxCommandBar extends VBox {
           state.workspace(workspace);
           updateGlobalPatchControls(workspace);
           state.status(
-              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Hero magic resistance: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Weapon affinity damage: %s. Cottage revive: %s. Airship landing: %s."
+              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Hero magic resistance: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Weapon affinity damage: %s. Legendary weapon critical: %s. Cottage revive: %s. Airship landing: %s."
                   .formatted(
                       workspace.inputJar().getFileName(),
                       workspace.workDir(),
@@ -194,6 +202,7 @@ public final class FxCommandBar extends VBox {
                       FxCommandBarHelper.patchStateLabel(workspace.partyActionOrderState()),
                       FxCommandBarHelper.patchStateLabel(workspace.enemyCriticalDefenseState()),
                       FxCommandBarHelper.patchStateLabel(workspace.weaponAffinityDamageState()),
+                      FxCommandBarHelper.patchStateLabel(workspace.legendaryWeaponCriticalState()),
                       FxCommandBarHelper.patchStateLabel(workspace.cottageReviveState()),
                       FxCommandBarHelper.patchStateLabel(workspace.airshipLandingState())));
           load.disableProperty().unbind();
@@ -224,6 +233,7 @@ public final class FxCommandBar extends VBox {
       state.partyActionOrder(false);
       state.enemyCriticalDefense(false);
       state.weaponAffinityDamage(false);
+      state.legendaryWeaponCritical(false);
       state.cottageRevive(false);
       state.airshipLanding(false);
       forceStrongLevelUps.setDisable(true);
@@ -236,6 +246,7 @@ public final class FxCommandBar extends VBox {
       partyActionOrder.setDisable(true);
       enemyCriticalDefense.setDisable(true);
       weaponAffinityDamage.setDisable(true);
+      legendaryWeaponCritical.setDisable(true);
       cottageRevive.setDisable(true);
       airshipLanding.setDisable(true);
       return;
@@ -380,6 +391,20 @@ public final class FxCommandBar extends VBox {
         weaponAffinityDamage.setDisable(true);
       }
     }
+    switch (workspace.legendaryWeaponCriticalState()) {
+      case PATCHED -> {
+        state.legendaryWeaponCritical(true);
+        legendaryWeaponCritical.setDisable(false);
+      }
+      case ORIGINAL -> {
+        state.legendaryWeaponCritical(false);
+        legendaryWeaponCritical.setDisable(false);
+      }
+      case UNKNOWN -> {
+        state.legendaryWeaponCritical(false);
+        legendaryWeaponCritical.setDisable(true);
+      }
+    }
     switch (workspace.cottageReviveState()) {
       case PATCHED -> {
         state.cottageRevive(true);
@@ -458,6 +483,9 @@ public final class FxCommandBar extends VBox {
     CheckBox weaponAffinityDamageOption =
         FxCommandBarHelper.dialogCheckBox(
             weaponAffinityDamage, workspace.weaponAffinityDamageState());
+    CheckBox legendaryWeaponCriticalOption =
+        FxCommandBarHelper.dialogCheckBox(
+            legendaryWeaponCritical, workspace.legendaryWeaponCriticalState());
     CheckBox cottageReviveOption =
         FxCommandBarHelper.dialogCheckBox(cottageRevive, workspace.cottageReviveState());
     CheckBox airshipLandingOption =
@@ -476,7 +504,10 @@ public final class FxCommandBar extends VBox {
             FxCommandBarHelper.optionRow(enemyCriticalDefenseOption),
             FxCommandBarHelper.optionRow(weaponAffinityDamageOption),
             FxCommandBarHelper.optionRow(cottageReviveOption),
-            FxCommandBarHelper.optionRow(airshipLandingOption));
+            FxCommandBarHelper.optionRow(airshipLandingOption),
+            new Separator(),
+            new Label("Toggleable patches:"),
+            FxCommandBarHelper.optionRow(legendaryWeaponCriticalOption));
     options.setPadding(new Insets(8, 0, 0, 0));
     pane.setContent(options);
 
@@ -532,6 +563,9 @@ public final class FxCommandBar extends VBox {
                         > 0
                     || FxCommandBarHelper.selectedOriginal(
                             airshipLandingOption, workspace.airshipLandingState())
+                        > 0
+                    || FxCommandBarHelper.changedToggle(
+                            legendaryWeaponCriticalOption, workspace.legendaryWeaponCriticalState())
                         > 0,
             strongLevelUpsOption.selectedProperty(),
             universalChargesOption.selectedProperty(),
@@ -544,7 +578,8 @@ public final class FxCommandBar extends VBox {
             enemyCriticalDefenseOption.selectedProperty(),
             weaponAffinityDamageOption.selectedProperty(),
             cottageReviveOption.selectedProperty(),
-            airshipLandingOption.selectedProperty());
+            airshipLandingOption.selectedProperty(),
+            legendaryWeaponCriticalOption.selectedProperty());
     okButton.disableProperty().bind(hasBuildSelection.not());
 
     boolean shouldBuild = dialog.showAndWait().filter(ButtonType.OK::equals).isPresent();
@@ -562,6 +597,7 @@ public final class FxCommandBar extends VBox {
     state.partyActionOrder(partyActionOrderOption.isSelected());
     state.enemyCriticalDefense(enemyCriticalDefenseOption.isSelected());
     state.weaponAffinityDamage(weaponAffinityDamageOption.isSelected());
+    state.legendaryWeaponCritical(legendaryWeaponCriticalOption.isSelected());
     state.cottageRevive(cottageReviveOption.isSelected());
     state.airshipLanding(airshipLandingOption.isSelected());
     buildPatch();
@@ -610,6 +646,12 @@ public final class FxCommandBar extends VBox {
     boolean weaponAffinityDamagePatch =
         state.weaponAffinityDamage()
             && workspace.weaponAffinityDamageState() == PatchState.ORIGINAL;
+    boolean legendaryWeaponCriticalPatch =
+        state.legendaryWeaponCritical()
+            && workspace.legendaryWeaponCriticalState() == PatchState.ORIGINAL;
+    boolean legendaryWeaponCriticalUnpatch =
+        !state.legendaryWeaponCritical()
+            && workspace.legendaryWeaponCriticalState() == PatchState.PATCHED;
     boolean cottageRevivePatch =
         state.cottageRevive() && workspace.cottageReviveState() == PatchState.ORIGINAL;
     boolean airshipLandingPatch =
@@ -635,6 +677,8 @@ public final class FxCommandBar extends VBox {
         && !partyActionOrderPatch
         && !enemyCriticalDefensePatch
         && !weaponAffinityDamagePatch
+        && !legendaryWeaponCriticalPatch
+        && !legendaryWeaponCriticalUnpatch
         && !cottageRevivePatch
         && !airshipLandingPatch) {
       state.status("No patch edits selected.");
@@ -729,7 +773,9 @@ public final class FxCommandBar extends VBox {
                 || alwaysSuccessfulRunPatch
                 || partyActionOrderPatch
                 || enemyCriticalDefensePatch
-                || weaponAffinityDamagePatch) {
+                || weaponAffinityDamagePatch
+                || legendaryWeaponCriticalPatch
+                || legendaryWeaponCriticalUnpatch) {
               byte[] gClass =
                   Files.readAllBytes(
                       workspace.workDir().resolve(HeroLevelGrowthClassPatcher.ENTRY_NAME));
@@ -764,6 +810,12 @@ public final class FxCommandBar extends VBox {
               if (weaponAffinityDamagePatch) {
                 gClass = WeaponAffinityDamageClassPatcher.apply(gClass);
               }
+              if (legendaryWeaponCriticalPatch) {
+                gClass = LegendaryWeaponCriticalClassPatcher.apply(gClass);
+              }
+              if (legendaryWeaponCriticalUnpatch) {
+                gClass = LegendaryWeaponCriticalClassPatcher.remove(gClass);
+              }
               replacements.put(HeroLevelGrowthClassPatcher.ENTRY_NAME, gClass);
             }
             if (fifteenChargesPatch || cottageRevivePatch || airshipLandingPatch) {
@@ -795,7 +847,7 @@ public final class FxCommandBar extends VBox {
         %d equipment permission edit(s), %d skill edit(s), %d item price edit(s), \
         %d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), \
         %d monster stat edit(s), %d shop inventory edit(s), %d inn price edit(s)\
-        %s%s%s%s%s%s%s%s%s%s%s%s...\
+        %s%s%s%s%s%s%s%s%s%s%s%s%s...\
         """)
             .formatted(
                 heroEdits.size(),
@@ -827,6 +879,11 @@ public final class FxCommandBar extends VBox {
                     ? ", enemy crits respect party defense"
                     : StringUtils.EMPTY,
                 weaponAffinityDamagePatch ? ", weapon affinity damage bonus" : StringUtils.EMPTY,
+                legendaryWeaponCriticalPatch
+                    ? ", legendary weapon no-miss/critical"
+                    : legendaryWeaponCriticalUnpatch
+                        ? ", remove legendary weapon no-miss/critical"
+                        : StringUtils.EMPTY,
                 cottageRevivePatch ? ", Cottage revive" : StringUtils.EMPTY,
                 airshipLandingPatch ? ", and airship landing" : StringUtils.EMPTY));
     task.setOnSucceeded(

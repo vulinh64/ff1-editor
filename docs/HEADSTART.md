@@ -30,6 +30,12 @@ short obfuscated class names plus many extensionless binary resources (`a0`, `m0
 `mg0`, `PACK0_0`, etc.), so the initial tool catalogs the archive and groups pack
 resources before any writes are attempted.
 
+The extensionless `a0..a21` resources are currently mapped as likely in-game
+music/audio tracks in `AUDIO-RESOURCES.md`. Those labels are based on user
+in-game identification. Audio replacement is aimed at modern KEmulator on PC,
+including host MIDI routing through CoolSoft VirtualMIDISynth; confirm the file
+format and playback loader before adding an audio replacement UI.
+
 ## Mechanics Baseline
 
 General Final Fantasy I mechanics are well documented: classes/jobs drive stat
@@ -168,6 +174,10 @@ The current global patch modal supports:
 - a weapon affinity damage patch in `g.class` that changes matching weapon
   special bonuses from stock flat attack/hit bonuses to half weapon damage added
   to attack plus clamped hit chance.
+- a reversible toggleable legendary-weapon test patch in `g.class`: Excalibur
+  and Masamune force hit chance `255` and critical threshold `200`; checked
+  applies the patch, unchecked removes it, and unknown method layouts disable
+  the checkbox.
 - a Cottage revive patch in `i.class` that lets Cottage revive KO members while
   preserving Sleeping Bag/Tent behavior.
 - an airship landing patch in `i.class` that expands landing to safe world-map
@@ -202,9 +212,11 @@ tool behind the JavaFX app.
 2. Add or widen editable fields only after a confirmed byte layout exists.
 3. Investigate spell/name text editing beyond the current decoded read-only
    labels.
-4. Optional engine patch: make starting HP read unsigned/wider so values above
+4. Investigate `a0..a21` audio replacement by exact JAR entry name after
+   confirming the resource format and playback path.
+5. Optional engine patch: make starting HP read unsigned/wider so values above
    `127` do not display as negative.
-5. Keep patched output jars in `%USERPROFILE%\.ff1-editor\dist` and temporary
+6. Keep patched output jars in `%USERPROFILE%\.ff1-editor\dist` and temporary
    extraction/workspace files in `%USERPROFILE%\.ff1-editor\temp`.
 
 ## Notes From Initial `javap`

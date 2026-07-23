@@ -36,6 +36,7 @@ public final class FxEditorState {
   private final BooleanProperty partyActionOrder = new SimpleBooleanProperty(false);
   private final BooleanProperty enemyCriticalDefense = new SimpleBooleanProperty(false);
   private final BooleanProperty weaponAffinityDamage = new SimpleBooleanProperty(false);
+  private final BooleanProperty legendaryWeaponCritical = new SimpleBooleanProperty(false);
   private final BooleanProperty cottageRevive = new SimpleBooleanProperty(false);
   private final BooleanProperty airshipLanding = new SimpleBooleanProperty(false);
   private Supplier<List<HeroClassStatsEdit>> heroStatsEditSupplier = List::of;
@@ -180,6 +181,18 @@ public final class FxEditorState {
 
   public void weaponAffinityDamage(boolean enabled) {
     weaponAffinityDamage.set(enabled);
+  }
+
+  public BooleanProperty legendaryWeaponCriticalProperty() {
+    return legendaryWeaponCritical;
+  }
+
+  public boolean legendaryWeaponCritical() {
+    return legendaryWeaponCritical.get();
+  }
+
+  public void legendaryWeaponCritical(boolean enabled) {
+    legendaryWeaponCritical.set(enabled);
   }
 
   public BooleanProperty cottageReviveProperty() {

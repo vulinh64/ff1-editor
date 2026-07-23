@@ -37,6 +37,7 @@ public final class WeaponAffinityDamageClassPatcher {
   private static final int CRITICAL_THRESHOLD_LOCAL = 7;
   private static final int HIT_CHANCE_LOCAL = 21;
   private static final int AFFINITY_MATCH_LOCAL = 32;
+  private static final int WEAPON_DAMAGE_RUNTIME_FIELD = 3;
   private static final String ITEM_CLASS_NAME = "j";
   private static final String WEAPON_RECORDS_FIELD = "c";
   private static final String WEAPON_RECORDS_DESCRIPTOR = "[[S";
@@ -192,7 +193,7 @@ public final class WeaponAffinityDamageClassPatcher {
         && isWeaponRecordsRead(instructions.get(1))
         && isIntLoad(instructions.get(2), WEAPON_INDEX_LOCAL)
         && instructions.get(3).opcode() == Opcode.AALOAD
-        && isPush(instructions.get(4), 1)
+        && isPush(instructions.get(4), WEAPON_DAMAGE_RUNTIME_FIELD)
         && instructions.get(5).opcode() == Opcode.SALOAD
         && isPush(instructions.get(6), 2)
         && instructions.get(7).opcode() == Opcode.IDIV
@@ -379,7 +380,7 @@ public final class WeaponAffinityDamageClassPatcher {
               ClassDesc.ofDescriptor(WEAPON_RECORDS_DESCRIPTOR))
           .iload(WEAPON_INDEX_LOCAL)
           .aaload()
-          .iconst_1()
+          .iconst_3()
           .saload()
           .iconst_2()
           .idiv()

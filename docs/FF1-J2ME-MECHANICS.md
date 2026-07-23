@@ -305,6 +305,18 @@ The game uses integer division here: Excalibur has `45` weapon damage, so an
 affinity match adds `22` attack. The yes/no rule still applies: one match and
 five matches both grant the same single half-weapon bonus.
 
+### Experimental toggle: legendary weapons no-miss/all-crit
+
+For fast testing and damage data collection, the editor also has a reversible
+toggle that affects only Excalibur and Masamune. When enabled, those two weapons
+force hit chance to `255` and critical threshold to `200`.
+
+The physical hit roll is `0..200`, so this makes those weapons no-miss and makes
+every resulting hit critical. This is intentionally an experiment toggle, not a
+faithful balance fix. If the weapon affinity patch already raised Excalibur's
+hit chance to `255` on an affinity match, this toggle's hit-chance assignment
+does not further change that swing; it still forces the critical threshold.
+
 ---
 
 ## 7. Magic And Skill Effects
@@ -625,6 +637,7 @@ shape:
 | INT+STA reduce enemy spells (experimental) | Makes defensive stats matter            | Does not touch physical attacks or player spells  |
 | Enemy crit defense fix                     | Reduces armor-bypassing spikes          | Keeps player crits stock                          |
 | Weapon affinity damage bonus               | Makes anti-monster weapons matter more  | Keeps the bonus physical and non-stacking         |
+| Legendary weapons no-miss/all-crit         | Speeds testing and damage collection    | Reversible experiment toggle, not default balance |
 | Party action order                         | Makes commands feel more controllable   | Keeps command groups and enemy randomness         |
 | Always successful run                      | Reduces random encounter friction       | Boss/no-run encounters remain locked              |
 | Cottage revives KO                         | Makes the top shelter feel worth buying | Lower shelters stay weaker                        |
@@ -660,7 +673,8 @@ The current confirmed guide is not complete. Good future deep-dive targets:
   deserve their own optional INT scaling model;
 - whether TEMPER or SABER should gain an optional engine patch that grants
   guaranteed critical hits, or a capped critical-threshold bonus, for landed
-  physical attacks;
+  physical attacks, separate from the current legendary-weapon experiment
+  toggle;
 - a safe unsigned or wider starting-HP patch for values above 127.
 
 Until those are confirmed, the editor should keep the relevant fields read-only

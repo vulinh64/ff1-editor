@@ -4,8 +4,11 @@ import static com.ff1.editor.utils.EditorSupport.readBigEndianUnsignedShort;
 
 import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.ShopGoodSnapshot;
+import com.ff1.editor.data.ShopInventoryType;
 import com.ff1.editor.data.ShopLocationSnapshot;
+import com.ff1.editor.data.ShopMappingStatus;
 import com.ff1.editor.data.ShopPriceSnapshot;
+import com.ff1.editor.data.ShopServiceName;
 import com.ff1.editor.data.ShopServiceSnapshot;
 import com.ff1.editor.data.ShopSlotSnapshot;
 import com.ff1.editor.data.SkillSnapshot;
@@ -25,17 +28,9 @@ import org.apache.commons.lang3.StringUtils;
 public final class ShopDiscoveryService {
 
   public static final String ENTRY_NAME = "cp0";
-  public static final int ITEM_SHOP_TYPE = 2;
-  public static final int WEAPON_SHOP_TYPE = 0;
-  public static final int ARMOR_SHOP_TYPE = 1;
-  public static final int BLACK_MAGIC_SHOP_TYPE = 3;
-  public static final int WHITE_MAGIC_SHOP_TYPE = 4;
-  public static final int SPECIAL_SHOP_TYPE = 5;
   public static final int SHOP_SLOT_COUNT = 5;
   public static final int SERVICE_PRICE_CHUNK_INDEX = 14;
   public static final int SERVICE_PRICE_RECORD_SIZE = 4;
-
-  private static final int[] SHOP_CHUNKS = {7, 8, 6, 10, 9, 11};
 
   private final Path workDir;
 
@@ -49,110 +44,260 @@ public final class ShopDiscoveryService {
             0,
             "Cornelia",
             List.of(
-                ShopServiceSnapshot.inventory("Weapon Shop", WEAPON_SHOP_TYPE, 0, "confirmed"),
-                ShopServiceSnapshot.inventory("Armor Shop", ARMOR_SHOP_TYPE, 0, "confirmed"),
-                ShopServiceSnapshot.inventory("Item Shop", ITEM_SHOP_TYPE, 0, "confirmed"),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 1 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 0, "confirmed"),
+                    ShopServiceName.WEAPON_SHOP,
+                    ShopInventoryType.WEAPON,
+                    0,
+                    ShopMappingStatus.CONFIRMED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 1 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 0, "confirmed"),
-                ShopServiceSnapshot.price("Inn", 0, 0, "confirmed"))),
+                    ShopServiceName.ARMOR_SHOP,
+                    ShopInventoryType.ARMOR,
+                    0,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP,
+                    ShopInventoryType.ITEM,
+                    0,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_1_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    0,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_1_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    0,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.price(ShopServiceName.INN, 0, 0, ShopMappingStatus.CONFIRMED))),
         new ShopLocationSnapshot(
             1,
             "Pravoka",
             List.of(
-                ShopServiceSnapshot.inventory("Weapon Shop", WEAPON_SHOP_TYPE, 1, "wiki-backed"),
-                ShopServiceSnapshot.inventory("Armor Shop", ARMOR_SHOP_TYPE, 1, "wiki-backed"),
-                ShopServiceSnapshot.inventory("Item Shop", ITEM_SHOP_TYPE, 1, "confirmed"),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 2 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 1, "confirmed"),
+                    ShopServiceName.WEAPON_SHOP,
+                    ShopInventoryType.WEAPON,
+                    1,
+                    ShopMappingStatus.WIKI_BACKED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 2 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 1, "confirmed"))),
+                    ShopServiceName.ARMOR_SHOP,
+                    ShopInventoryType.ARMOR,
+                    1,
+                    ShopMappingStatus.WIKI_BACKED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP,
+                    ShopInventoryType.ITEM,
+                    1,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_2_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    1,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_2_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    1,
+                    ShopMappingStatus.CONFIRMED))),
         new ShopLocationSnapshot(
             2,
             "Elfheim",
             List.of(
-                ShopServiceSnapshot.inventory("Weapon Shop", WEAPON_SHOP_TYPE, 2, "wiki-backed"),
-                ShopServiceSnapshot.inventory("Armor Shop", ARMOR_SHOP_TYPE, 2, "wiki-backed"),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 3 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 2, "confirmed"),
+                    ShopServiceName.WEAPON_SHOP,
+                    ShopInventoryType.WEAPON,
+                    2,
+                    ShopMappingStatus.WIKI_BACKED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 3 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 2, "confirmed"),
+                    ShopServiceName.ARMOR_SHOP,
+                    ShopInventoryType.ARMOR,
+                    2,
+                    ShopMappingStatus.WIKI_BACKED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 4 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 3, "confirmed"),
+                    ShopServiceName.LEVEL_3_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    2,
+                    ShopMappingStatus.CONFIRMED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 4 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 3, "confirmed"),
-                ShopServiceSnapshot.inventory("Item Shop", ITEM_SHOP_TYPE, 2, "confirmed"))),
+                    ShopServiceName.LEVEL_3_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    2,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_4_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    3,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_4_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    3,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP,
+                    ShopInventoryType.ITEM,
+                    2,
+                    ShopMappingStatus.CONFIRMED))),
         new ShopLocationSnapshot(
             3,
             "Melmond",
             List.of(
-                ShopServiceSnapshot.inventory("Weapon Shop", WEAPON_SHOP_TYPE, 3, "wiki-backed"),
-                ShopServiceSnapshot.inventory("Armor Shop", ARMOR_SHOP_TYPE, 3, "wiki-backed"),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 5 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 4, "wiki-backed"),
+                    ShopServiceName.WEAPON_SHOP,
+                    ShopInventoryType.WEAPON,
+                    3,
+                    ShopMappingStatus.WIKI_BACKED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 5 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 4, "wiki-backed"))),
+                    ShopServiceName.ARMOR_SHOP,
+                    ShopInventoryType.ARMOR,
+                    3,
+                    ShopMappingStatus.WIKI_BACKED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_5_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    4,
+                    ShopMappingStatus.WIKI_BACKED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_5_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    4,
+                    ShopMappingStatus.WIKI_BACKED))),
         new ShopLocationSnapshot(
             4,
             "Crescent Lake",
             List.of(
-                ShopServiceSnapshot.inventory("Weapon Shop", WEAPON_SHOP_TYPE, 5, "confirmed"),
-                ShopServiceSnapshot.inventory("Armor Shop", ARMOR_SHOP_TYPE, 5, "confirmed"),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 6 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 5, "wiki-backed"),
+                    ShopServiceName.WEAPON_SHOP,
+                    ShopInventoryType.WEAPON,
+                    5,
+                    ShopMappingStatus.CONFIRMED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 6 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 5, "wiki-backed"))),
+                    ShopServiceName.ARMOR_SHOP,
+                    ShopInventoryType.ARMOR,
+                    5,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_6_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    5,
+                    ShopMappingStatus.WIKI_BACKED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_6_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    5,
+                    ShopMappingStatus.WIKI_BACKED))),
         new ShopLocationSnapshot(
             5,
             "Gaia",
             List.of(
-                ShopServiceSnapshot.inventory("Weapon Shop", WEAPON_SHOP_TYPE, 4, "confirmed"),
-                ShopServiceSnapshot.inventory("Armor Shop", ARMOR_SHOP_TYPE, 4, "confirmed"),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 7 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 6, "likely"),
+                    ShopServiceName.WEAPON_SHOP,
+                    ShopInventoryType.WEAPON,
+                    4,
+                    ShopMappingStatus.CONFIRMED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 7 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 6, "likely"),
+                    ShopServiceName.ARMOR_SHOP,
+                    ShopInventoryType.ARMOR,
+                    4,
+                    ShopMappingStatus.CONFIRMED),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 8 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 7, "likely"),
+                    ShopServiceName.LEVEL_7_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    6,
+                    ShopMappingStatus.LIKELY),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 8 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 7, "likely"))),
+                    ShopServiceName.LEVEL_7_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    6,
+                    ShopMappingStatus.LIKELY),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_8_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    7,
+                    ShopMappingStatus.LIKELY),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.LEVEL_8_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    7,
+                    ShopMappingStatus.LIKELY))),
         new ShopLocationSnapshot(
             6,
             "Onrac",
             List.of(
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 7 White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 8, "likely"),
+                    ShopServiceName.LEVEL_7_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    8,
+                    ShopMappingStatus.LIKELY),
                 ShopServiceSnapshot.inventory(
-                    "Lvl. 7 Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 8, "likely"))),
+                    ShopServiceName.LEVEL_7_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    8,
+                    ShopMappingStatus.LIKELY))),
         new ShopLocationSnapshot(
             7,
             "Caravan",
             List.of(
-                ShopServiceSnapshot.inventory("Special Shop", SPECIAL_SHOP_TYPE, 0, "confirmed"),
-                ShopServiceSnapshot.inventory("Evolved Shop", SPECIAL_SHOP_TYPE, 1, "confirmed"))),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.SPECIAL_SHOP,
+                    ShopInventoryType.SPECIAL,
+                    0,
+                    ShopMappingStatus.CONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.EVOLVED_SHOP,
+                    ShopInventoryType.SPECIAL,
+                    1,
+                    ShopMappingStatus.CONFIRMED))),
         new ShopLocationSnapshot(
             8,
             "Lufenia",
             List.of(
                 ShopServiceSnapshot.inventory(
-                    "Hidden White Magic Shop", WHITE_MAGIC_SHOP_TYPE, 9, "confirmed"),
+                    ShopServiceName.HIDDEN_WHITE_MAGIC_SHOP,
+                    ShopInventoryType.WHITE_MAGIC,
+                    9,
+                    ShopMappingStatus.CONFIRMED),
                 ShopServiceSnapshot.inventory(
-                    "Hidden Black Magic Shop", BLACK_MAGIC_SHOP_TYPE, 9, "confirmed"))),
+                    ShopServiceName.HIDDEN_BLACK_MAGIC_SHOP,
+                    ShopInventoryType.BLACK_MAGIC,
+                    9,
+                    ShopMappingStatus.CONFIRMED))),
         new ShopLocationSnapshot(
             9,
             "<Unknown>",
             List.of(
-                ShopServiceSnapshot.inventory("Item Shop Row 3", ITEM_SHOP_TYPE, 3, "unconfirmed"),
-                ShopServiceSnapshot.inventory("Item Shop Row 4", ITEM_SHOP_TYPE, 4, "unconfirmed"),
-                ShopServiceSnapshot.inventory("Item Shop Row 5", ITEM_SHOP_TYPE, 5, "unconfirmed"),
-                ShopServiceSnapshot.inventory("Item Shop Row 6", ITEM_SHOP_TYPE, 6, "unconfirmed"),
-                ShopServiceSnapshot.price("Inn Row 1", 1, 0, "unconfirmed"),
-                ShopServiceSnapshot.price("Inn Row 2", 2, 0, "unconfirmed"),
-                ShopServiceSnapshot.price("Inn Row 3", 3, 0, "unconfirmed"),
-                ShopServiceSnapshot.price("Inn Row 4", 4, 0, "unconfirmed"),
-                ShopServiceSnapshot.price("Inn Row 5", 5, 0, "unconfirmed"),
-                ShopServiceSnapshot.price("Inn Row 6", 6, 0, "unconfirmed"))));
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP_ROW_3,
+                    ShopInventoryType.ITEM,
+                    3,
+                    ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP_ROW_4,
+                    ShopInventoryType.ITEM,
+                    4,
+                    ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP_ROW_5,
+                    ShopInventoryType.ITEM,
+                    5,
+                    ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.inventory(
+                    ShopServiceName.ITEM_SHOP_ROW_6,
+                    ShopInventoryType.ITEM,
+                    6,
+                    ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.price(
+                    ShopServiceName.INN_ROW_1, 1, 0, ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.price(
+                    ShopServiceName.INN_ROW_2, 2, 0, ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.price(
+                    ShopServiceName.INN_ROW_3, 3, 0, ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.price(
+                    ShopServiceName.INN_ROW_4, 4, 0, ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.price(
+                    ShopServiceName.INN_ROW_5, 5, 0, ShopMappingStatus.UNCONFIRMED),
+                ShopServiceSnapshot.price(
+                    ShopServiceName.INN_ROW_6, 6, 0, ShopMappingStatus.UNCONFIRMED))));
   }
 
   public List<ShopSlotSnapshot> slots(ShopServiceSnapshot service) {
@@ -162,9 +307,9 @@ public final class ShopDiscoveryService {
     try {
       byte[] cp0 = Files.readAllBytes(workDir.resolve(ENTRY_NAME));
       Cp0ChunkTable table = new Cp0ChunkTable(cp0);
-      int shopType = service.shopType();
+      ShopInventoryType shopType = service.shopType();
       int rowIndex = service.rowIndex();
-      int chunkIndex = chunkIndex(shopType);
+      int chunkIndex = shopType.chunkIndex();
       byte[] chunk = table.chunk(chunkIndex);
       int rows = readBigEndianUnsignedShort(chunk, 0);
       if (rowIndex < 0 || rowIndex >= rows) {
@@ -178,7 +323,7 @@ public final class ShopDiscoveryService {
         int goodId = chunk[rowOffset + slot] & 0xff;
         slots.add(
             new ShopSlotSnapshot(
-                shopType,
+                shopType.id(),
                 rowIndex,
                 slot,
                 goodId,
@@ -202,27 +347,23 @@ public final class ShopDiscoveryService {
     Map<Integer, SkillSnapshot> skills = skillLookup();
     List<Integer> ids =
         switch (service.shopType()) {
-          case WEAPON_SHOP_TYPE -> idRange(8, 47);
-          case ARMOR_SHOP_TYPE -> idRange(49, 88);
-          case ITEM_SHOP_TYPE -> idRange(1, 105);
-          case BLACK_MAGIC_SHOP_TYPE -> idRange(33, 64);
-          case WHITE_MAGIC_SHOP_TYPE -> idRange(1, 32);
-          case SPECIAL_SHOP_TYPE -> idRange(1, 105);
-          default -> List.of();
+          case WEAPON -> idRange(8, 47);
+          case ARMOR -> idRange(49, 88);
+          case ITEM, SPECIAL -> idRange(1, 105);
+          case BLACK_MAGIC -> idRange(33, 64);
+          case WHITE_MAGIC -> idRange(1, 32);
         };
     List<ShopGoodSnapshot> options = new ArrayList<>(ids.size() + 1);
     options.add(new ShopGoodSnapshot(0, StringUtils.EMPTY, "Empty", null));
     for (int id : ids) {
-      String name = goodName(service.shopType(), id, items, skills);
+      ShopInventoryType shopType = service.shopType();
+      String name = goodName(shopType, id, items, skills);
       if (name.isBlank()) {
         continue;
       }
       options.add(
           new ShopGoodSnapshot(
-              id,
-              name,
-              category(service.shopType(), id, items, skills),
-              price(service.shopType(), id, items, skills)));
+              id, name, category(shopType, id, items, skills), price(shopType, id, items, skills)));
     }
     return List.copyOf(options);
   }
@@ -254,10 +395,7 @@ public final class ShopDiscoveryService {
   }
 
   public static int chunkIndex(int shopType) {
-    if (shopType < 0 || shopType >= SHOP_CHUNKS.length) {
-      throw new IllegalArgumentException("Shop type must be 0..5.");
-    }
-    return SHOP_CHUNKS[shopType];
+    return ShopInventoryType.fromId(shopType).chunkIndex();
   }
 
   private Map<Integer, ItemSnapshot> itemLookup() {
@@ -279,14 +417,14 @@ public final class ShopDiscoveryService {
   }
 
   private static String goodName(
-      int shopType,
+      ShopInventoryType shopType,
       int goodId,
       Map<Integer, ItemSnapshot> items,
       Map<Integer, SkillSnapshot> skills) {
     if (goodId == 0) {
       return StringUtils.EMPTY;
     }
-    if (shopType == BLACK_MAGIC_SHOP_TYPE || shopType == WHITE_MAGIC_SHOP_TYPE) {
+    if (shopType == ShopInventoryType.BLACK_MAGIC || shopType == ShopInventoryType.WHITE_MAGIC) {
       SkillSnapshot skill = skills.get(goodId);
       return skill == null || skill.name().isBlank() ? "Spell " + goodId : skill.name();
     }
@@ -295,14 +433,14 @@ public final class ShopDiscoveryService {
   }
 
   private static String category(
-      int shopType,
+      ShopInventoryType shopType,
       int goodId,
       Map<Integer, ItemSnapshot> items,
       Map<Integer, SkillSnapshot> skills) {
     if (goodId == 0) {
       return "Empty";
     }
-    if (shopType == BLACK_MAGIC_SHOP_TYPE || shopType == WHITE_MAGIC_SHOP_TYPE) {
+    if (shopType == ShopInventoryType.BLACK_MAGIC || shopType == ShopInventoryType.WHITE_MAGIC) {
       SkillSnapshot skill = skills.get(goodId);
       if (skill != null
           && goodId >= 1
@@ -318,14 +456,14 @@ public final class ShopDiscoveryService {
   }
 
   private static Integer price(
-      int shopType,
+      ShopInventoryType shopType,
       int goodId,
       Map<Integer, ItemSnapshot> items,
       Map<Integer, SkillSnapshot> skills) {
     if (goodId == 0) {
       return null;
     }
-    if (shopType == BLACK_MAGIC_SHOP_TYPE || shopType == WHITE_MAGIC_SHOP_TYPE) {
+    if (shopType == ShopInventoryType.BLACK_MAGIC || shopType == ShopInventoryType.WHITE_MAGIC) {
       SkillSnapshot skill = skills.get(goodId);
       return skill == null ? null : skill.price();
     }

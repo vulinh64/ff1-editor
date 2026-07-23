@@ -71,7 +71,8 @@ This is the quick landing page for the FF1 J2ME editor project.
   - edits price, `power/status`, and `accuracy` fields.
 - Command bar:
   - `Build Patched JAR` opens a VDDOH-style global patch modal;
-  - the modal contains optional global patches, not tab-local data controls.
+  - the modal contains optional global patches, not tab-local data controls;
+  - one-way patches are grouped separately from reversible toggleable patches.
 
 ## Implemented Global Patches
 
@@ -140,6 +141,13 @@ This is the quick landing page for the FF1 J2ME editor project.
     chance to `weapon damage / 2` added attack and `255` hit chance;
   - applies the added attack before defense, random damage rolls, and critical
     handling, while keeping the one-time no-stacking affinity rule.
+- Masamune and Excalibur always crit:
+  - reversible bytecode toggle in `g.class`;
+  - detects original/patched/unknown method layouts at jar load;
+  - for hero attacks with weapon record `39` Excalibur or `40` Masamune, forces
+    hit chance to `255` and critical threshold to `200`;
+  - checking the box applies the patch, unchecking it removes the patch, and an
+    unknown layout greys out the option.
 - Cottage revives KO:
   - bytecode patch in `i.class`;
   - changes the field recovery helper so Cottage (`recoveryKind == 3`) clears the
@@ -237,6 +245,10 @@ This is the quick landing page for the FF1 J2ME editor project.
   preemptive/ambush odds. See `BATTLE-RUN.md`.
 - Physical damage and critical hits: `g.class`, private static method
   `a(boolean, boolean, int, int)`. See `BATTLE-PHYSICAL.md`.
+- The optional Masamune/Excalibur critical toggle patches the same physical
+  attack helper. It is intentionally experimental and reversible: it forces
+  `hitChance = 255` and `criticalThreshold = 200` only for hero attacks with
+  Excalibur weapon index `39` or Masamune weapon index `40`.
 - Weapon special effectiveness: the same physical attack helper checks weapon
   special byte `7` against monster elemental weakness mask `g[target][20]` and
   weapon special byte `8` against monster family/type mask `g[target][18]`.
@@ -258,6 +270,12 @@ This is the quick landing page for the FF1 J2ME editor project.
   body, shield, helm, and gloves. `g.class` spell/effect logic halves matching
   damage, heavily lowers matching status chance, and hard-blocks matching
   conditional status. Physical on-hit statuses also consult this mask.
+- Audio resources: extensionless `a0..a21` appear to be in-game music/audio
+  tracks. Current user-observed theme labels are documented in
+  `AUDIO-RESOURCES.md`; `a21` remains tentative as a Chaos battle-like theme
+  until its exact use is confirmed. Audio replacement is intended primarily for
+  modern KEmulator on PC, with MIDI routed to host synths such as CoolSoft
+  VirtualMIDISynth rather than constrained by real Java ME device playback.
 
 ## Confirmed Game Behavior
 
@@ -299,14 +317,17 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
   Phoenix Down-style consumable using blank item id `89`.
 - Investigate spell/name text editing beyond the current read-only decoded
   labels.
+- Investigate audio resource replacement for `a0..a21`, starting with confirming
+  whether the resources are standard MIDI and whether replacement by exact JAR
+  entry name is sufficient.
 - Design optional INT-scaling follow-up patches for Haste, Temper, Saber, and
   Dia-like undead-damage spells. Keep these separate from the current
   damage-only and healing-only patches unless the patch behavior is
   intentionally renamed.
 - Design an optional critical-buff engine patch where either TEMPER or SABER
   grants guaranteed critical hits, or a capped critical-threshold bonus, through
-  `g.class`. This is not possible as a skill-record-only edit because physical
-  critical hits are resolved later from weapon index and hit roll.
+  `g.class`. Keep it separate from the current reversible legendary-weapon
+  testing toggle.
 - Continue decoding monster record fields beyond the currently exposed combat,
   type, weakness, resistance, and raw leading bytes.
 - Investigate an optional unsigned/wider starting-HP engine patch.

@@ -1,27 +1,28 @@
 package com.ff1.editor.data;
 
 public record ShopServiceSnapshot(
-    String name,
+    ShopServiceName name,
     ShopServiceKind kind,
-    Integer shopType,
+    ShopInventoryType shopType,
     Integer rowIndex,
     Integer serviceColumn,
-    String status) {
+    ShopMappingStatus status) {
 
   public static ShopServiceSnapshot inventory(
-      String name, int shopType, int rowIndex, String status) {
+      ShopServiceName name, ShopInventoryType shopType, int rowIndex, ShopMappingStatus status) {
     return new ShopServiceSnapshot(
         name, ShopServiceKind.INVENTORY, shopType, rowIndex, null, status);
   }
 
   public static ShopServiceSnapshot price(
-      String name, int rowIndex, int serviceColumn, String status) {
+      ShopServiceName name, int rowIndex, int serviceColumn, ShopMappingStatus status) {
     return new ShopServiceSnapshot(
         name, ShopServiceKind.PRICE, null, rowIndex, serviceColumn, status);
   }
 
   @Override
   public String toString() {
-    return status == null || status.isBlank() ? name : "%s (%s)".formatted(name, status);
+    String displayName = name.displayName();
+    return status == null ? displayName : "%s (%s)".formatted(displayName, status.displayName());
   }
 }

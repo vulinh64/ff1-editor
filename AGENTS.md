@@ -60,7 +60,8 @@ Default paths:
 - Skills tab shows all 94 spell/effect records and edits price,
   `power/status`, and `accuracy`.
 - The command bar `Build Patched JAR` button opens a VDDOH-style modal for
-  optional global patches.
+  optional global patches. Reversible/toggleable patches are grouped separately
+  from one-way patches.
 - Implemented global patches:
   - force strong level-ups via `g.class`;
   - universal spell-charge growth via `cp0` chunk 4 plus `g.class`;
@@ -71,6 +72,7 @@ Default paths:
   - always-successful Run, party action order, and enemy crit defense behavior
     via `g.class`;
   - weapon affinity damage bonus via `g.class`;
+  - reversible Masamune/Excalibur no-miss/all-crit testing toggle via `g.class`;
   - Cottage revives KO and airship lands on safe terrain via `i.class`.
 
 ## Important Discoveries
@@ -92,6 +94,9 @@ Default paths:
   arrays in the editor.
 - Item/equipment names and descriptions are decoded from `PACK0_3`; the table's
   first text id is read from the data file header.
+- Audio resources `a0..a21` are currently mapped as likely music/audio tracks in
+  `docs/AUDIO-RESOURCES.md`; confirm file format and playback code before
+  exposing replacement as an editor feature.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Record bytes `2..3`
   are the equip class mask, bytes `4..5` are damage/accuracy, and byte `6` is
   the battle cast skill id.

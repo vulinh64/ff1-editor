@@ -84,6 +84,23 @@ so an affinity match adds `22` attack. The bonus is still a single yes/no
 affinity bonus; matching multiple weakness or archetype bits does not stack
 multiple half-weapon bonuses.
 
+## Legendary Weapon Critical Toggle
+
+`LegendaryWeaponCriticalClassPatcher` is a reversible command-bar toggle for
+testing fast late-game routes and damage data collection. For hero attacks with
+equipped weapon record `39` Excalibur or `40` Masamune, it forces:
+
+```text
+hitChance = 255
+criticalThreshold = 200
+```
+
+The physical hit roll is `0..200`, so `255` makes those weapons no-miss and
+`200` makes every resulting hit critical. This is independent of the weapon
+affinity damage patch. If affinity already raised hit chance to `255`, the
+no-miss assignment has no additional runtime effect for that swing, but the
+legendary toggle still forces the critical threshold.
+
 ## Enemy Crits Respect Party Defense Patch
 
 `EnemyCriticalDefenseClassPatcher` changes only enemy critical hits against party

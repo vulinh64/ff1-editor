@@ -104,6 +104,10 @@ The `Build Patched JAR` command opens a global patch dialog. These options chang
 
 * Weapon affinity damage bonus: when a hero weapon matches a monster weakness or archetype, the weapon adds half of its own damage value to attack and clamps hit chance to `255`, replacing the stock flat `+4` attack and `+40` hit chance. For example, Excalibur's `45` damage adds `+22` attack before defense, criticals, and random damage rolls.
 
+The dialog also has a separate `Toggleable patches:` section:
+
+* Masamune and Excalibur always crit: reversible experiment patch for data collection. Excalibur and Masamune force hit chance to `255` and critical threshold to `200`, making those weapons no-miss and all-critical. Loading a vanilla JAR shows the checkbox unchecked; loading an already patched JAR shows it checked; unknown bytecode layouts disable the checkbox.
+
 * Cottage revives KO: lets Cottage revive knocked-out party members before applying its normal full HP and spell-charge recovery. Sleeping Bag and Tent still skip KO members.
 
 * Airship lands on safe terrain: expands airship landing from the stock terrain set to additional safe land terrain while still rejecting water-like and blocked/special terrain.

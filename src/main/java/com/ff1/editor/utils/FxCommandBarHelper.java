@@ -31,6 +31,14 @@ public final class FxCommandBarHelper {
     return checkbox.isSelected() && patchState == PatchState.ORIGINAL ? 1 : 0;
   }
 
+  public static int changedToggle(CheckBox checkbox, PatchState patchState) {
+    if (patchState == PatchState.UNKNOWN) {
+      return 0;
+    }
+    boolean currentlyPatched = patchState == PatchState.PATCHED;
+    return checkbox.isSelected() != currentlyPatched ? 1 : 0;
+  }
+
   public static String patchStateLabel(PatchState state) {
     return switch (state) {
       case ORIGINAL -> "available";
@@ -60,6 +68,8 @@ public final class FxCommandBarHelper {
               "Enemy critical-hit bonus damage is reduced by party defense, so heavy heroes take much less critical damage.";
           case "Weapon affinity damage bonus" ->
               "When a weapon matches an enemy weakness or archetype, it adds half its weapon damage to attack and clamps hit chance to 255.";
+          case "Masamune and Excalibur always crit" ->
+              "Masamune and Excalibur force no-miss hit chance and all-critical landed hit rolls. This toggle can apply or remove the patch.";
           case "Cottage revives KO" ->
               "Cottage revives KO party members and restores full HP and spell charges.";
           case "Airship lands on safe terrain" ->
