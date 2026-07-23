@@ -1,6 +1,13 @@
 package com.ff1.editor.data;
 
-public enum ShopServiceName {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public enum ShopServiceName implements LabeledValue {
   WEAPON_SHOP("Weapon Shop"),
   ARMOR_SHOP("Armor Shop"),
   ITEM_SHOP("Item Shop"),
@@ -36,13 +43,5 @@ public enum ShopServiceName {
   INN_ROW_5("Inn Row 5"),
   INN_ROW_6("Inn Row 6");
 
-  private final String displayName;
-
-  ShopServiceName(String displayName) {
-    this.displayName = displayName;
-  }
-
-  public String displayName() {
-    return displayName;
-  }
+  private final String label;
 }

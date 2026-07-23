@@ -1,5 +1,12 @@
 package com.ff1.editor.data;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
 public enum ArmorResistance implements MaskOption {
   POISON_STATUS(0x01, "Poison/Status"),
   STONE(0x02, "Stone"),
@@ -12,17 +19,4 @@ public enum ArmorResistance implements MaskOption {
 
   private final int bit;
   private final String label;
-
-  ArmorResistance(int bit, String label) {
-    this.bit = bit;
-    this.label = label;
-  }
-
-  public int bit() {
-    return bit;
-  }
-
-  public String label() {
-    return label;
-  }
 }

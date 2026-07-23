@@ -3,7 +3,8 @@ package com.ff1.editor.service;
 import com.ff1.editor.data.HeroClass;
 import com.ff1.editor.data.HeroClassSnapshot;
 import com.ff1.editor.data.HeroClassStatsSnapshot;
-import com.ff1.editor.service.patcher.*;
+import com.ff1.editor.service.patcher.bytecode.*;
+import com.ff1.editor.service.patcher.data.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,11 +29,11 @@ public final class HeroClassDiscoveryService {
       byte[] cp0 = Files.readAllBytes(extractedDir.resolve(HeroClassStatsPatcher.ENTRY_NAME));
       List<HeroClassSnapshot> snapshots = new ArrayList<>();
       for (HeroClass heroClass : HeroClass.values()) {
-        byte[] encoded = textService.encodeText(heroClass.displayName());
+        byte[] encoded = textService.encodeText(heroClass.label());
         int offset = indexOf(source, encoded);
         if (offset < 0) {
           throw new IllegalStateException(
-              "Could not find hero class name in " + SOURCE_ENTRY + ": " + heroClass.displayName());
+              "Could not find hero class name in " + SOURCE_ENTRY + ": " + heroClass.label());
         }
         snapshots.add(
             HeroClassSnapshot.builder()
@@ -66,7 +67,7 @@ public final class HeroClassDiscoveryService {
   private static String sourceNote(HeroClass heroClass) {
     return heroClass.upgraded()
         ? "Class-change form of %s; live stats are inherited from the character."
-            .formatted(HeroClass.values()[heroClass.upgradeFromId()].displayName())
+            .formatted(HeroClass.values()[heroClass.upgradeFromId()].label())
         : "Read from confirmed cp0 starting-stat table.";
   }
 

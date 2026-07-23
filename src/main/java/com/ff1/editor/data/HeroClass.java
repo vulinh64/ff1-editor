@@ -1,6 +1,13 @@
 package com.ff1.editor.data;
 
-public enum HeroClass {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public enum HeroClass implements LabeledValue {
   WARRIOR(0, "Warrior", -1),
   THIEF(1, "Thief", -1),
   MONK(2, "Monk", -1),
@@ -15,28 +22,10 @@ public enum HeroClass {
   BLACK_WIZARD(11, "Black Wizard", 5);
 
   private final int id;
-  private final String displayName;
+  private final String label;
   private final int upgradeFromId;
-
-  HeroClass(int id, String displayName, int upgradeFromId) {
-    this.id = id;
-    this.displayName = displayName;
-    this.upgradeFromId = upgradeFromId;
-  }
-
-  public int id() {
-    return id;
-  }
-
-  public String displayName() {
-    return displayName;
-  }
 
   public boolean upgraded() {
     return upgradeFromId >= 0;
-  }
-
-  public int upgradeFromId() {
-    return upgradeFromId;
   }
 }

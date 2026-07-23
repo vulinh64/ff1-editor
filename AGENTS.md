@@ -39,6 +39,13 @@ Default paths:
 - Add or expose writable fields only after the raw layout is confirmed.
 - Data patches and bytecode patches must remain separate concepts in the UI and
   implementation.
+- For stable labeled enums, prefer Lombok
+  `@Getter`, `@Accessors(fluent = true)`, and `@RequiredArgsConstructor` to
+  remove constructor/getter boilerplate. Name the backing display field `label`
+  when the enum implements `LabeledValue` or `MaskOption`, so Lombok generates
+  the required `label()` method directly. Keep explicit compatibility methods
+  such as `displayName()` only when existing call sites still use them, and have
+  them delegate to `label()`.
 
 ## Current Features
 
@@ -130,6 +137,10 @@ build-and-catalog.cmd
 
 If Maven dependency resolution is needed and sandbox blocks network access,
 request escalation normally.
+
+Trust the result of configured formatter plugins such as
+`com.spotify.fmt:fmt-maven-plugin:format`; formatter changes are part of the
+work and should be kept unless the user explicitly asks otherwise.
 
 For decompiler work, previous sessions use CFR at `tools\cfr.jar`. The jar is
 ignored; on fresh clones download CFR 0.152 with the command documented in

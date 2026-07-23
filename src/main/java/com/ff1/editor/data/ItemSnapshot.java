@@ -31,10 +31,10 @@ public record ItemSnapshot(
     String notes) {
 
   public String categoryName() {
-    return category == null ? StringUtils.EMPTY : category.displayName();
+    return category == null ? StringUtils.EMPTY : category.label();
   }
 
   public String armorSubtypeName() {
-    return armorSubtype == null ? StringUtils.EMPTY : armorSubtype.displayName();
+    return armorSubtype == null ? StringUtils.EMPTY : armorSubtype.label();
   }
 }

@@ -5,6 +5,7 @@ import static com.ff1.editor.utils.EditorSupport.readBigEndianUnsignedShort;
 import com.ff1.editor.data.ItemCategory;
 import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.SkillEffectKind;
+import com.ff1.editor.data.SkillInvokerKind;
 import com.ff1.editor.data.SkillSnapshot;
 import com.ff1.editor.data.SpellSchool;
 import java.io.IOException;
@@ -94,7 +95,7 @@ public final class SkillDiscoveryService {
   private Map<Integer, List<String>> invokers() {
     Map<Integer, List<String>> invokers = new LinkedHashMap<>();
     for (int id = 1; id <= MagicMatrixDiscoveryService.LEARNABLE_SPELL_COUNT; id++) {
-      addInvoker(invokers, id, "Learnable spell");
+      addInvoker(invokers, id, SkillInvokerKind.LEARNABLE_SPELL.label());
     }
 
     for (ItemSnapshot item : new ItemEquipmentDiscoveryService(workDir).discover()) {
@@ -104,7 +105,8 @@ public final class SkillDiscoveryService {
       }
       Integer consumableEffectSpellId = CONSUMABLE_EFFECT_SPELL_IDS.get(item.id());
       if (consumableEffectSpellId != null && item.category() == ItemCategory.CONSUMABLE) {
-        addInvoker(invokers, consumableEffectSpellId, "Consumable: " + item.name());
+        addInvoker(
+            invokers, consumableEffectSpellId, SkillInvokerKind.CONSUMABLE.itemLabel(item.name()));
       }
     }
     return invokers;
@@ -140,6 +142,6 @@ public final class SkillDiscoveryService {
     }
     SpellSchool school = id >= 33 ? SpellSchool.BLACK : SpellSchool.WHITE;
     int index = id >= 33 ? id - 33 : id - 1;
-    return "%s LV%d.%d".formatted(school.displayName(), index / 4 + 1, index % 4 + 1);
+    return "%s LV%d.%d".formatted(school.label(), index / 4 + 1, index % 4 + 1);
   }
 }

@@ -40,11 +40,7 @@ public final class FxCommandBarHelper {
   }
 
   public static String patchStateLabel(PatchState state) {
-    return switch (state) {
-      case ORIGINAL -> "available";
-      case PATCHED -> "already patched";
-      case UNKNOWN -> "unavailable for this class layout";
-    };
+    return state.label();
   }
 
   private static String optionTooltip(String text, PatchState state) {
@@ -80,10 +76,6 @@ public final class FxCommandBarHelper {
   }
 
   private static String optionTooltipState(PatchState state) {
-    return switch (state) {
-      case ORIGINAL -> "available";
-      case PATCHED -> "already patched";
-      case UNKNOWN -> "unsupported layout";
-    };
+    return state.tooltipLabel();
   }
 }

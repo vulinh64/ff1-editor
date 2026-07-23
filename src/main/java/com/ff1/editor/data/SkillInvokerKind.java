@@ -7,11 +7,13 @@ import lombok.experimental.Accessors;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public enum ShopMappingStatus implements LabeledValue {
-  CONFIRMED("confirmed"),
-  WIKI_BACKED("wiki-backed"),
-  LIKELY("likely"),
-  UNCONFIRMED("unconfirmed");
+public enum SkillInvokerKind implements LabeledValue {
+  LEARNABLE_SPELL("Learnable spell"),
+  CONSUMABLE("Consumable");
 
   private final String label;
+
+  public String itemLabel(String itemName) {
+    return "%s: %s".formatted(label(), itemName);
+  }
 }

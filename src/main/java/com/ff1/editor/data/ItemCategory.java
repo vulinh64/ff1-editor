@@ -1,6 +1,13 @@
 package com.ff1.editor.data;
 
-public enum ItemCategory {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public enum ItemCategory implements LabeledValue {
   CONSUMABLE("Consumable"),
   WEAPON("Weapon"),
   ARMOR("Armor"),
@@ -8,13 +15,5 @@ public enum ItemCategory {
   BLANK("Blank"),
   UNKNOWN("Unknown");
 
-  private final String displayName;
-
-  ItemCategory(String displayName) {
-    this.displayName = displayName;
-  }
-
-  public String displayName() {
-    return displayName;
-  }
+  private final String label;
 }

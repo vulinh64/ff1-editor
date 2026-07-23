@@ -5,6 +5,7 @@ import com.ff1.editor.data.MonsterArchetype;
 import com.ff1.editor.data.MonsterElementAffinity;
 import com.ff1.editor.data.MonsterSnapshot;
 import com.ff1.editor.data.MonsterStatsEdit;
+import com.ff1.editor.utils.MaskLabelFormatter;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -245,26 +246,11 @@ public final class FxMonsterRowViewModel {
   }
 
   private static void appendKnownLabels(StringBuilder out, int mask, MaskOption[] options) {
-    int unknownBits = mask;
-    for (MaskOption option : options) {
-      if ((mask & option.bit()) == 0) {
-        continue;
-      }
-      append(out, option.label());
-      unknownBits &= ~option.bit();
-    }
-    for (int bit = 1; bit <= 0x80; bit <<= 1) {
-      if ((unknownBits & bit) != 0) {
-        append(out, "0x%02x".formatted(bit));
-      }
-    }
+    append(out, MaskLabelFormatter.labelsForMask(mask, options));
   }
 
   private static void append(StringBuilder out, String value) {
-    if (!out.isEmpty()) {
-      out.append("; ");
-    }
-    out.append(value);
+    MaskLabelFormatter.append(out, value);
   }
 
   private static String hexByte(int value) {

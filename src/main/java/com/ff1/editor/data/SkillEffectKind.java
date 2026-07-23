@@ -1,6 +1,13 @@
 package com.ff1.editor.data;
 
-public enum SkillEffectKind {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public enum SkillEffectKind implements LabeledValue {
   NONE(0, "None"),
   DAMAGE(1, "Damage"),
   UNDEAD_DAMAGE(2, "Undead damage"),
@@ -22,25 +29,12 @@ public enum SkillEffectKind {
   CONDITIONAL_STATUS(18, "Conditional status");
 
   private final int id;
-  private final String displayName;
-
-  SkillEffectKind(int id, String displayName) {
-    this.id = id;
-    this.displayName = displayName;
-  }
-
-  public int id() {
-    return id;
-  }
-
-  public String displayName() {
-    return displayName;
-  }
+  private final String label;
 
   public static String displayName(int id) {
     for (SkillEffectKind kind : values()) {
       if (kind.id == id) {
-        return kind.displayName;
+        return kind.label;
       }
     }
     return "Unknown";

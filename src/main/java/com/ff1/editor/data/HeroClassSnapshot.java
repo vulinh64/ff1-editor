@@ -13,7 +13,7 @@ public record HeroClassSnapshot(
   }
 
   public String name() {
-    return heroClass.displayName();
+    return heroClass.label();
   }
 
   public boolean upgraded() {

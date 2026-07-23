@@ -1,5 +1,12 @@
 package com.ff1.editor.data;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
 public enum ShopInventoryType {
   WEAPON(0, 7),
   ARMOR(1, 8),
@@ -10,19 +17,6 @@ public enum ShopInventoryType {
 
   private final int id;
   private final int chunkIndex;
-
-  ShopInventoryType(int id, int chunkIndex) {
-    this.id = id;
-    this.chunkIndex = chunkIndex;
-  }
-
-  public int id() {
-    return id;
-  }
-
-  public int chunkIndex() {
-    return chunkIndex;
-  }
 
   public static ShopInventoryType fromId(int id) {
     for (ShopInventoryType type : values()) {

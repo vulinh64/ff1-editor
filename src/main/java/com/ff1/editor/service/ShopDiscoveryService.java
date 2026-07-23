@@ -447,7 +447,7 @@ public final class ShopDiscoveryService {
           && goodId <= MagicMatrixDiscoveryService.LEARNABLE_SPELL_COUNT) {
         SpellSchool school = goodId >= 33 ? SpellSchool.BLACK : SpellSchool.WHITE;
         int index = goodId >= 33 ? goodId - 33 : goodId - 1;
-        return "%s LV%d.%d".formatted(school.displayName(), index / 4 + 1, index % 4 + 1);
+        return "%s LV%d.%d".formatted(school.label(), index / 4 + 1, index % 4 + 1);
       }
       return "Magic";
     }

@@ -1,7 +1,11 @@
 package com.ff1.editor.data;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
+@Getter
+@Accessors(fluent = true)
 public enum MagicClassBit implements MaskOption {
   WARRIOR(HeroClass.WARRIOR, 0x0001),
   THIEF(HeroClass.THIEF, 0x0002),
@@ -17,40 +21,26 @@ public enum MagicClassBit implements MaskOption {
   BLACK_WIZARD(HeroClass.BLACK_WIZARD, 0x2000);
 
   private final HeroClass heroClass;
-  private final int mask;
+  private final int bit;
+  private final String label;
 
-  MagicClassBit(HeroClass heroClass, int mask) {
+  MagicClassBit(HeroClass heroClass, int bit) {
     this.heroClass = heroClass;
-    this.mask = mask;
-  }
-
-  public String displayName() {
-    return heroClass.displayName();
-  }
-
-  public String label() {
-    return displayName();
-  }
-
-  public int mask() {
-    return mask;
-  }
-
-  public int bit() {
-    return mask();
+    this.bit = bit;
+    label = heroClass.label();
   }
 
   public static String namesForMask(int mask) {
     StringBuilder out = new StringBuilder();
     int count = 0;
     for (MagicClassBit bit : values()) {
-      if ((mask & bit.mask()) == 0) {
+      if ((mask & bit.bit()) == 0) {
         continue;
       }
       if (!out.isEmpty()) {
         out.append(", ");
       }
-      out.append(bit.displayName());
+      out.append(bit.label());
       count++;
     }
     if (count == 0) {

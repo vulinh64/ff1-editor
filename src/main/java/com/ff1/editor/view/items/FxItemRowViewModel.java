@@ -12,6 +12,7 @@ import com.ff1.editor.data.MonsterArchetype;
 import com.ff1.editor.data.MonsterElementAffinity;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
+import com.ff1.editor.utils.MaskLabelFormatter;
 import java.util.Map;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -370,46 +371,11 @@ public final class FxItemRowViewModel {
 
   private static String labelsForMask(
       int mask, Map<Integer, String> labels, String fallbackPrefix) {
-    if (mask == 0) {
-      return StringUtils.EMPTY;
-    }
-    StringBuilder out = new StringBuilder();
-    int unknownBits = mask;
-    for (Map.Entry<Integer, String> entry : labels.entrySet()) {
-      int bit = entry.getKey();
-      if ((mask & bit) == 0) {
-        continue;
-      }
-      append(out, FAMILY_MASK_PATTERN.formatted(entry.getValue(), bit));
-      unknownBits &= ~bit;
-    }
-    for (int bit = 1; bit <= 0x80; bit <<= 1) {
-      if ((unknownBits & bit) != 0) {
-        append(out, "%s 0x%02x".formatted(fallbackPrefix, bit));
-      }
-    }
-    return out.toString();
+    return MaskLabelFormatter.labeledBitsForMask(mask, labels, fallbackPrefix);
   }
 
   private static String labelsForMask(int mask, MaskOption[] options) {
-    if (mask == 0) {
-      return StringUtils.EMPTY;
-    }
-    StringBuilder out = new StringBuilder();
-    int unknownBits = mask;
-    for (MaskOption option : options) {
-      if ((mask & option.bit()) == 0) {
-        continue;
-      }
-      append(out, option.label());
-      unknownBits &= ~option.bit();
-    }
-    for (int bit = 1; bit <= 0x80; bit <<= 1) {
-      if ((unknownBits & bit) != 0) {
-        append(out, RESISTANCE_BIT_MASK_PATTERN.formatted(bit));
-      }
-    }
-    return out.toString();
+    return MaskLabelFormatter.labelsForMask(mask, options);
   }
 
   private static String joinNonBlank(String first, String second) {
@@ -423,9 +389,6 @@ public final class FxItemRowViewModel {
   }
 
   private static void append(StringBuilder out, String value) {
-    if (!out.isEmpty()) {
-      out.append("; ");
-    }
-    out.append(value);
+    MaskLabelFormatter.append(out, value);
   }
 }

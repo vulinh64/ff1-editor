@@ -1,16 +1,15 @@
 package com.ff1.editor.data;
 
-public enum SpellSchool {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public enum SpellSchool implements LabeledValue {
   WHITE("White"),
   BLACK("Black");
 
-  private final String displayName;
-
-  SpellSchool(String displayName) {
-    this.displayName = displayName;
-  }
-
-  public String displayName() {
-    return displayName;
-  }
+  private final String label;
 }

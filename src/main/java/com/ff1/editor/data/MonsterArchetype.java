@@ -1,5 +1,12 @@
 package com.ff1.editor.data;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
 public enum MonsterArchetype implements MaskOption {
   MAGICAL(0x01, "Magical"),
   DRAGON(0x02, "Dragon"),
@@ -12,17 +19,4 @@ public enum MonsterArchetype implements MaskOption {
 
   private final int bit;
   private final String label;
-
-  MonsterArchetype(int bit, String label) {
-    this.bit = bit;
-    this.label = label;
-  }
-
-  public int bit() {
-    return bit;
-  }
-
-  public String label() {
-    return label;
-  }
 }

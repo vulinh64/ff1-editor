@@ -22,7 +22,7 @@ public record ShopServiceSnapshot(
 
   @Override
   public String toString() {
-    String displayName = name.displayName();
-    return status == null ? displayName : "%s (%s)".formatted(displayName, status.displayName());
+    String displayName = name.label();
+    return status == null ? displayName : "%s (%s)".formatted(displayName, status.label());
   }
 }

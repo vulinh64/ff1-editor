@@ -1,5 +1,12 @@
 package com.ff1.editor.data;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
 public enum MonsterElementAffinity implements MaskOption {
   POISON_STONE(0x01, "Poison/Stone"),
   DEATH(0x02, "Death"),
@@ -12,17 +19,4 @@ public enum MonsterElementAffinity implements MaskOption {
 
   private final int bit;
   private final String label;
-
-  MonsterElementAffinity(int bit, String label) {
-    this.bit = bit;
-    this.label = label;
-  }
-
-  public int bit() {
-    return bit;
-  }
-
-  public String label() {
-    return label;
-  }
 }

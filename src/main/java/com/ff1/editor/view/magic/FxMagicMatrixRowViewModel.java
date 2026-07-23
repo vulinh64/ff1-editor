@@ -34,7 +34,7 @@ public final class FxMagicMatrixRowViewModel {
   }
 
   public String schoolName() {
-    return school().displayName();
+    return school().label();
   }
 
   public int level() {
