@@ -55,10 +55,10 @@ public final class WeaponAffinityDamageClassPatcher {
       int originalSites = originalFlatAffinitySites(instructions);
       int damageSites = patchedWeaponDamageSites(instructions);
       int accuracySites = patchedAccuracyClampSites(instructions);
-      if (originalSites == 1 && accuracySites == 0 && damageSites == 0) {
+      if (originalSites == 1 && damageSites == 0) {
         return PatcherState.ORIGINAL;
       }
-      if (originalSites == 0 && damageSites == 1 && accuracySites == 1) {
+      if (originalSites == 0 && damageSites == 1 && accuracySites >= 1) {
         return PatcherState.PATCHED;
       }
       log.info(

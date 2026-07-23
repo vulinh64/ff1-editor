@@ -49,26 +49,26 @@ public final class IntelligenceSpellHealingClassPatcher {
       ClassModel model = ClassFile.of().parse(data);
       int targetMethods = 0;
       int healingScaleGuards = 0;
-      int intelligenceReads = 0;
+      int healingScaleSites = 0;
       for (MethodModel method : model.methods()) {
         if (!isSpellEffectMethod(method)) {
           continue;
         }
         targetMethods++;
         healingScaleGuards += healingScaleGuards(method);
-        intelligenceReads += intelligenceReads(method);
+        healingScaleSites += healingScaleSites(method);
       }
-      if (targetMethods == 1 && healingScaleGuards == 0 && intelligenceReads == 0) {
+      if (targetMethods == 1 && healingScaleGuards == 0 && healingScaleSites == 0) {
         return PatcherState.ORIGINAL;
       }
-      if (targetMethods == 1 && healingScaleGuards > 0 && intelligenceReads > 0) {
+      if (targetMethods == 1 && healingScaleGuards > 0 && healingScaleSites > 0) {
         return PatcherState.PATCHED;
       }
       log.info(
-          "INT spell-healing class patch state unknown; targetMethods={}, healingScaleGuards={}, intelligenceReads={}",
+          "INT spell-healing class patch state unknown; targetMethods={}, healingScaleGuards={}, healingScaleSites={}",
           targetMethods,
           healingScaleGuards,
-          intelligenceReads);
+          healingScaleSites);
       return PatcherState.UNKNOWN;
     } catch (RuntimeException | LinkageError _) {
       return PatcherState.UNKNOWN;
@@ -131,14 +131,23 @@ public final class IntelligenceSpellHealingClassPatcher {
         && instructions.get(offset + 6).opcode() == Opcode.IF_ICMPNE;
   }
 
-  private static int intelligenceReads(MethodModel method) {
+  private static int healingScaleSites(MethodModel method) {
     int matches = 0;
-    for (Instruction instruction : instructions(method)) {
-      if (isIntelligenceRead(instruction)) {
+    List<Instruction> instructions = instructions(method);
+    for (int i = 0; i + 4 < instructions.size(); i++) {
+      if (isHealingScaleSite(instructions, i)) {
         matches++;
       }
     }
     return matches;
+  }
+
+  private static boolean isHealingScaleSite(List<Instruction> instructions, int offset) {
+    return isIntelligenceRead(instructions.get(offset))
+        && instructions.get(offset + 1).opcode() == Opcode.IMUL
+        && isPush(instructions.get(offset + 2), INT_DIVISOR)
+        && instructions.get(offset + 3).opcode() == Opcode.IDIV
+        && instructions.get(offset + 4).opcode() == Opcode.ISUB;
   }
 
   private static List<Instruction> instructions(MethodModel method) {

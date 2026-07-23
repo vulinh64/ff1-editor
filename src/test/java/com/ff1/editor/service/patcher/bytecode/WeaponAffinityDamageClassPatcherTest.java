@@ -73,6 +73,17 @@ class WeaponAffinityDamageClassPatcherTest {
   }
 
   @Test
+  void canApplyAfterLegendaryWeaponCriticalPatch() throws IOException {
+    byte[] legendaryPatched = LegendaryWeaponCriticalClassPatcher.apply(stockGClass());
+
+    assertEquals(PatcherState.ORIGINAL, WeaponAffinityDamageClassPatcher.state(legendaryPatched));
+    assertEquals(
+        PatcherState.PATCHED,
+        WeaponAffinityDamageClassPatcher.state(
+            WeaponAffinityDamageClassPatcher.apply(legendaryPatched)));
+  }
+
+  @Test
   void enemyCriticalDefenseCanApplyAfterWeaponAffinityDamagePatch() throws IOException {
     byte[] affinityPatched = WeaponAffinityDamageClassPatcher.apply(stockGClass());
 
