@@ -40,6 +40,23 @@ class EditorPatchServiceTest {
   }
 
   @Test
+  void buildPatchCanReplaceAudioResourceByExactEntryName() throws Exception {
+    Path inputJar = tempDir.resolve("ff1.jar");
+    Path outputJar = tempDir.resolve("ff1-patched.jar");
+    writeJar(inputJar, Map.of("a3", new byte[] {1, 2}, "a15", new byte[] {3, 4}));
+    EditorWorkspace workspace =
+        EditorWorkspace.builder().inputJar(inputJar).outputJar(outputJar).build();
+
+    BuildResult result =
+        new EditorPatchService().buildPatch(workspace, Map.of("a3", new byte[] {9, 8, 7}));
+
+    assertEquals("replaced 1 jar entries", result.summary());
+    assertArrayEquals(new byte[] {9, 8, 7}, readJarEntry(result.outputJar(), "a3"));
+    assertArrayEquals(new byte[] {3, 4}, readJarEntry(result.outputJar(), "a15"));
+    assertArrayEquals(new byte[] {1, 2}, readJarEntry(inputJar, "a3"));
+  }
+
+  @Test
   void buildPatchUsesNumberedSuffixWhenOutputExists() throws Exception {
     Path inputJar = tempDir.resolve("ff1.jar");
     Path outputJar = tempDir.resolve("ff1-patched-0001.jar");

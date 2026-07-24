@@ -4,6 +4,7 @@ import com.ff1.editor.view.heroes.FxHeroesView;
 import com.ff1.editor.view.items.FxItemsView;
 import com.ff1.editor.view.magic.FxMagicMatrixView;
 import com.ff1.editor.view.monsters.FxMonstersView;
+import com.ff1.editor.view.music.FxMusicView;
 import com.ff1.editor.view.shops.FxShopsView;
 import com.ff1.editor.view.skills.FxSkillsView;
 import com.ff1.editor.view.ui.FxCommandBar;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -20,6 +22,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public final class FxEditorApplication extends Application {
+
+  private FxEditorState state;
 
   public static void launchEditor(String[] args) {
     Application.launch(FxEditorApplication.class, args);
@@ -33,7 +37,7 @@ public final class FxEditorApplication extends Application {
       return;
     }
 
-    FxEditorState state = new FxEditorState();
+    state = new FxEditorState();
     FxCommandBar commandBar = new FxCommandBar(stage, state);
     BorderPane root = new BorderPane();
     root.getStyleClass().add("app-root");
@@ -52,8 +56,25 @@ public final class FxEditorApplication extends Application {
                 .toExternalForm());
     stage.setTitle("Final Fantasy 1 J2ME Editor");
     stage.setScene(scene);
+    stage.setOnCloseRequest(
+        _ -> {
+          closeResources();
+          Platform.exit();
+          System.exit(0);
+        });
     stage.show();
     commandBar.loadInitialInputJar(initialInputJar);
+  }
+
+  @Override
+  public void stop() {
+    closeResources();
+  }
+
+  private void closeResources() {
+    if (state != null) {
+      state.closeResources();
+    }
   }
 
   private static TabPane sectionTabs(FxEditorState state) {
@@ -68,9 +89,11 @@ public final class FxEditorApplication extends Application {
     items.setClosable(false);
     Tab shops = new Tab("Shops", new FxShopsView(state));
     shops.setClosable(false);
+    Tab music = new Tab("Music", new FxMusicView(state));
+    music.setClosable(false);
     Tab monsters = new Tab("Monsters", new FxMonstersView(state));
     monsters.setClosable(false);
-    tabs.getTabs().addAll(heroes, magicMatrix, skills, items, shops, monsters);
+    tabs.getTabs().addAll(heroes, magicMatrix, skills, items, shops, music, monsters);
     return tabs;
   }
 

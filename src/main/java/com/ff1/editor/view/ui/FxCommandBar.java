@@ -1,6 +1,7 @@
 package com.ff1.editor.view.ui;
 
 import com.ff1.editor.data.ArmorStatsEdit;
+import com.ff1.editor.data.AudioResource;
 import com.ff1.editor.data.BuildResult;
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.EquipmentPermissionEdit;
@@ -49,6 +50,7 @@ import com.ff1.editor.view.FxEditorState;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -522,7 +524,8 @@ public final class FxCommandBar extends VBox {
             || !state.armorStatsEdits().isEmpty()
             || !state.monsterStatsEdits().isEmpty()
             || !state.shopInventoryEdits().isEmpty()
-            || !state.shopPriceEdits().isEmpty();
+            || !state.shopPriceEdits().isEmpty()
+            || !state.audioReplacements().isEmpty();
     BooleanBinding hasBuildSelection =
         Bindings.createBooleanBinding(
             () ->
@@ -621,6 +624,7 @@ public final class FxCommandBar extends VBox {
     List<MonsterStatsEdit> monsterStatsEdits = state.monsterStatsEdits();
     List<ShopInventoryEdit> shopInventoryEdits = state.shopInventoryEdits();
     List<ShopPriceEdit> shopPriceEdits = state.shopPriceEdits();
+    Map<AudioResource, Path> selectedAudioReplacements = new EnumMap<>(state.audioReplacements());
     boolean growthPatch =
         state.forceStrongLevelUps() && workspace.strongLevelUpsState() == PatchState.ORIGINAL;
     boolean universalChargesPatch =
@@ -667,6 +671,7 @@ public final class FxCommandBar extends VBox {
         && monsterStatsEdits.isEmpty()
         && shopInventoryEdits.isEmpty()
         && shopPriceEdits.isEmpty()
+        && selectedAudioReplacements.isEmpty()
         && !growthPatch
         && !universalChargesPatch
         && !fifteenChargesPatch
@@ -835,6 +840,9 @@ public final class FxCommandBar extends VBox {
               }
               replacements.put(FifteenSpellChargeRecoveryClassPatcher.ENTRY_NAME, iClass);
             }
+            for (Map.Entry<AudioResource, Path> entry : selectedAudioReplacements.entrySet()) {
+              replacements.put(entry.getKey().entryName(), Files.readAllBytes(entry.getValue()));
+            }
             return new EditorPatchService().buildPatch(workspace, replacements);
           }
         };
@@ -846,7 +854,8 @@ public final class FxCommandBar extends VBox {
         Building patched JAR with %d hero edit(s), %d magic permission edit(s), \
         %d equipment permission edit(s), %d skill edit(s), %d item price edit(s), \
         %d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), \
-        %d monster stat edit(s), %d shop inventory edit(s), %d inn price edit(s)\
+        %d monster stat edit(s), %d shop inventory edit(s), %d inn price edit(s), \
+        %d music replacement(s)\
         %s%s%s%s%s%s%s%s%s%s%s%s%s...\
         """)
             .formatted(
@@ -861,6 +870,7 @@ public final class FxCommandBar extends VBox {
                 monsterStatsEdits.size(),
                 shopInventoryEdits.size(),
                 shopPriceEdits.size(),
+                selectedAudioReplacements.size(),
                 growthPatch ? ", strong level-ups" : StringUtils.EMPTY,
                 universalChargesPatch ? ", universal spell-charge growth" : StringUtils.EMPTY,
                 fifteenChargesPatch ? ", 15 max spell charges" : StringUtils.EMPTY,
@@ -885,7 +895,7 @@ public final class FxCommandBar extends VBox {
                         ? ", remove legendary weapon no-miss/critical"
                         : StringUtils.EMPTY,
                 cottageRevivePatch ? ", Cottage revive" : StringUtils.EMPTY,
-                airshipLandingPatch ? ", and airship landing" : StringUtils.EMPTY));
+                airshipLandingPatch ? ", airship landing" : StringUtils.EMPTY));
     task.setOnSucceeded(
         _ -> {
           BuildResult result = task.getValue();

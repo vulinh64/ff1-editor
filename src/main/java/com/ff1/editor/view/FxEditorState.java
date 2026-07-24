@@ -1,6 +1,7 @@
 package com.ff1.editor.view;
 
 import com.ff1.editor.data.ArmorStatsEdit;
+import com.ff1.editor.data.AudioResource;
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
@@ -12,7 +13,10 @@ import com.ff1.editor.data.ShopPriceEdit;
 import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.data.WeaponCastSpellEdit;
 import com.ff1.editor.data.WeaponStatsEdit;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -39,6 +43,7 @@ public final class FxEditorState {
   private final BooleanProperty legendaryWeaponCritical = new SimpleBooleanProperty(false);
   private final BooleanProperty cottageRevive = new SimpleBooleanProperty(false);
   private final BooleanProperty airshipLanding = new SimpleBooleanProperty(false);
+  private final List<Runnable> closeHooks = new ArrayList<>();
   private Supplier<List<HeroClassStatsEdit>> heroStatsEditSupplier = List::of;
   private Supplier<List<MagicMatrixEdit>> magicMatrixEditSupplier = List::of;
   private Supplier<List<EquipmentPermissionEdit>> equipmentPermissionEditSupplier = List::of;
@@ -50,6 +55,7 @@ public final class FxEditorState {
   private Supplier<List<MonsterStatsEdit>> monsterStatsEditSupplier = List::of;
   private Supplier<List<ShopInventoryEdit>> shopInventoryEditSupplier = List::of;
   private Supplier<List<ShopPriceEdit>> shopPriceEditSupplier = List::of;
+  private Supplier<Map<AudioResource, Path>> audioReplacementSupplier = Map::of;
 
   public ObjectProperty<EditorWorkspace> workspaceProperty() {
     return workspace;
@@ -305,6 +311,30 @@ public final class FxEditorState {
 
   public List<ShopPriceEdit> shopPriceEdits() {
     return shopPriceEditSupplier.get();
+  }
+
+  public void audioReplacementSupplier(Supplier<Map<AudioResource, Path>> supplier) {
+    audioReplacementSupplier = supplier == null ? Map::of : supplier;
+  }
+
+  public Map<AudioResource, Path> audioReplacements() {
+    return audioReplacementSupplier.get();
+  }
+
+  public void closeHook(Runnable hook) {
+    if (hook != null) {
+      closeHooks.add(hook);
+    }
+  }
+
+  public void closeResources() {
+    for (Runnable hook : closeHooks) {
+      try {
+        hook.run();
+      } catch (RuntimeException _) {
+        // Keep shutdown moving; close hooks are best-effort cleanup.
+      }
+    }
   }
 
   public StringProperty statusProperty() {

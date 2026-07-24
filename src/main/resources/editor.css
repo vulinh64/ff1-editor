@@ -40,7 +40,8 @@
 
 .heroes-view,
 .magic-matrix-view,
-.items-view {
+.items-view,
+.music-view {
   -fx-background-color: -ff1-bg;
 }
 

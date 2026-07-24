@@ -159,7 +159,6 @@ This is the quick landing page for the FF1 J2ME editor project.
   - changes the world-map airship landing check from stock `0` and `10..14` to
     `0` and `10..33`;
   - rejects water-like low ids and higher blocked/special terrain bytes.
-
 ## Confirmed Data Locations
 
 - Class names: `PACK0_1`, offsets documented in `HERO-CLASSES.md`.
@@ -272,10 +271,10 @@ This is the quick landing page for the FF1 J2ME editor project.
   conditional status. Physical on-hit statuses also consult this mask.
 - Audio resources: extensionless `a0..a21` appear to be in-game music/audio
   tracks. Current user-observed theme labels are documented in
-  `AUDIO-RESOURCES.md`; `a21` remains tentative as a Chaos battle-like theme
-  until its exact use is confirmed. Audio replacement is intended primarily for
-  modern KEmulator on PC, with MIDI routed to host synths such as CoolSoft
-  VirtualMIDISynth rather than constrained by real Java ME device playback.
+  `AUDIO-RESOURCES.md`; user comparison against the GBA version confirms `a21`
+  is the Chaos theme. The Music tab can replace existing audio resources by
+  exact JAR entry name and preview MIDI through the desktop Java Sound
+  sequencer.
 
 ## Confirmed Game Behavior
 
@@ -317,9 +316,8 @@ Use `build-with-jdk.cmd` for quick compile verification after normal code edits.
   Phoenix Down-style consumable using blank item id `89`.
 - Investigate spell/name text editing beyond the current read-only decoded
   labels.
-- Investigate audio resource replacement for `a0..a21`, starting with confirming
-  whether the resources are standard MIDI and whether replacement by exact JAR
-  entry name is sufficient.
+- Continue audio resource investigation for `a0..a21`, starting with confirming
+  emulator playback behavior for replacement tracks.
 - Design optional INT-scaling follow-up patches for Haste, Temper, Saber, and
   Dia-like undead-damage spells. Keep these separate from the current
   damage-only and healing-only patches unless the patch behavior is

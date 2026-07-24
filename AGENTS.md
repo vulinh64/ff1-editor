@@ -102,8 +102,8 @@ Default paths:
 - Item/equipment names and descriptions are decoded from `PACK0_3`; the table's
   first text id is read from the data file header.
 - Audio resources `a0..a21` are currently mapped as likely music/audio tracks in
-  `docs/AUDIO-RESOURCES.md`; confirm file format and playback code before
-  exposing replacement as an editor feature.
+  `docs/AUDIO-RESOURCES.md`; the Music tab can replace existing audio resource
+  entries by exact JAR entry name.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Record bytes `2..3`
   are the equip class mask, bytes `4..5` are damage/accuracy, and byte `6` is
   the battle cast skill id.
@@ -141,6 +141,15 @@ request escalation normally.
 Trust the result of configured formatter plugins such as
 `com.spotify.fmt:fmt-maven-plugin:format`; formatter changes are part of the
 work and should be kept unless the user explicitly asks otherwise.
+
+## IntelliJ MCP
+
+When working in an IntelliJ-backed session, make full use of the IntelliJ MCP
+tools for code analysis and support. Prefer IDE-backed operations such as
+`lint_files`, `get_file_problems`, symbol lookup, call analysis, and project
+build/run configuration tools when they provide stronger evidence than raw file
+inspection alone. Note that `lint_files` may surface inspection warnings that
+`get_file_problems` does not.
 
 For decompiler work, previous sessions use CFR at `tools\cfr.jar`. The jar is
 ignored; on fresh clones download CFR 0.152 with the command documented in

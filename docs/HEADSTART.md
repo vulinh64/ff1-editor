@@ -30,11 +30,10 @@ short obfuscated class names plus many extensionless binary resources (`a0`, `m0
 `mg0`, `PACK0_0`, etc.), so the initial tool catalogs the archive and groups pack
 resources before any writes are attempted.
 
-The extensionless `a0..a21` resources are currently mapped as likely in-game
-music/audio tracks in `AUDIO-RESOURCES.md`. Those labels are based on user
-in-game identification. Audio replacement is aimed at modern KEmulator on PC,
-including host MIDI routing through CoolSoft VirtualMIDISynth; confirm the file
-format and playback loader before adding an audio replacement UI.
+The extensionless `a0..a21` resources are currently mapped as in-game music/audio
+tracks in `AUDIO-RESOURCES.md`. Those labels are based on user in-game
+identification, and `a21` is confirmed as the Chaos theme. Audio replacement is
+exposed in the Music tab as exact JAR entry replacement for existing tracks.
 
 ## Mechanics Baseline
 
@@ -212,8 +211,8 @@ tool behind the JavaFX app.
 2. Add or widen editable fields only after a confirmed byte layout exists.
 3. Investigate spell/name text editing beyond the current decoded read-only
    labels.
-4. Investigate `a0..a21` audio replacement by exact JAR entry name after
-   confirming the resource format and playback path.
+4. Continue investigating `a0..a21` audio resource playback behavior for
+   replacement tracks.
 5. Optional engine patch: make starting HP read unsigned/wider so values above
    `127` do not display as negative.
 6. Keep patched output jars in `%USERPROFILE%\.ff1-editor\dist` and temporary
