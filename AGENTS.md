@@ -171,6 +171,22 @@ ignored; on fresh clones download CFR 0.152 with the command documented in
   becomes confirmed.
 - Prefer small, testable patches over broad refactors.
 
+## Documentation Rules
+
+- Keep `docs/DECOMPILED_METHOD_LEDGER.md` as the central deobfuscation map for
+  confirmed obfuscated class, method, field, and state-machine roles. Update it
+  when a symbol role becomes confirmed or an old guess becomes stale.
+- Prefer IntelliJ MCP `lint_files` for Markdown docs touched in an
+  IntelliJ-backed session, especially after editing tables.
+- Use IntelliJ MCP `reformat_file` to fix Markdown table-format warnings. Do not
+  replace tables with lists just to silence the warning.
+- For decompiled fragments that are not complete compilable Java, use `text`
+  code fences instead of `java` so IntelliJ does not report parser errors on
+  partial snippets.
+- When two patches edit the same obfuscated class, document whether they target
+  the same method/branch or only need composition on the same in-memory class
+  bytes.
+
 ## Near-Term Work
 
 - Decode remaining unknown item, weapon, armor, spell/effect, and monster
