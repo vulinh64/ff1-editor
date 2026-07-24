@@ -43,6 +43,7 @@ public final class FxEditorState {
   private final BooleanProperty legendaryWeaponCritical = new SimpleBooleanProperty(false);
   private final BooleanProperty cottageRevive = new SimpleBooleanProperty(false);
   private final BooleanProperty airshipLanding = new SimpleBooleanProperty(false);
+  private final BooleanProperty worldMapMusic = new SimpleBooleanProperty(false);
   private final List<Runnable> closeHooks = new ArrayList<>();
   private Supplier<List<HeroClassStatsEdit>> heroStatsEditSupplier = List::of;
   private Supplier<List<MagicMatrixEdit>> magicMatrixEditSupplier = List::of;
@@ -223,6 +224,18 @@ public final class FxEditorState {
 
   public void airshipLanding(boolean enabled) {
     airshipLanding.set(enabled);
+  }
+
+  public BooleanProperty worldMapMusicProperty() {
+    return worldMapMusic;
+  }
+
+  public boolean worldMapMusic() {
+    return worldMapMusic.get();
+  }
+
+  public void worldMapMusic(boolean enabled) {
+    worldMapMusic.set(enabled);
   }
 
   public void heroStatsEditSupplier(Supplier<List<HeroClassStatsEdit>> supplier) {

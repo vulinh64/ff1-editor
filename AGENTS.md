@@ -80,7 +80,8 @@ Default paths:
     via `g.class`;
   - weapon affinity damage bonus via `g.class`;
   - reversible Masamune/Excalibur no-miss/all-crit testing toggle via `g.class`;
-  - Cottage revives KO and airship lands on safe terrain via `i.class`.
+  - Cottage revives KO, airship lands on safe terrain, and world-map overlay
+    keeps field music playing via `i.class`.
 
 ## Important Discoveries
 
@@ -104,6 +105,11 @@ Default paths:
 - Audio resources `a0..a21` are currently mapped as likely music/audio tracks in
   `docs/AUDIO-RESOURCES.md`; the Music tab can replace existing audio resource
   entries by exact JAR entry name.
+- Mobile key `0` opens the world-map overlay. Stock `i.class` stops BGM on that
+  transition through `j.e(0)`, which catches the active stock field/world-map
+  BGM slot, including overworld, sea/ship or canoe, and airship music; the
+  optional world-map music patch nops only that stop call. This composes with
+  the airship landing patch because both edit different parts of `i.class`.
 - Weapon records: `cp0` chunk 3, 41 records, 9 bytes each. Record bytes `2..3`
   are the equip class mask, bytes `4..5` are damage/accuracy, and byte `6` is
   the battle cast skill id.

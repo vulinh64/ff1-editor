@@ -1,5 +1,8 @@
 package com.ff1.editor.service.patcher.bytecode;
 
+import static com.ff1.editor.utils.BytePatternSearch.count;
+import static com.ff1.editor.utils.BytePatternSearch.indexOf;
+
 import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
@@ -10,7 +13,6 @@ import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.ConstantInstruction;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * and water-like terrain checks.
  */
 @Slf4j
+@SuppressWarnings("DuplicatedCode")
 public final class AirshipLandingClassPatcher {
 
   public static final String ENTRY_NAME = FifteenSpellChargeRecoveryClassPatcher.ENTRY_NAME;
@@ -262,28 +265,5 @@ public final class AirshipLandingClassPatcher {
         recentInstructions.removeFirst();
       }
     }
-  }
-
-  private static int count(byte[] data, byte[] pattern) {
-    int matches = 0;
-    int offset = 0;
-    while ((offset = indexOf(data, pattern, offset)) >= 0) {
-      matches++;
-      offset += pattern.length;
-    }
-    return matches;
-  }
-
-  private static int indexOf(byte[] data, byte[] pattern, int start) {
-    if (pattern.length == 0 || data.length < pattern.length) {
-      return -1;
-    }
-    int max = data.length - pattern.length;
-    for (int i = Math.max(0, start); i <= max; i++) {
-      if (Arrays.equals(data, i, i + pattern.length, pattern, 0, pattern.length)) {
-        return i;
-      }
-    }
-    return -1;
   }
 }

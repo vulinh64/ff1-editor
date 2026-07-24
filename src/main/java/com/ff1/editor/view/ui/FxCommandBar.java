@@ -35,6 +35,7 @@ import com.ff1.editor.service.patcher.bytecode.LegendaryWeaponCriticalClassPatch
 import com.ff1.editor.service.patcher.bytecode.PartyActionOrderClassPatcher;
 import com.ff1.editor.service.patcher.bytecode.UniversalSpellChargeClassPatcher;
 import com.ff1.editor.service.patcher.bytecode.WeaponAffinityDamageClassPatcher;
+import com.ff1.editor.service.patcher.bytecode.WorldMapMusicClassPatcher;
 import com.ff1.editor.service.patcher.data.FifteenSpellChargeGrowthPatcher;
 import com.ff1.editor.service.patcher.data.HeroClassStatsPatcher;
 import com.ff1.editor.service.patcher.data.ItemEquipmentPatcher;
@@ -96,6 +97,7 @@ public final class FxCommandBar extends VBox {
       new CheckBox("Masamune and Excalibur always crit");
   private final CheckBox cottageRevive = new CheckBox("Cottage revives KO");
   private final CheckBox airshipLanding = new CheckBox("Airship lands on safe terrain");
+  private final CheckBox worldMapMusic = new CheckBox("World map keeps music playing");
   private final Button build = new Button(BUILD_PATCHED_JAR_LABEL);
 
   public FxCommandBar(Stage owner, FxEditorState state) {
@@ -130,6 +132,7 @@ public final class FxCommandBar extends VBox {
         .bindBidirectional(state.legendaryWeaponCriticalProperty());
     cottageRevive.selectedProperty().bindBidirectional(state.cottageReviveProperty());
     airshipLanding.selectedProperty().bindBidirectional(state.airshipLandingProperty());
+    worldMapMusic.selectedProperty().bindBidirectional(state.worldMapMusicProperty());
     forceStrongLevelUps.setDisable(true);
     universalSpellChargeGrowth.setDisable(true);
     fifteenSpellCharges.setDisable(true);
@@ -143,6 +146,7 @@ public final class FxCommandBar extends VBox {
     legendaryWeaponCritical.setDisable(true);
     cottageRevive.setDisable(true);
     airshipLanding.setDisable(true);
+    worldMapMusic.setDisable(true);
     build.setOnAction(_ -> showPatchOptionsDialog());
 
     HBox.setHgrow(inputJar, Priority.ALWAYS);
@@ -190,7 +194,7 @@ public final class FxCommandBar extends VBox {
           state.workspace(workspace);
           updateGlobalPatchControls(workspace);
           state.status(
-              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Hero magic resistance: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Weapon affinity damage: %s. Legendary weapon critical: %s. Cottage revive: %s. Airship landing: %s."
+              "Loaded %s into %s. Heroes are ready for inspection. Strong level-ups: %s. Universal charges: %s. 15 charges: %s. INT damage: %s. INT healing: %s. Hero magic resistance: %s. Run patch: %s. Action order: %s. Enemy crit defense: %s. Weapon affinity damage: %s. Legendary weapon critical: %s. Cottage revive: %s. Airship landing: %s. World map music: %s."
                   .formatted(
                       workspace.inputJar().getFileName(),
                       workspace.workDir(),
@@ -206,7 +210,8 @@ public final class FxCommandBar extends VBox {
                       FxCommandBarHelper.patchStateLabel(workspace.weaponAffinityDamageState()),
                       FxCommandBarHelper.patchStateLabel(workspace.legendaryWeaponCriticalState()),
                       FxCommandBarHelper.patchStateLabel(workspace.cottageReviveState()),
-                      FxCommandBarHelper.patchStateLabel(workspace.airshipLandingState())));
+                      FxCommandBarHelper.patchStateLabel(workspace.airshipLandingState()),
+                      FxCommandBarHelper.patchStateLabel(workspace.worldMapMusicState())));
           load.disableProperty().unbind();
           load.setDisable(false);
         });
@@ -238,6 +243,7 @@ public final class FxCommandBar extends VBox {
       state.legendaryWeaponCritical(false);
       state.cottageRevive(false);
       state.airshipLanding(false);
+      state.worldMapMusic(false);
       forceStrongLevelUps.setDisable(true);
       universalSpellChargeGrowth.setDisable(true);
       fifteenSpellCharges.setDisable(true);
@@ -251,6 +257,7 @@ public final class FxCommandBar extends VBox {
       legendaryWeaponCritical.setDisable(true);
       cottageRevive.setDisable(true);
       airshipLanding.setDisable(true);
+      worldMapMusic.setDisable(true);
       return;
     }
     switch (workspace.strongLevelUpsState()) {
@@ -435,6 +442,20 @@ public final class FxCommandBar extends VBox {
         airshipLanding.setDisable(true);
       }
     }
+    switch (workspace.worldMapMusicState()) {
+      case PATCHED -> {
+        state.worldMapMusic(true);
+        worldMapMusic.setDisable(true);
+      }
+      case ORIGINAL -> {
+        state.worldMapMusic(false);
+        worldMapMusic.setDisable(false);
+      }
+      case UNKNOWN -> {
+        state.worldMapMusic(false);
+        worldMapMusic.setDisable(true);
+      }
+    }
   }
 
   private void showPatchOptionsDialog() {
@@ -492,6 +513,8 @@ public final class FxCommandBar extends VBox {
         FxCommandBarHelper.dialogCheckBox(cottageRevive, workspace.cottageReviveState());
     CheckBox airshipLandingOption =
         FxCommandBarHelper.dialogCheckBox(airshipLanding, workspace.airshipLandingState());
+    CheckBox worldMapMusicOption =
+        FxCommandBarHelper.dialogCheckBox(worldMapMusic, workspace.worldMapMusicState());
     VBox options =
         new VBox(
             8,
@@ -507,6 +530,7 @@ public final class FxCommandBar extends VBox {
             FxCommandBarHelper.optionRow(weaponAffinityDamageOption),
             FxCommandBarHelper.optionRow(cottageReviveOption),
             FxCommandBarHelper.optionRow(airshipLandingOption),
+            FxCommandBarHelper.optionRow(worldMapMusicOption),
             new Separator(),
             new Label("Toggleable patches:"),
             FxCommandBarHelper.optionRow(legendaryWeaponCriticalOption));
@@ -567,6 +591,9 @@ public final class FxCommandBar extends VBox {
                     || FxCommandBarHelper.selectedOriginal(
                             airshipLandingOption, workspace.airshipLandingState())
                         > 0
+                    || FxCommandBarHelper.selectedOriginal(
+                            worldMapMusicOption, workspace.worldMapMusicState())
+                        > 0
                     || FxCommandBarHelper.changedToggle(
                             legendaryWeaponCriticalOption, workspace.legendaryWeaponCriticalState())
                         > 0,
@@ -582,6 +609,7 @@ public final class FxCommandBar extends VBox {
             weaponAffinityDamageOption.selectedProperty(),
             cottageReviveOption.selectedProperty(),
             airshipLandingOption.selectedProperty(),
+            worldMapMusicOption.selectedProperty(),
             legendaryWeaponCriticalOption.selectedProperty());
     okButton.disableProperty().bind(hasBuildSelection.not());
 
@@ -603,6 +631,7 @@ public final class FxCommandBar extends VBox {
     state.legendaryWeaponCritical(legendaryWeaponCriticalOption.isSelected());
     state.cottageRevive(cottageReviveOption.isSelected());
     state.airshipLanding(airshipLandingOption.isSelected());
+    state.worldMapMusic(worldMapMusicOption.isSelected());
     buildPatch();
   }
 
@@ -660,6 +689,8 @@ public final class FxCommandBar extends VBox {
         state.cottageRevive() && workspace.cottageReviveState() == PatchState.ORIGINAL;
     boolean airshipLandingPatch =
         state.airshipLanding() && workspace.airshipLandingState() == PatchState.ORIGINAL;
+    boolean worldMapMusicPatch =
+        state.worldMapMusic() && workspace.worldMapMusicState() == PatchState.ORIGINAL;
     if (heroEdits.isEmpty()
         && magicEdits.isEmpty()
         && equipmentPermissionEdits.isEmpty()
@@ -685,7 +716,8 @@ public final class FxCommandBar extends VBox {
         && !legendaryWeaponCriticalPatch
         && !legendaryWeaponCriticalUnpatch
         && !cottageRevivePatch
-        && !airshipLandingPatch) {
+        && !airshipLandingPatch
+        && !worldMapMusicPatch) {
       state.status("No patch edits selected.");
       return;
     }
@@ -823,7 +855,10 @@ public final class FxCommandBar extends VBox {
               }
               replacements.put(HeroLevelGrowthClassPatcher.ENTRY_NAME, gClass);
             }
-            if (fifteenChargesPatch || cottageRevivePatch || airshipLandingPatch) {
+            if (fifteenChargesPatch
+                || cottageRevivePatch
+                || airshipLandingPatch
+                || worldMapMusicPatch) {
               byte[] iClass =
                   Files.readAllBytes(
                       workspace
@@ -837,6 +872,9 @@ public final class FxCommandBar extends VBox {
               }
               if (airshipLandingPatch) {
                 iClass = AirshipLandingClassPatcher.apply(iClass);
+              }
+              if (worldMapMusicPatch) {
+                iClass = WorldMapMusicClassPatcher.apply(iClass);
               }
               replacements.put(FifteenSpellChargeRecoveryClassPatcher.ENTRY_NAME, iClass);
             }
@@ -856,7 +894,7 @@ public final class FxCommandBar extends VBox {
         %d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), \
         %d monster stat edit(s), %d shop inventory edit(s), %d inn price edit(s), \
         %d music replacement(s)\
-        %s%s%s%s%s%s%s%s%s%s%s%s%s...\
+        %s%s%s%s%s%s%s%s%s%s%s%s%s%s...\
         """)
             .formatted(
                 heroEdits.size(),
@@ -895,7 +933,8 @@ public final class FxCommandBar extends VBox {
                         ? ", remove legendary weapon no-miss/critical"
                         : StringUtils.EMPTY,
                 cottageRevivePatch ? ", Cottage revive" : StringUtils.EMPTY,
-                airshipLandingPatch ? ", airship landing" : StringUtils.EMPTY));
+                airshipLandingPatch ? ", airship landing" : StringUtils.EMPTY,
+                worldMapMusicPatch ? ", world map keeps music playing" : StringUtils.EMPTY));
     task.setOnSucceeded(
         _ -> {
           BuildResult result = task.getValue();

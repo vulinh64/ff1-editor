@@ -1,39 +1,31 @@
 # Final Fantasy I Java ME - Game Mechanics
 
-*A player-facing deep dive into how the Namco Bandai Java ME port resolves
-growth, combat, magic, weapons, monsters, rewards, encounters, and optional
-editor improvements.*
+*A player-facing deep dive into how the Namco Bandai Java ME port resolves growth, combat, magic, weapons, monsters,
+rewards, encounters, and optional editor improvements.*
 
 ---
 
 ## 1. Introduction
 
-This guide explains the mechanics of the Namco Bandai Java ME release of
-*Final Fantasy*: how heroes grow, how attacks land, how magic is resolved, what
-weapon "effective against" text really means, and how monsters are built.
+This guide explains the mechanics of the Namco Bandai Java ME release of *Final Fantasy*: how heroes grow, how attacks
+land, how magic is resolved, what weapon "effective against" text really means, and how monsters are built.
 
-FF1 looks simple until the odd questions start piling up: why can a critical hit
-delete a heavily armored hero, why does INT feel strangely quiet in stock magic,
-why does Excalibur feel good against almost everything, and why does a battle
-with one Buccaneer award 120 Gil but only 15 EXP per living hero? This guide is
-for those questions.
+FF1 looks simple until the odd questions start piling up: why can a critical hit delete a heavily armored hero, why does
+INT feel strangely quiet in stock magic, why does Excalibur feel good against almost everything, and why does a battle
+with one Buccaneer award 120 Gil but only 15 EXP per living hero? This guide is for those questions.
 
 A few ground rules:
 
-- **This is a mechanics guide, not a file-format guide.** It describes what the
-  numbers mean in play, not where every byte lives in the game files.
-- **Evidence first.** Notes here come from local bytecode inspection, data
-  decoding, and in-game checks. When something is not fully confirmed, it is
-  described as a design idea or open area.
-- **Faithful port, modern eyes.** The Java ME game is broadly faithful to the
-  NES release's feel: swingy level-ups, class restrictions, charge-based magic,
-  weapon quirks, harsh encounters, and opaque monster traits. The editor can
-  preserve that, or offer optional improvements for players who want a smoother
-  remix.
+- **This is a mechanics guide, not a file-format guide.** It describes what the numbers mean in play, not where every
+  byte lives in the game files.
+- **Evidence first.** Notes here come from local bytecode inspection, data decoding, and in-game checks. When something
+  is not fully confirmed, it is described as a design idea or open area.
+- **Faithful port, modern eyes.** The Java ME game is broadly faithful to the NES release's feel: swingy level-ups,
+  class restrictions, charge-based magic, weapon quirks, harsh encounters, and opaque monster traits. The editor can
+  preserve that, or offer optional improvements for players who want a smoother remix.
 
-That last point matters. The editor should not quietly turn FF1 into a different
-game. The best improvements are opt-in, explainable, and shaped like answers to
-specific rough edges rather than blanket rewrites.
+That last point matters. The editor should not quietly turn FF1 into a different game. The best improvements are opt-in,
+explainable, and shaped like answers to specific rough edges rather than blanket rewrites.
 
 ---
 
@@ -50,8 +42,7 @@ The six base classes are:
 | White Mage | Healing, protection, and undead damage         |
 | Black Mage | Offensive and control magic                    |
 
-Class change does not give a new "starting stat" table. Upgraded classes inherit
-the live character's current stats:
+Class change does not give a new "starting stat" table. Upgraded classes inherit the live character's current stats:
 
 | Base class | Upgraded class |
 |------------|----------------|
@@ -70,17 +61,15 @@ The visible body stats are the familiar FF1 set:
 - **STA** - feeds HP growth.
 - **LCK** - improves escape odds and battle-start advantage odds.
 
-Starting HP has one important Java ME quirk: the normal game path reads the
-starting HP byte as signed. Values above 127 can display as negative HP. The
-editor therefore treats the ordinary starting HP field conservatively.
+Starting HP has one important Java ME quirk: the normal game path reads the starting HP byte as signed. Values above 127
+can display as negative HP. The editor therefore treats the ordinary starting HP field conservatively.
 
 ---
 
 ## 3. Level-Ups And Growth
 
-Leveling is class-group based. Upgraded classes use the same growth group as
-their base class, so Knight follows Warrior growth, Ninja follows Thief growth,
-and so on.
+Leveling is class-group based. Upgraded classes use the same growth group as their base class, so Knight follows Warrior
+growth, Ninja follows Thief growth, and so on.
 
 At each level-up, the game checks class growth data for:
 
@@ -92,14 +81,12 @@ At each level-up, the game checks class growth data for:
 - LCK
 - spell-charge growth for magic levels 1 through 8
 
-If a body-stat slot is marked for the level, the stat grows. If it is not marked,
-the game still rolls a 1-in-8 chance. This is the classic FF1 swinginess: two
-characters of the same class can land in slightly different places because
-their "maybe" gains did or did not fire.
+If a body-stat slot is marked for the level, the stat grows. If it is not marked, the game still rolls a 1-in-8 chance.
+This is the classic FF1 swinginess: two characters of the same class can land in slightly different places because their
+"maybe" gains did or did not fire.
 
-That is why level-ups can feel uneven in normal play. One Warrior might gain HP,
-STR, and STA on a level, while another level-up might only show the guaranteed
-HP trickle. The class plan is deterministic; the individual gains still have
+That is why level-ups can feel uneven in normal play. One Warrior might gain HP, STR, and STA on a level, while another
+level-up might only show the guaranteed HP trickle. The class plan is deterministic; the individual gains still have
 some dice in them.
 
 HP has two parts:
@@ -125,10 +112,9 @@ All arithmetic uses Java integer behavior, so division truncates.
 
 ### Optional improvement: strong level-ups
 
-The editor can make every HP/stat growth check succeed. This keeps the same
-growth table and level curve, but removes the unlucky "I gained almost nothing"
-level-up rolls. It is a stronger and less swingy version of the same system, not
-a new progression model.
+The editor can make every HP/stat growth check succeed. This keeps the same growth table and level curve, but removes
+the unlucky "I gained almost nothing"
+level-up rolls. It is a stronger and less swingy version of the same system, not a new progression model.
 
 ---
 
@@ -136,13 +122,11 @@ a new progression model.
 
 Learning a spell and having charges to cast it are separate systems.
 
-A class must have permission for a spell before it can learn that spell. Red
-Mage and Red Wizard are separate permission identities, so upgraded permissions
-are not automatically inherited just because the names sound related.
+A class must have permission for a spell before it can learn that spell. Red Mage and Red Wizard are separate permission
+identities, so upgraded permissions are not automatically inherited just because the names sound related.
 
-Spell charges are stored by spell level, from level 1 to level 8. Stock charges
-cap at 9. Mage-style classes begin with level-1 charges, while Warrior, Thief,
-and Monk begin with none.
+Spell charges are stored by spell level, from level 1 to level 8. Stock charges cap at 9. Mage-style classes begin with
+level-1 charges, while Warrior, Thief, and Monk begin with none.
 
 Stock charge growth has a class gate:
 
@@ -151,24 +135,23 @@ base Warrior, Thief, Monk: no spell-charge growth
 mage classes and upgraded classes: can gain charges from growth data
 ```
 
-This means a non-caster can be given spell permissions but still be unable to
-cast unless charges are also provided somehow.
+This means a non-caster can be given spell permissions but still be unable to cast unless charges are also provided
+somehow.
 
-Modder trap: giving Warrior access to Flare does not by itself make Warrior able
-to cast Flare. The character still needs charges for that spell level.
+Modder trap: giving Warrior access to Flare does not by itself make Warrior able to cast Flare. The character still
+needs charges for that spell level.
 
 ### Optional improvements: universal charges and 15 max charges
 
 The editor has two charge-oriented improvements:
 
-- **Universal spell-charge growth** lets every class gain spell charges while
-  leveling, while still requiring spell permissions before spells matter.
-- **15 max spell charges** raises the per-level charge cap from 9 to 15 and
-  adjusts recovery so inns and cottages can refill the larger pool.
+- **Universal spell-charge growth** lets every class gain spell charges while leveling, while still requiring spell
+  permissions before spells matter.
+- **15 max spell charges** raises the per-level charge cap from 9 to 15 and adjusts recovery so inns and cottages can
+  refill the larger pool.
 
-These patches are intentionally separate from Magic Permissions. One controls who
-may learn spells; the other controls whether the character has fuel to cast
-them.
+These patches are intentionally separate from Magic Permissions. One controls who may learn spells; the other controls
+whether the character has fuel to cast them.
 
 ---
 
@@ -176,9 +159,8 @@ them.
 
 A hero's physical attack is built from class/stat/equipment state:
 
-Four levers matter separately: attack controls the damage roll, hit rate
-controls whether swings connect, hit count controls how many swings are tried,
-and the weapon index controls the critical threshold. Raising one lever does not
+Four levers matter separately: attack controls the damage roll, hit rate controls whether swings connect, hit count
+controls how many swings are tried, and the weapon index controls the critical threshold. Raising one lever does not
 automatically raise all the others.
 
 ```text
@@ -206,23 +188,20 @@ Hit count is derived from hit rate:
 hit count = hit rate / 32 + 1
 ```
 
-Each hit attempt rolls against a 0..200 range. If the roll is too high, the hit
-misses. If it lands, the same roll is also compared against the critical
-threshold.
+Each hit attempt rolls against a 0..200 range. If the roll is too high, the hit misses. If it lands, the same roll is
+also compared against the critical threshold.
 
 ### Weapon criticals
 
-This port preserves the classic FF1 weapon-index critical behavior. A weapon's
-critical threshold is based on its internal weapon index, not a separate visible
+This port preserves the classic FF1 weapon-index critical behavior. A weapon's critical threshold is based on its
+internal weapon index, not a separate visible
 "crit" stat.
 
 Practically:
 
-- later weapons tend to have better critical thresholds because their weapon
-  indices are higher;
+- later weapons tend to have better critical thresholds because their weapon indices are higher;
 - Masamune is extremely strong here, using the highest weapon index;
-- if the critical threshold is higher than the current hit threshold, it is
-  clipped by the hit threshold.
+- if the critical threshold is higher than the current hit threshold, it is clipped by the hit threshold.
 
 ### Damage and critical damage
 
@@ -239,20 +218,20 @@ If the hit is critical, stock damage adds the raw pre-defense attack roll:
 critical damage = normal damage + attack roll
 ```
 
-That is why critical hits can punch through high defense. Defense reduces the
-normal damage term, but the critical bonus itself uses the raw attack roll.
+That is why critical hits can punch through high defense. Defense reduces the normal damage term, but the critical bonus
+itself uses the raw attack roll.
 
 ### Optional improvement: enemy crits respect party defense
 
-The editor can change only enemy critical hits against the party so the critical
-bonus doubles the already defense-reduced damage instead:
+The editor can change only enemy critical hits against the party so the critical bonus doubles the already
+defense-reduced damage instead:
 
 ```text
 enemy critical damage to party = normal damage + normal damage
 ```
 
-Party critical hits against enemies stay stock. This keeps player crits exciting
-while making enemy crit spikes less armor-piercing.
+Party critical hits against enemies stay stock. This keeps player crits exciting while making enemy crit spikes less
+armor-piercing.
 
 ---
 
@@ -279,20 +258,18 @@ if weapon matches monster weakness or archetype:
     hit chance += 40
 ```
 
-Multiple matches do not stack. Excalibur can match many things, but it still
-gets one effectiveness bonus, not eight.
+Multiple matches do not stack. Excalibur can match many things, but it still gets one effectiveness bonus, not eight.
 
-This is also not a spell formula. A Flame Sword hit does not become a Fire spell;
-it remains a physical attack with a flat effectiveness boost.
+This is also not a spell formula. A Flame Sword hit does not become a Fire spell; it remains a physical attack with a
+flat effectiveness boost.
 
-Worked example: if Flame Sword hits a Fire-weak monster, the game adds the flat
-weapon effectiveness bonus. If the same monster is also Undead, the bonus does
-not apply twice. It is a yes/no bonus, not a per-tag multiplier.
+Worked example: if Flame Sword hits a Fire-weak monster, the game adds the flat weapon effectiveness bonus. If the same
+monster is also Undead, the bonus does not apply twice. It is a yes/no bonus, not a per-tag multiplier.
 
 ### Optional improvement: weapon affinity damage bonus
 
-The editor can make matching weapon affinities more dramatic without turning
-them into spell damage. The optional patch changes the match bonus to:
+The editor can make matching weapon affinities more dramatic without turning them into spell damage. The optional patch
+changes the match bonus to:
 
 ```text
 if weapon matches monster weakness or archetype:
@@ -300,39 +277,33 @@ if weapon matches monster weakness or archetype:
     hit chance = 255
 ```
 
-This bonus is added before defense, random damage rolls, and critical handling.
-The game uses integer division here: Excalibur has `45` weapon damage, so an
-affinity match adds `22` attack. The yes/no rule still applies: one match and
+This bonus is added before defense, random damage rolls, and critical handling. The game uses integer division here:
+Excalibur has `45` weapon damage, so an affinity match adds `22` attack. The yes/no rule still applies: one match and
 five matches both grant the same single half-weapon bonus.
 
 ### Experimental toggle: legendary weapons no-miss/all-crit
 
-For fast testing and damage data collection, the editor also has a reversible
-toggle that affects only Excalibur and Masamune. When enabled, those two weapons
-force hit chance to `255` and critical threshold to `200`.
+For fast testing and damage data collection, the editor also has a reversible toggle that affects only Excalibur and
+Masamune. When enabled, those two weapons force hit chance to `255` and critical threshold to `200`.
 
-The physical hit roll is `0..200`, so this makes those weapons no-miss and makes
-every resulting hit critical. This is intentionally an experiment toggle, not a
-faithful balance fix. If the weapon affinity patch already raised Excalibur's
-hit chance to `255` on an affinity match, this toggle's hit-chance assignment
-does not further change that swing; it still forces the critical threshold.
+The physical hit roll is `0..200`, so this makes those weapons no-miss and makes every resulting hit critical. This is
+intentionally an experiment toggle, not a faithful balance fix. If the weapon affinity patch already raised Excalibur's
+hit chance to `255` on an affinity match, this toggle's hit-chance assignment does not further change that swing; it
+still forces the critical threshold.
 
 ---
 
 ## 7. Magic And Skill Effects
 
-The Java ME port uses a shared spell/effect helper for learned magic,
-equipment-cast spells, and some item effects.
+The Java ME port uses a shared spell/effect helper for learned magic, equipment-cast spells, and some item effects.
 
-The important stock finding: **normal spell output does not read the caster's
-INT.** Intelligence exists, but stock damage and healing formulas use spell data,
-target defenses, target resistances, status, HP, and RNG.
+The important stock finding: **normal spell output does not read the caster's INT.** Intelligence exists, but stock
+damage and healing formulas use spell data, target defenses, target resistances, status, HP, and RNG.
 
 ### Damage spells
 
-Damage spells are mostly "spell power plus randomness," then adjusted by the
-target's weakness or resistance. They are not normally powered by the caster's
-INT.
+Damage spells are mostly "spell power plus randomness," then adjusted by the target's weakness or resistance. They are
+not normally powered by the caster's INT.
 
 For normal damage spells, the confirmed broad shape is:
 
@@ -347,10 +318,9 @@ if hit check succeeds strongly: damage *= 2
 damage caps at 9999
 ```
 
-Because weakness and resistance are separate bitmasks, stock bytecode allows
-both to be set at the same time. If that happens, both checks run. The editor
-prevents this overlap because "weak and resistant to Fire" is mechanically
-possible but conceptually ugly.
+Because weakness and resistance are separate bitmasks, stock bytecode allows both to be set at the same time. If that
+happens, both checks run. The editor prevents this overlap because "weak and resistant to Fire" is mechanically possible
+but conceptually ugly.
 
 ### Status and other chance effects
 
@@ -367,38 +337,34 @@ matching weakness: +40 chance
 matching resistance: -148 chance
 ```
 
-So resistance is extremely powerful for status prevention. When both weakness
-and resistance are set in stock data, resistance usually dominates.
+So resistance is extremely powerful for status prevention. When both weakness and resistance are set in stock data,
+resistance usually dominates.
 
 ### Armor resistance
 
 Each equipped armor piece contributes two different things:
 
-- `Absorb` is normal physical defense and is summed across body, shield, helm,
-  and gloves.
+- `Absorb` is normal physical defense and is summed across body, shield, helm, and gloves.
 - `Resistance` is a bitmask and is ORed across those four slots.
 
-Duplicate resistance does not stack. Wearing two pieces with `0x40` still gives
-one thunder resistance flag, but both pieces still add their absorb to physical
-defense.
+Duplicate resistance does not stack. Wearing two pieces with `0x40` still gives one thunder resistance flag, but both
+pieces still add their absorb to physical defense.
 
 Confirmed armor resistance examples:
 
-| Equipment | Resistance result |
-|-----------|-------------------|
-| Flame Mail or Flame Shield | `0x20`, resists ice |
-| Ice Armor or Ice Shield | `0x10`, resists fire |
-| Diamond Armor or Diamond Shield | `0x40`, resists thunder |
-| Dragon Mail | `0x70`, resists fire, ice, and thunder |
-| Ribbon | `0xff`, resists every current mask bit |
-| Protect Ring | `0x08`, resists instant death |
+| Equipment                       | Resistance result                      |
+|---------------------------------|----------------------------------------|
+| Flame Mail or Flame Shield      | `0x20`, resists ice                    |
+| Ice Armor or Ice Shield         | `0x10`, resists fire                   |
+| Diamond Armor or Diamond Shield | `0x40`, resists thunder                |
+| Dragon Mail                     | `0x70`, resists fire, ice, and thunder |
+| Ribbon                          | `0xff`, resists every current mask bit |
+| Protect Ring                    | `0x08`, resists instant death          |
 
-For spell damage, a matching armor resistance bit halves the base damage before
-randomness and possible doubling. For normal status chances, matching resistance
-subtracts `148` from the chance. For conditional statuses such as Kill, matching
-resistance makes the effect fail. Enemy physical attacks with on-hit status also
-consult this same armor resistance mask, so matching gear can block attached
-statuses such as poison-style effects.
+For spell damage, a matching armor resistance bit halves the base damage before randomness and possible doubling. For
+normal status chances, matching resistance subtracts `148` from the chance. For conditional statuses such as Kill,
+matching resistance makes the effect fail. Enemy physical attacks with on-hit status also consult this same armor
+resistance mask, so matching gear can block attached statuses such as poison-style effects.
 
 ### Healing
 
@@ -427,8 +393,7 @@ There is also a separate healing patch for Cure-like and Heal-like restoration:
 healing = healing + healing * INT / 200
 ```
 
-These are optional because the stock port is faithful to the older design where
-INT is not a universal spell-power stat.
+These are optional because the stock port is faithful to the older design where INT is not a universal spell-power stat.
 
 ---
 
@@ -447,19 +412,17 @@ Monsters have normal combat stats:
 
 They also have three hidden tag systems:
 
-- **Archetypes** - hidden monster tags for family or trait, such as Dragon,
-  Undead, Werebeast, Aquatic, Mage, or Regenerative.
-- **Weaknesses** - elements/status groups that improve incoming spell effects
-  and can trigger some weapon effectiveness.
+- **Archetypes** - hidden monster tags for family or trait, such as Dragon, Undead, Werebeast, Aquatic, Mage, or
+  Regenerative.
+- **Weaknesses** - elements/status groups that improve incoming spell effects and can trigger some weapon effectiveness.
 - **Resistances** - elements/status groups that reduce incoming spell effects.
 
-The editor caps Archetypes to three selections per monster. This is a design
-safety rule, not a stock engine rule. It keeps monsters readable: a Werewolf can
-be Magical, Werebeast, and Regenerative without turning into every monster type
+The editor caps Archetypes to three selections per monster. This is a design safety rule, not a stock engine rule. It
+keeps monsters readable: a Werewolf can be Magical, Werebeast, and Regenerative without turning into every monster type
 at once.
 
-Weaknesses and Resistances have no count limit, but the editor prevents the same
-element from appearing in both. Chaos is the clean extreme example:
+Weaknesses and Resistances have no count limit, but the editor prevents the same element from appearing in both. Chaos
+is the clean extreme example:
 
 ```text
 Weaknesses: none
@@ -468,8 +431,7 @@ Resistances: everything
 
 ### Regeneration
 
-The Regenerative archetype has confirmed battle behavior. At end-of-round HP
-tick time, regenerative monsters recover:
+The Regenerative archetype has confirmed battle behavior. At end-of-round HP tick time, regenerative monsters recover:
 
 ```text
 max HP / 20
@@ -479,8 +441,8 @@ That is a 5% max-HP regeneration tick.
 
 ### Rewards
 
-Monster EXP is the monster's total EXP award, then divided among living party
-members. Gil is awarded as the full battle total.
+Monster EXP is the monster's total EXP award, then divided among living party members. Gil is awarded as the full battle
+total.
 
 Confirmed examples:
 
@@ -490,16 +452,15 @@ Confirmed examples:
 | Buccaneer   |         60 |        120 | One gives 120 Gil and 15 EXP per living hero                          |
 | Crazy Horse |         63 |         15 | One gives 15 Gil and 15 EXP per living hero                           |
 
-The Buccaneer row is the easiest way to remember the reward split: Gil is the
-monster's full value, but EXP is shared across living party members.
+The Buccaneer row is the easiest way to remember the reward split: Gil is the monster's full value, but EXP is shared
+across living party members.
 
 ---
 
 ## 9. Battle Flow And Turn Order
 
-Stock turn order starts each turn by shuffling all party and enemy slots
-together. Empty or dead slots can still exist in the queue, but action
-dispatching decides whether they actually do anything.
+Stock turn order starts each turn by shuffling all party and enemy slots together. Empty or dead slots can still exist
+in the queue, but action dispatching decides whether they actually do anything.
 
 Preemptive and ambush states do not build special queues. Instead:
 
@@ -515,24 +476,22 @@ The editor can change normal battle order to make party commands resolve first:
 Magic -> Item -> Attack -> Run/other -> enemies
 ```
 
-Party slot order is preserved inside each command group. Enemy slots still act
-afterward in randomized enemy order. Ambush first turns keep the stock enemy
-advantage behavior.
+Party slot order is preserved inside each command group. Enemy slots still act afterward in randomized enemy order.
+Ambush first turns keep the stock enemy advantage behavior.
 
-Example: in stock combat, a Black Mage's Fire spell, a Warrior's attack, and an
-enemy attack are all mixed into the same shuffled turn queue. With the party
-action-order patch, party magic resolves before party items, then party attacks,
+Example: in stock combat, a Black Mage's Fire spell, a Warrior's attack, and an enemy attack are all mixed into the same
+shuffled turn queue. With the party action-order patch, party magic resolves before party items, then party attacks,
 then enemies. It is still FF1 command combat, but less chaotic.
 
-This is one of the most "modern feel" patches: it reduces chaotic turn-order
-swings without rewriting combat into a different game.
+This is one of the most "modern feel" patches: it reduces chaotic turn-order swings without rewriting combat into a
+different game.
 
 ---
 
 ## 10. Running, Recovery, And Field Movement
 
-Run checks have a boss/no-run gate. If the encounter is marked no-run, escape is
-blocked. Normal encounters use the stock escape helper unless patched.
+Run checks have a boss/no-run gate. If the encounter is marked no-run, escape is blocked. Normal encounters use the
+stock escape helper unless patched.
 
 For normal encounters, escape compares a party-side roll against enemy pressure:
 
@@ -541,9 +500,8 @@ escape stat = runner AGL + runner LCK + runner INT
 success = random(escape stat) > random(average enemy escape pressure)
 ```
 
-Luck also contributes to the battle-start advantage roll. The leader's AGL and
-LCK are combined before the game decides whether the party gets a preemptive
-turn or is ambushed:
+Luck also contributes to the battle-start advantage roll. The leader's AGL and LCK are combined before the game decides
+whether the party gets a preemptive turn or is ambushed:
 
 ```text
 advantage base = (leader AGL + leader LCK) / 8
@@ -551,67 +509,58 @@ advantage base = (leader AGL + leader LCK) / 8
 
 Boss/no-run encounters skip this preemptive/ambush setup entirely.
 
-Enemies can flee too, but they use a different system. Each monster has a hidden
-morale value. When that enemy picks an action, the game compares morale against
-the party leader's level:
+Enemies can flee too, but they use a different system. Each monster has a hidden morale value. When that enemy picks an
+action, the game compares morale against the party leader's level:
 
 ```text
 enemy flee chance = clamp(80 - morale + leader level * 2, 0, 50) / 50
 ```
 
-Higher leader level makes ordinary enemies more likely to flee. Lower morale
-does the same. A morale value of `255` means the enemy will not auto-flee from
-this check, and boss/no-run encounters disable enemy fleeing entirely.
+Higher leader level makes ordinary enemies more likely to flee. Lower morale does the same. A morale value of `255`
+means the enemy will not auto-flee from this check, and boss/no-run encounters disable enemy fleeing entirely.
 
-Fear-style effects work by lowering that morale value. They do not instantly
-delete the monster; they make the next action decision much more likely to be
-"run away." If morale reaches `0`, the enemy will flee on its next allowed
-action decision in a normal run-enabled encounter.
+Fear-style effects work by lowering that morale value. They do not instantly delete the monster; they make the next
+action decision much more likely to be
+"run away." If morale reaches `0`, the enemy will flee on its next allowed action decision in a normal run-enabled
+encounter.
 
 ### Optional improvement: always successful run
 
-The editor can make normal escape attempts always succeed while preserving the
-boss/no-run gate. This is a convenience patch, not a balance-neutral one: it
-makes random encounters easier to disengage from.
+The editor can make normal escape attempts always succeed while preserving the boss/no-run gate. This is a convenience
+patch, not a balance-neutral one: it makes random encounters easier to disengage from.
 
 ### Inns, tents, cottages, and spell charges
 
-Field recovery restores HP and spell charges. Stock recovery is built for the
-normal 9-charge cap.
+Field recovery restores HP and spell charges. Stock recovery is built for the normal 9-charge cap.
 
-Stock shelter recovery skips KO members. Cottage normally gives stronger
-recovery than lower shelters, but it still follows that KO skip in the unpatched
-game.
+Stock shelter recovery skips KO members. Cottage normally gives stronger recovery than lower shelters, but it still
+follows that KO skip in the unpatched game.
 
 ### Optional improvement: Cottage revives KO
 
-The editor can make Cottage revive KO party members before applying its normal
-full recovery. Sleeping Bag and Tent still skip KO members.
+The editor can make Cottage revive KO party members before applying its normal full recovery. Sleeping Bag and Tent
+still skip KO members.
 
 ### Random encounters
 
-The world map uses a rising encounter counter rather than a flat classic roll.
-The chance starts in a short grace period after an encounter, rises by movement
-steps, and caps at 15%.
+The world map uses a rising encounter counter rather than a flat classic roll. The chance starts in a short grace period
+after an encounter, rises by movement steps, and caps at 15%.
 
 Airship movement does not roll random encounters.
 
-The confirmed vehicle rate clamp applies to canoe/river travel. Ship travel
-uses different encounter zones, but no equivalent direct rate clamp has been
-found.
+The confirmed vehicle rate clamp applies to canoe/river travel. Ship travel uses different encounter zones, but no
+equivalent direct rate clamp has been found.
 
 ### Optional improvement: airship lands on safe terrain
 
-Stock airship landing accepts a narrow set of land terrain. The editor can
-expand this to additional safe land terrain while still rejecting water-like and
-blocked/special terrain.
+Stock airship landing accepts a narrow set of land terrain. The editor can expand this to additional safe land terrain
+while still rejecting water-like and blocked/special terrain.
 
 ---
 
 ## 11. Faithful Port, Sensible Improvements
 
-This Java ME release is remarkably faithful in spirit. It keeps several classic
-FF1 traits:
+This Java ME release is remarkably faithful in spirit. It keeps several classic FF1 traits:
 
 - random-feeling level-ups
 - class-specific spell permissions
@@ -625,8 +574,7 @@ FF1 traits:
 
 That faithfulness is valuable. The editor should not erase it by default.
 
-But optional improvements can make the game friendlier while respecting its
-shape:
+But optional improvements can make the game friendlier while respecting its shape:
 
 | Improvement                                | Why it helps                            | Why it still feels like FF1                       |
 |--------------------------------------------|-----------------------------------------|---------------------------------------------------|
@@ -643,8 +591,8 @@ shape:
 | Cottage revives KO                         | Makes the top shelter feel worth buying | Lower shelters stay weaker                        |
 | Expanded airship landing                   | Reduces traversal frustration           | Still rejects unsafe terrain                      |
 
-The guiding principle is simple: keep the old machine recognizable, but let
-players choose which rough edges to sand down.
+The guiding principle is simple: keep the old machine recognizable, but let players choose which rough edges to sand
+down.
 
 ---
 
@@ -669,13 +617,9 @@ The current confirmed guide is not complete. Good future deep-dive targets:
 
 - remaining monster record fields beyond the exposed combat stats and masks;
 - spell naming/text editing;
-- whether support spells such as Haste, Temper, Saber, and Dia-like spells
-  deserve their own optional INT scaling model;
-- whether TEMPER or SABER should gain an optional engine patch that grants
-  guaranteed critical hits, or a capped critical-threshold bonus, for landed
-  physical attacks, separate from the current legendary-weapon experiment
-  toggle;
+- whether support spells such as Haste, Temper, Saber, and Dia-like spells deserve their own optional INT scaling model;
+- whether TEMPER or SABER should gain an optional engine patch that grants guaranteed critical hits, or a capped
+  critical-threshold bonus, for landed physical attacks, separate from the current legendary-weapon experiment toggle;
 - a safe unsigned or wider starting-HP patch for values above 127.
 
-Until those are confirmed, the editor should keep the relevant fields read-only
-or conservatively labeled.
+Until those are confirmed, the editor should keep the relevant fields read-only or conservatively labeled.

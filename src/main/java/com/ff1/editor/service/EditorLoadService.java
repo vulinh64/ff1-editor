@@ -73,6 +73,7 @@ public final class EditorLoadService {
         PatchState.from(LegendaryWeaponCriticalClassPatcher.state(gClass));
     PatchState cottageReviveState = PatchState.from(CottageReviveClassPatcher.state(iClass));
     PatchState airshipLandingState = PatchState.from(AirshipLandingClassPatcher.state(iClass));
+    PatchState worldMapMusicState = PatchState.from(WorldMapMusicClassPatcher.state(iClass));
     return EditorWorkspace.builder()
         .inputJar(inputJar)
         .workDir(workDir)
@@ -91,6 +92,7 @@ public final class EditorLoadService {
         .legendaryWeaponCriticalState(legendaryWeaponCriticalState)
         .cottageReviveState(cottageReviveState)
         .airshipLandingState(airshipLandingState)
+        .worldMapMusicState(worldMapMusicState)
         .build();
   }
 

@@ -23,4 +23,5 @@ public record EditorWorkspace(
     PatchState weaponAffinityDamageState,
     PatchState legendaryWeaponCriticalState,
     PatchState cottageReviveState,
-    PatchState airshipLandingState) {}
+    PatchState airshipLandingState,
+    PatchState worldMapMusicState) {}

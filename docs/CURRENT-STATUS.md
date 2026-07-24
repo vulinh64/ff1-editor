@@ -159,6 +159,15 @@ This is the quick landing page for the FF1 J2ME editor project.
   - changes the world-map airship landing check from stock `0` and `10..14` to
     `0` and `10..33`;
   - rejects water-like low ids and higher blocked/special terrain bytes.
+- World map keeps music playing:
+  - bytecode patch in `i.class`;
+  - removes only the stock `j.e(0)` BGM stop call from the mobile `0` world-map
+    overlay entry path;
+  - lets the currently active field/world-map music continue while the map
+    overlay is open, including overworld, sea/ship or canoe, and airship music;
+  - composes with the airship landing patch because both patches edit different
+    parts of `i.class`.
+
 ## Confirmed Data Locations
 
 - Class names: `PACK0_1`, offsets documented in `HERO-CLASSES.md`.
@@ -265,6 +274,10 @@ This is the quick landing page for the FF1 J2ME editor project.
   share the spell-charge recovery amount.
 - Airship landing check: `i.class`, private method `L()`. Stock accepts terrain
   `0` and `10..14`; the optional patch accepts terrain `0` and `10..33`.
+- World-map overlay entry: `i.class`, state `14 -> 15 -> 16`. Stock calls
+  `j.e(0)` when mobile key `0` opens the overlay, stopping the active
+  field/world-map BGM slot. The optional world-map music patch nops only that
+  stop call, so overworld, sea/ship or canoe, and airship music can continue.
 - Armor resistance aggregation: `j.class`, method `g(hero)`, ORs byte `5` from
   body, shield, helm, and gloves. `g.class` spell/effect logic halves matching
   damage, heavily lowers matching status chance, and hard-blocks matching

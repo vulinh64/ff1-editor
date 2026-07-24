@@ -1,7 +1,6 @@
 # Skill And Effect Records
 
-This file tracks the current spell/effect investigation for the local Namco
-Bandai `Final Fantasy` J2ME jar.
+This file tracks the current spell/effect investigation for the local Namco Bandai `Final Fantasy` J2ME jar.
 
 ## Runtime Loader
 
@@ -14,44 +13,41 @@ Bandai `Final Fantasy` J2ME jar.
 
 The loader maps each source record to runtime fields as follows:
 
-| Source Bytes | Runtime Field | Current Label |
-|-------------:|---------------|---------------|
-|          0-1 | `j.a[id][10]` | price/cost |
-|            2 | `j.a[id][0]`  | raw field 0 |
+| Source Bytes | Runtime Field | Current Label                |
+|-------------:|---------------|------------------------------|
+|          0-1 | `j.a[id][10]` | price/cost                   |
+|            2 | `j.a[id][0]`  | raw field 0                  |
 |            3 | `j.a[id][1]`  | effect id / targeting router |
-|            4 | `j.a[id][4]`  | effect kind |
-|            5 | `j.a[id][2]`  | power or status bits |
-|            6 | `j.a[id][8]`  | hit/accuracy modifier |
-|            7 | `j.a[id][5]`  | raw field 5 |
-|            8 | `j.a[id][6]`  | animation/resource id |
-|            9 | `j.a[id][7]`  | animation flags |
-|           10 | `j.a[id][3]`  | element/status mask |
-|        11-12 | `j.a[id][9]`  | class permission mask |
+|            4 | `j.a[id][4]`  | effect kind                  |
+|            5 | `j.a[id][2]`  | power or status bits         |
+|            6 | `j.a[id][8]`  | hit/accuracy modifier        |
+|            7 | `j.a[id][5]`  | raw field 5                  |
+|            8 | `j.a[id][6]`  | animation/resource id        |
+|            9 | `j.a[id][7]`  | animation flags              |
+|           10 | `j.a[id][3]`  | element/status mask          |
+|        11-12 | `j.a[id][9]`  | class permission mask        |
 
-The editor exposes these records in the `Skills` tab. Price, `power/status`,
-and `accuracy` are editable; partly confirmed fields keep conservative labels
-until the battle behavior is fully decoded.
+The editor exposes these records in the `Skills` tab. Price, `power/status`, and `accuracy` are editable; partly
+confirmed fields keep conservative labels until the battle behavior is fully decoded.
 
 ## Editable Fields
 
-The editable pass writes the shop price/cost field plus two one-byte effect
-fields:
+The editable pass writes the shop price/cost field plus two one-byte effect fields:
 
-| Source Bytes | Runtime Field | Editor Column | Range |
-|-------------:|---------------|---------------|------:|
+| Source Bytes | Runtime Field | Editor Column |    Range |
+|-------------:|---------------|---------------|---------:|
 |          0-1 | `j.a[id][10]` | Price         | 0..65535 |
-|            5 | `j.a[id][2]`  | Power/Status  | 0..255 |
-|            6 | `j.a[id][8]`  | Accuracy      | 0..255 |
+|            5 | `j.a[id][2]`  | Power/Status  |   0..255 |
+|            6 | `j.a[id][8]`  | Accuracy      |   0..255 |
 
 These fields are context-sensitive. For `Damage` and `Healing` kinds,
-`Power/Status` is a base amount. For status/recovery/protection kinds, it is
-usually a bit mask. `Accuracy` is used by hit checks and by a few non-damage
-kinds as a secondary value.
+`Power/Status` is a base amount. For status/recovery/protection kinds, it is usually a bit mask. `Accuracy` is used by
+hit checks and by a few non-damage kinds as a secondary value.
 
 ## Confirmed Invoker Routing
 
-Battle command selection in `g.class` confirms that both learned spells and
-equipment-cast spells route through `j.a[spellId][1]`:
+Battle command selection in `g.class` confirms that both learned spells and equipment-cast spells route through
+`j.a[spellId][1]`:
 
 ```text
 learned spell: g.j = j.a[learnedSpellId][1]
@@ -59,11 +55,10 @@ weapon use:    g.j = j.a[j.c[itemId - 7][5]][1]
 armor use:     g.j = j.a[j.d[itemId - 48][3]][1]
 ```
 
-The battle execution path then resolves item/equipment casts through the same
-effect helper as learned spells. For hero actions, command type `1` is learned
-magic and command type `2` is item/equipment use; both call
-`g.class`, private static `a(byte targetSide, int targetIndex, int spellId)`,
-while `g.C[g.Y]` still identifies the acting hero.
+The battle execution path then resolves item/equipment casts through the same effect helper as learned spells. For hero
+actions, command type `1` is learned magic and command type `2` is item/equipment use; both call
+`g.class`, private static `a(byte targetSide, int targetIndex, int spellId)`, while `g.C[g.Y]` still identifies the
+acting hero.
 
 Consumables in the same command path point at internal records:
 
@@ -75,137 +70,119 @@ Consumables in the same command path point at internal records:
 
 ## Battle Effect Behavior
 
-`g.class`, private static `a(byte targetSide, int targetIndex, int spellId)`,
-switches on `j.a[spellId][4]` to compute result values such as damage, healing,
-status success/failure, and sentinel values. Follow-up mutation is handled in
-the neighboring `a(byte,int,int)` helper and related battle animation states.
+`g.class`, private static `a(byte targetSide, int targetIndex, int spellId)`, switches on `j.a[spellId][4]` to compute
+result values such as damage, healing, status success/failure, and sentinel values. Follow-up mutation is handled in the
+neighboring `a(byte,int,int)` helper and related battle animation states.
 
-Stock bytecode inspection shows this helper reads spell metadata, target defense
-and resistance fields, target status, HP, and RNG, but does not read the acting
-hero's Intelligence. That means stock learned spells and stock item/equipment
+Stock bytecode inspection shows this helper reads spell metadata, target defense and resistance fields, target status,
+HP, and RNG, but does not read the acting hero's Intelligence. That means stock learned spells and stock item/equipment
 casts do not scale with INT.
 
-The optional `Damage-causing spells scale with INT` patch wraps this helper's
-integer returns.
-Because item/equipment casts use the same helper while `g.C[g.Y]` is still the
-active hero slot, positive enemy-target damage from player item/equipment casts
-is scaled by the acting hero's INT in the same way as learned spell damage.
-Party-target healing and non-damage/sentinel results remain unscaled.
+The optional `Damage-causing spells scale with INT` patch wraps this helper's integer returns. Because item/equipment
+casts use the same helper while `g.C[g.Y]` is still the active hero slot, positive enemy-target damage from player
+item/equipment casts is scaled by the acting hero's INT in the same way as learned spell damage. Party-target healing
+and non-damage/sentinel results remain unscaled.
 
-The optional `Healing spells scale with INT` patch separately wraps the same
-helper's integer returns. It scales only negative party-target effect kind `7`
+The optional `Healing spells scale with INT` patch separately wraps the same helper's integer returns. It scales only
+negative party-target effect kind `7`
 results, which are the Cure/Heal-style random HP restoration path:
 
 ```text
 heal = heal + heal * intelligence / 200
 ```
 
-At INT `99`, affected healing is roughly `149%` of the stock result. Curaja is
-exempt because it uses full-heal/death effect kind `15`. Life and Full-Life are
-also exempt because they use status recovery kind `8`; Life returns a revive
-amount of `-1`, while Full-Life can return negative max HP when its accuracy
-byte is `255`, and both are intentionally outside the Cure/Heal-style randomized
-healing path.
+At INT `99`, affected healing is roughly `149%` of the stock result. Curaja is exempt because it uses full-heal/death
+effect kind `15`. Life and Full-Life are also exempt because they use status recovery kind `8`; Life returns a revive
+amount of `-1`, while Full-Life can return negative max HP when its accuracy byte is `255`, and both are intentionally
+outside the Cure/Heal-style randomized healing path.
 
-Buffs such as Saber, Haste, and Temper are not documented as INT-scaled. Their
-success helper returns small success/sentinel values, then the neighboring
-mutation helper applies the real buff from the raw spell data fields such as
-`power/status` and `accuracy`. Haste raises the hit-count stage from spell data;
-the current INT patch does not turn high-INT Haste into triple attacks.
+Buffs such as Saber, Haste, and Temper are not documented as INT-scaled. Their success helper returns small
+success/sentinel values, then the neighboring mutation helper applies the real buff from the raw spell data fields such
+as
+`power/status` and `accuracy`. Haste raises the hit-count stage from spell data; the current INT patch does not turn
+high-INT Haste into triple attacks.
 
-The optional `INT+STA reduce enemy spell effects` patch also transforms the
-spell-effect helper, but in the opposite direction: when a monster casts against
-a hero, hero INT plus STA can reduce positive damage kind `1` results and reduce
-positive normal chance rolls for kinds `3`, `4`, `5`, and `17`. It deliberately
-does not touch player-cast effects, Cure/Heal-style restoration, buffs, Dia-like
-kind `2`, or hard-gated conditional status kind `18`.
+The optional `INT+STA reduce enemy spell effects` patch also transforms the spell-effect helper, but in the opposite
+direction: when a monster casts against a hero, hero INT plus STA can reduce positive damage kind `1` results and reduce
+positive normal chance rolls for kinds `3`, `4`, `5`, and `17`. It deliberately does not touch player-cast effects,
+Cure/Heal-style restoration, buffs, Dia-like kind `2`, or hard-gated conditional status kind `18`.
 
 ## Future INT Scaling Patch Ideas
 
 Keep future support/healing/holy utility scaling separate from the current
-`Damage-causing spells scale with INT` patch unless the behavior is deliberately
-renamed and broadened. Current design notes:
+`Damage-causing spells scale with INT` patch unless the behavior is deliberately renamed and broadened. Current design
+notes:
 
-- Haste: every 40 INT increases the attack-count increase by 1. For example,
-  high INT could make Haste grant one additional attack-count step beyond the
-  stock effect, but the exact cap and interaction with the existing hit-count
+- Haste: every 40 INT increases the attack-count increase by 1. For example, high INT could make Haste grant one
+  additional attack-count step beyond the stock effect, but the exact cap and interaction with the existing hit-count
   stage field still need implementation discovery.
 - Temper: every 10 INT increases the bonus damage by 1.
 - Saber: every 10 INT increases bonus damage by 1 and accuracy by 5.
 - Dia-like undead-damage spells should use a different scale than normal damage:
-  1% extra effect per INT, making White Mage more useful against undead while
-  preserving Dia as a niche holy/anti-undead line.
+  1% extra effect per INT, making White Mage more useful against undead while preserving Dia as a niche holy/anti-undead
+  line.
 
 ## Future Critical-Buff Patch Idea
 
-TEMPER and SABER cannot grant guaranteed critical hits through skill-record data
-alone. Stock TEMPER is effect kind `13` and adds `power/status` to the battle
-attack bonus; stock SABER is effect kind `11` and adds `power/status` to attack
-plus `accuracy` to hit rate. Critical hits are decided later by the physical
-attack helper from the equipped weapon index and hit roll.
+TEMPER and SABER cannot grant guaranteed critical hits through skill-record data alone. Stock TEMPER is effect kind `13`
+and adds `power/status` to the battle attack bonus; stock SABER is effect kind `11` and adds `power/status` to attack
+plus `accuracy` to hit rate. Critical hits are decided later by the physical attack helper from the equipped weapon
+index and hit roll.
 
-A future optional `g.class` patch could make either TEMPER or SABER also mark
-the target with a battle-only guaranteed-critical flag. The physical attack
-helper would then force the critical branch for landed player hits while that
-flag is active. Keep this separate from INT scaling and consider a capped
-critical-threshold bonus as a safer alternative, because guaranteed crits combine
-very strongly with Masamune, Haste, and high hit count.
+A future optional `g.class` patch could make either TEMPER or SABER also mark the target with a battle-only
+guaranteed-critical flag. The physical attack helper would then force the critical branch for landed player hits while
+that flag is active. Keep this separate from INT scaling and consider a capped critical-threshold bonus as a safer
+alternative, because guaranteed crits combine very strongly with Masamune, Haste, and high hit count.
 
 Known field uses from that helper:
 
 - `j.a[id][4]`: effect kind switch.
 - `j.a[id][2]`: damage/healing amount or status mask, depending on kind.
-- `j.a[id][3]`: element/status mask used against target weakness/resistance
-  style fields.
+- `j.a[id][3]`: element/status mask used against target weakness/resistance style fields.
 - `j.a[id][8]`: hit/accuracy modifier.
 
 ## Effect Kind Names
 
 Effect kind names are decoded from `g.class`, private static
-`a(byte,int,int)`, which computes success/result values, and the neighboring
-mutation helper with the same parameters. Names stay broad when one kind covers
-several status bits.
+`a(byte,int,int)`, which computes success/result values, and the neighboring mutation helper with the same parameters.
+Names stay broad when one kind covers several status bits.
 
-| Kind | Editor Label | Evidence |
-|-----:|--------------|----------|
-|    0 | None | returns zero; used by field/menu spells like Exit/Teleport. |
-|    1 | Damage | uses power, element mask, target defense/resistance, and random/double damage. |
-|    2 | Undead damage | same damage shape but gated by target field `g[target][18] & 0x08`; used by Dia line. |
-|    3 | Status inflict | applies `power/status` as a status bit on success. |
-|    4 | Sleep stage down | decrements target sleep/stun stage field. |
-|    5 | Fear/morale down | reduces monster flee morale field `8`; used by Fear-like behavior. |
-|    6 | Unused/no-op | returns zero and has no follow-up mutation. |
-|    7 | Healing | returns negative HP restoration using the power byte as the base. |
-|    8 | Status recovery | checks/applies status recovery bits; used by Blindna, Poisona, Life, Stona, Vox, Full-Life. |
-|    9 | Defense up | adds `power/status` to defense-like battle field. |
-|   10 | Resistance up | ORs `power/status` into resistance/status-protection field; Invis also sets a display/status bit. |
-|   11 | Attack/accuracy up | adds `power/status` to attack and `accuracy` to hit rate; used by Saber. |
-|   12 | Haste | raises a speed/hit-count stage field. |
-|   13 | Attack up | adds `power/status` to attack; used by Temper. |
-|   14 | Defense down | subtracts `power/status` from defense-like battle field; used by Focus/Focara. |
-|   15 | Full heal/death | returns full restoration or death-scale sentinel behavior; used by Curaja. |
-|   16 | Evasion up | adds `power/status` to evasion-like battle field; used by Blink, Silence, Invisira. |
-|   17 | Resistance clear | clears resistance/status-protection field; used by Dispel. |
-|   18 | Conditional status | status inflict with additional HP/status gates; used by Stun, Blind, Kill. |
+| Kind | Editor Label       | Evidence                                                                                          |
+|-----:|--------------------|---------------------------------------------------------------------------------------------------|
+|    0 | None               | returns zero; used by field/menu spells like Exit/Teleport.                                       |
+|    1 | Damage             | uses power, element mask, target defense/resistance, and random/double damage.                    |
+|    2 | Undead damage      | same damage shape but gated by target field `g[target][18] & 0x08`; used by Dia line.             |
+|    3 | Status inflict     | applies `power/status` as a status bit on success.                                                |
+|    4 | Sleep stage down   | decrements target sleep/stun stage field.                                                         |
+|    5 | Fear/morale down   | reduces monster flee morale field `8`; used by Fear-like behavior.                                |
+|    6 | Unused/no-op       | returns zero and has no follow-up mutation.                                                       |
+|    7 | Healing            | returns negative HP restoration using the power byte as the base.                                 |
+|    8 | Status recovery    | checks/applies status recovery bits; used by Blindna, Poisona, Life, Stona, Vox, Full-Life.       |
+|    9 | Defense up         | adds `power/status` to defense-like battle field.                                                 |
+|   10 | Resistance up      | ORs `power/status` into resistance/status-protection field; Invis also sets a display/status bit. |
+|   11 | Attack/accuracy up | adds `power/status` to attack and `accuracy` to hit rate; used by Saber.                          |
+|   12 | Haste              | raises a speed/hit-count stage field.                                                             |
+|   13 | Attack up          | adds `power/status` to attack; used by Temper.                                                    |
+|   14 | Defense down       | subtracts `power/status` from defense-like battle field; used by Focus/Focara.                    |
+|   15 | Full heal/death    | returns full restoration or death-scale sentinel behavior; used by Curaja.                        |
+|   16 | Evasion up         | adds `power/status` to evasion-like battle field; used by Blink, Silence, Invisira.               |
+|   17 | Resistance clear   | clears resistance/status-protection field; used by Dispel.                                        |
+|   18 | Conditional status | status inflict with additional HP/status gates; used by Stun, Blind, Kill.                        |
 
-Kind `18` does not use the normal `148 + accuracy - magicDefense` chance path.
-It fails when the target is already protected by blocking status, when a
-HP-like target field is above `300`, when the target already has the inflicted
-status, or when the target resistance mask matches the spell mask; otherwise it
-succeeds. The hero magic-resistance patch leaves this hard-gated behavior stock.
+Kind `18` does not use the normal `148 + accuracy - magicDefense` chance path. It fails when the target is already
+protected by blocking status, when a HP-like target field is above `300`, when the target already has the inflicted
+status, or when the target resistance mask matches the spell mask; otherwise it succeeds. The hero magic-resistance
+patch leaves this hard-gated behavior stock.
 
 White LV8 order in this Java ME port is `Full-Life`, `Holy`, `NulAll`,
-`Dispel`. This differs from the previous hardcoded editor labels and is
-confirmed by both `cp0` skill behavior and `PACK0_4` text order.
+`Dispel`. This differs from the previous hardcoded editor labels and is confirmed by both `cp0` skill behavior and
+`PACK0_4` text order.
 
 ## Excalibur Note
 
 Physical attack resolution reads weapon special bytes from `j.c[weapon][6]` and
 `j.c[weapon][7]`. If those bytes intersect enemy fields `g[target][20]`
-elemental weakness or `g[target][18]` family/type, the attack gains a single
-physical effectiveness bonus:
-`+4` attack and `+40` hit chance. Excalibur has special bytes `255,255`, so it
-matches every bit in those two target fields. Multiple matches do not stack, and
-this does not invoke Dia/fire/dragon spell formulas. Keep the UI label as
-`Special` until the remaining fuzzy family/type bits are named with more
-confidence.
+elemental weakness or `g[target][18]` family/type, the attack gains a single physical effectiveness bonus:
+`+4` attack and `+40` hit chance. Excalibur has special bytes `255,255`, so it matches every bit in those two target
+fields. Multiple matches do not stack, and this does not invoke Dia/fire/dragon spell formulas. Keep the UI label as
+`Special` until the remaining fuzzy family/type bits are named with more confidence.
