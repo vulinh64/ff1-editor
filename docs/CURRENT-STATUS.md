@@ -66,9 +66,11 @@ This is the quick landing page for the FF1 J2ME editor project.
   - keeps source offsets and raw leading bytes read-only for ongoing decoding.
 - Skills tab:
   - discovery/edit view for all 94 `cp0` chunk 1 spell/effect records;
-  - shows spell/effect names from game text where available, raw runtime fields, effect ids,
-    permission masks, prices, and known spell/equipment/item invokers;
-  - edits price, `power/status`, and `accuracy` fields.
+  - shows spell/effect names from game text where available, raw runtime fields,
+    target modes, permission masks, prices, and known spell/equipment/item invokers;
+  - edits target scope, price, `power/status`, and `accuracy` fields;
+  - when changing a spell to an omni target mode, automatically sets animation
+    flag bit `0x02` so battle visuals render once per affected target.
 - Command bar:
   - `Build Patched JAR` opens a VDDOH-style global patch modal;
   - the modal contains optional global patches, not tab-local data controls;
@@ -183,9 +185,28 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Spell/effect router: `j.a[spellId][1]`; battle code assigns this field to
   `g.j` for learned spells, weapon-cast spells, armor-cast spells, and several
   consumable effects.
-- Spell/effect editable fields: source record bytes `0..1`, `5`, and `6` in
-  each 13-byte record, loaded as `j.a[id][10]` (`price/cost`), `j.a[id][2]`
-  (`power/status`), and `j.a[id][8]` (`accuracy`).
+- Spell/effect editable fields: source record bytes `0..1`, `3`, `5`, `6`, and
+  `9` in each 13-byte record, loaded as `j.a[id][10]` (`price/cost`),
+  `j.a[id][1]` (`target router`), `j.a[id][2]` (`power/status`),
+  `j.a[id][8]` (`accuracy`), and `j.a[id][7]` (`animation flags`).
+- Spell/effect target router: source record byte `3`, loaded as `j.a[id][1]`.
+  In the editor these are shown as `Omni/Enemy` (`1`), `Single target/Enemy`
+  (`2`), `Self/Self` (`4`), `Omni/Party` (`8`), and
+  `Single target/Party` (`16`). The target side stays read-only while the
+  Skills tab can edit the affected scope between single target and omni for
+  party/enemy records. Spells that start as `Self/Self` can switch target only
+  between `Self` and `Party`; while target is `Self`, affected scope is fixed to
+  `Self`, and while target is `Party`, affected scope can be `Single target` or
+  `Omni`. For party casters, opposing side is enemies and caster side is the
+  party; enemy casts reverse those sides. Source byte `2`, loaded as
+  `j.a[id][0]`, is a cast-scope gate: value `1` marks field/menu-only spells
+  rejected by the battle magic picker, while battle spell records use `2` or
+  `3`; enemy abilities and consumable effect records use `0`.
+- Spell/effect animation flags: source record byte `9`, loaded as `j.a[id][7]`.
+  Battle animation routing checks bit `0x02` for omni party/enemy spells; when
+  set, the visual effect is drawn at each affected target. Without it, an edited
+  single-target spell changed to omni can draw at the default upper-left
+  fallback position. The Skills tab auto-maintains this bit for omni edits.
 - Shop inventory rows: `cp0` chunks `6..11` via the shop chunk source array
   documented in `SHOP-INVENTORY.md`.
 - Shop event openers: `m0` map scripts use opcode `8` followed by shop type

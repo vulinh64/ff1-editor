@@ -4,7 +4,8 @@ import com.ff1.editor.data.SkillEffectEdit;
 import com.ff1.editor.service.*;
 
 /**
- * Patches cp0 spell and effect price, power/status, and accuracy fields from the Skills editor tab.
+ * Patches cp0 spell and effect target mode, price, power/status, accuracy, and animation flags from
+ * the Skills editor tab.
  */
 public final class SkillEffectPatcher {
 
@@ -19,18 +20,29 @@ public final class SkillEffectPatcher {
     }
     validateByte(edit.powerOrStatus(), "Power/status");
     validateByte(edit.accuracy(), "Accuracy");
+    validateByte(edit.animationFlags(), "Animation flags");
+    validateTargetMode(edit.targetMode());
     int offset =
         chunkOffset + Short.BYTES + edit.skillId() * SkillDiscoveryService.SPELL_RECORD_SIZE;
     cp0[offset + SkillDiscoveryService.PRICE_OFFSET_IN_RECORD] = (byte) (edit.price() >>> 8);
     cp0[offset + SkillDiscoveryService.PRICE_OFFSET_IN_RECORD + 1] = (byte) edit.price();
+    cp0[offset + SkillDiscoveryService.TARGET_MODE_OFFSET_IN_RECORD] = (byte) edit.targetMode();
     cp0[offset + SkillDiscoveryService.POWER_OR_STATUS_OFFSET_IN_RECORD] =
         (byte) edit.powerOrStatus();
     cp0[offset + SkillDiscoveryService.ACCURACY_OFFSET_IN_RECORD] = (byte) edit.accuracy();
+    cp0[offset + SkillDiscoveryService.ANIMATION_FLAGS_OFFSET_IN_RECORD] =
+        (byte) edit.animationFlags();
   }
 
   private static void validateByte(int value, String label) {
     if (value < 0 || value > 255) {
       throw new IllegalArgumentException(label + " must be 0..255.");
+    }
+  }
+
+  private static void validateTargetMode(int value) {
+    if (value != 0 && value != 1 && value != 2 && value != 4 && value != 8 && value != 16) {
+      throw new IllegalArgumentException("Target mode must be one of 0, 1, 2, 4, 8, or 16.");
     }
   }
 }

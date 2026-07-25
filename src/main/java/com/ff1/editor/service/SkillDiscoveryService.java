@@ -7,6 +7,7 @@ import com.ff1.editor.data.ItemSnapshot;
 import com.ff1.editor.data.SkillEffectKind;
 import com.ff1.editor.data.SkillInvokerKind;
 import com.ff1.editor.data.SkillSnapshot;
+import com.ff1.editor.data.SkillTargetMode;
 import com.ff1.editor.data.SpellSchool;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,8 +25,15 @@ public final class SkillDiscoveryService {
   public static final int SPELL_RECORD_SIZE = MagicMatrixDiscoveryService.SPELL_RECORD_SIZE;
   public static final int SKILL_COUNT = 94;
   public static final int PRICE_OFFSET_IN_RECORD = 0;
+  public static final int CAST_SCOPE_OFFSET_IN_RECORD = 2;
+  public static final int TARGET_MODE_OFFSET_IN_RECORD = 3;
+  public static final int EFFECT_KIND_OFFSET_IN_RECORD = 4;
   public static final int POWER_OR_STATUS_OFFSET_IN_RECORD = 5;
   public static final int ACCURACY_OFFSET_IN_RECORD = 6;
+  public static final int RAW5_OFFSET_IN_RECORD = 7;
+  public static final int ANIMATION_ID_OFFSET_IN_RECORD = 8;
+  public static final int ANIMATION_FLAGS_OFFSET_IN_RECORD = 9;
+  public static final int ELEMENT_OR_STATUS_MASK_OFFSET_IN_RECORD = 10;
 
   private static final Map<Integer, Integer> CONSUMABLE_EFFECT_SPELL_IDS =
       Map.of(1, 91, 2, 92, 3, 93);
@@ -75,16 +83,26 @@ public final class SkillDiscoveryService {
         .name(name)
         .learnableLabel(learnableLabel(id))
         .price(readBigEndianUnsignedShort(spellChunk, recordOffset + PRICE_OFFSET_IN_RECORD))
-        .raw0(spellChunk[recordOffset + 2] & 0xff)
-        .effectId(spellChunk[recordOffset + 3] & 0xff)
-        .effectKind(spellChunk[recordOffset + 4] & 0xff)
-        .effectKindName(SkillEffectKind.displayName(spellChunk[recordOffset + 4] & 0xff))
+        .raw0(spellChunk[recordOffset + CAST_SCOPE_OFFSET_IN_RECORD] & 0xff)
+        .targetMode(spellChunk[recordOffset + TARGET_MODE_OFFSET_IN_RECORD] & 0xff)
+        .targetModeName(
+            SkillTargetMode.displayName(
+                spellChunk[recordOffset + TARGET_MODE_OFFSET_IN_RECORD] & 0xff))
+        .target(
+            SkillTargetMode.target(spellChunk[recordOffset + TARGET_MODE_OFFSET_IN_RECORD] & 0xff))
+        .targetScope(
+            SkillTargetMode.scope(spellChunk[recordOffset + TARGET_MODE_OFFSET_IN_RECORD] & 0xff))
+        .effectKind(spellChunk[recordOffset + EFFECT_KIND_OFFSET_IN_RECORD] & 0xff)
+        .effectKindName(
+            SkillEffectKind.displayName(
+                spellChunk[recordOffset + EFFECT_KIND_OFFSET_IN_RECORD] & 0xff))
         .powerOrStatus(spellChunk[recordOffset + POWER_OR_STATUS_OFFSET_IN_RECORD] & 0xff)
         .accuracy(spellChunk[recordOffset + ACCURACY_OFFSET_IN_RECORD] & 0xff)
-        .raw5(spellChunk[recordOffset + 7] & 0xff)
-        .animationId(spellChunk[recordOffset + 8] & 0xff)
-        .animationFlags(spellChunk[recordOffset + 9] & 0xff)
-        .elementOrStatusMask(spellChunk[recordOffset + 10] & 0xff)
+        .raw5(spellChunk[recordOffset + RAW5_OFFSET_IN_RECORD] & 0xff)
+        .animationId(spellChunk[recordOffset + ANIMATION_ID_OFFSET_IN_RECORD] & 0xff)
+        .animationFlags(spellChunk[recordOffset + ANIMATION_FLAGS_OFFSET_IN_RECORD] & 0xff)
+        .elementOrStatusMask(
+            spellChunk[recordOffset + ELEMENT_OR_STATUS_MASK_OFFSET_IN_RECORD] & 0xff)
         .permissionMask(readBigEndianUnsignedShort(spellChunk, recordOffset + 11))
         .invokers(invokers == null ? StringUtils.EMPTY : String.join("; ", invokers))
         .sourceEntry(ENTRY_NAME)

@@ -184,16 +184,28 @@ class DataPatcherIntegrityTest {
   }
 
   @Test
-  void skillEffectPatchWritesPricePowerAndAccuracy() {
+  void skillEffectPatchWritesPriceTargetModePowerAccuracyAndAnimationFlags() {
     byte[] cp0 = standardCp0();
     int chunkOffset = new Cp0ChunkTable(cp0).chunkOffset(SkillDiscoveryService.SPELL_CHUNK_INDEX);
 
-    SkillEffectPatcher.apply(cp0, chunkOffset, new SkillEffectEdit(93, 12345, 200, 201));
+    SkillEffectPatcher.apply(
+        cp0,
+        chunkOffset,
+        SkillEffectEdit.builder()
+            .skillId(93)
+            .price(12345)
+            .targetMode(8)
+            .powerOrStatus(200)
+            .accuracy(201)
+            .animationFlags(2)
+            .build());
 
     int offset = chunkOffset + 2 + 93 * SkillDiscoveryService.SPELL_RECORD_SIZE;
     assertArrayEquals(new byte[] {0x30, 0x39}, Arrays.copyOfRange(cp0, offset, offset + 2));
+    assertEquals(8, cp0[offset + SkillDiscoveryService.TARGET_MODE_OFFSET_IN_RECORD] & 0xff);
     assertEquals(200, cp0[offset + SkillDiscoveryService.POWER_OR_STATUS_OFFSET_IN_RECORD] & 0xff);
     assertEquals(201, cp0[offset + SkillDiscoveryService.ACCURACY_OFFSET_IN_RECORD] & 0xff);
+    assertEquals(2, cp0[offset + SkillDiscoveryService.ANIMATION_FLAGS_OFFSET_IN_RECORD] & 0xff);
   }
 
   @Test

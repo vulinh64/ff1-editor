@@ -22,8 +22,8 @@ j.a:[[C
 `j.a` is the global spell metadata table. The loader creates each spell record
 with 11 `char` fields. Field `9` is the spell's class permission mask. Field
 `10` is used as the spell price/cost in the magic shop UI. Field `1` is the
-invoked effect/targeting router: learned spells and equipment-cast spells assign
-`g.j = j.a[spellId][1]` before battle target selection.
+targeting router: learned spells, equipment-cast spells, and consumable effects
+assign `g.j = j.a[spellId][1]` before battle target selection.
 
 The relevant bytecode shape is:
 
@@ -176,10 +176,55 @@ For the local jar, this makes White LV8 order `Full-Life`, `Holy`, `NulAll`,
 Renaming spells should be feasible, but it is not yet mapped. The likely first
 target is the same spell metadata/text loading path used by `b.class` and
 `Ff1TextService`. Keep names separate from Magic Permissions: that tab controls
-who can learn/cast a spell. The Skills tab already exposes spell/effect prices,
-`power/status`, and `accuracy`; visible spell names, elements, targeting, and
-other raw spell fields remain future work after their record bytes are
-confirmed.
+who can learn/cast a spell. The Skills tab already exposes spell/effect target
+scope, prices, `power/status`, `accuracy`, and the confirmed target router;
+visible spell names, elements, and other raw spell fields remain future work
+after their record bytes are confirmed.
+
+## Battle Target Router
+
+Source byte `3` in each 13-byte `cp0` chunk 1 record is loaded into
+`j.a[spellId][1]`. The battle UI and resolver use it as a side-relative target
+router:
+
+| Value | Editor label          | Party caster result   | Enemy caster result   | Example         |
+|------:|-----------------------|-----------------------|-----------------------|-----------------|
+|   `1` | `Omni/Enemy`          | all enemies           | all party members     | `Flare`, `Holy` |
+|   `2` | `Single target/Enemy` | selected enemy        | selected party member | `Fire`          |
+|   `4` | `Self/Self`           | casting party member  | casting enemy slot    | `Blink`         |
+|   `8` | `Omni/Party`          | all party members     | all enemies           | `Heal`          |
+|  `16` | `Single target/Party` | selected party member | selected enemy        | `Cure`          |
+
+The party command flow prompts for a target only for values `2` and `16`.
+Values `1`, `4`, and `8` auto-select all opposing targets, self, or all caster
+side targets. Enemy AI uses the same router with sides reversed: opposing side
+means party members for enemy casts, and caster side means enemies. Source byte `2`
+is loaded into `j.a[spellId][0]` and gates where a learned spell can be used:
+value `1` is rejected by the battle magic picker, matching field/menu-only
+spells such as `Exit` and `Teleport`; battle spell records use `2` or `3`;
+enemy abilities and consumable effect records use `0`.
+
+The editor keeps the target side read-only for normal party/enemy spells and
+exposes the affected scope as the editable part. For example, `Cure` can be
+changed from `Single target/Party` to `Omni/Party`, and `Fire` can be changed
+from `Single target/Enemy` to `Omni/Enemy`, without offering a separate
+Party/Enemy side edit.
+
+Self-target spells are the exception. A spell that starts as `Self/Self`, such
+as `Blink` or `Saber`, can switch target only between `Self` and `Party`; it can
+never switch to `Enemy`. While the target is `Self`, affected scope is fixed to
+`Self`. After switching target to `Party`, affected scope can be edited between
+`Single target` and `Omni`, but not back to `Self` through the affected-scope
+control.
+
+Omni animation has a second confirmed byte. Source byte `9` is loaded into
+`j.a[spellId][7]`; battle animation code checks bit `0x02` before drawing
+omni visuals at each affected target. Stock omni party spells such as `Heal`,
+`Protera`, and `Invisira` already have this bit set, while stock single-target
+spells such as `Cure` and `Temper` do not. The Skills tab automatically sets
+bit `0x02` when changing a spell to `Omni/Party` or `Omni/Enemy`, and clears
+only editor-added copies of that bit when changing the spell back to a
+non-omni target mode.
 
 ## INT Damage Scaling Patch
 

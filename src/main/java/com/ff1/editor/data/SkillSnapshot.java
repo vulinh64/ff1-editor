@@ -11,7 +11,10 @@ public record SkillSnapshot(
     String learnableLabel,
     int price,
     int raw0,
-    int effectId,
+    int targetMode,
+    String targetModeName,
+    SkillTarget target,
+    SkillTargetScope targetScope,
     int effectKind,
     String effectKindName,
     int powerOrStatus,
@@ -23,4 +26,9 @@ public record SkillSnapshot(
     int permissionMask,
     String invokers,
     String sourceEntry,
-    int sourceOffset) {}
+    int sourceOffset) {
+
+  public String targetName() {
+    return target.label();
+  }
+}

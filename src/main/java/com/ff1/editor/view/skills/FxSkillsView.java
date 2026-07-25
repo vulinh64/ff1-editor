@@ -6,6 +6,8 @@ import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
 import com.ff1.editor.data.EditorWorkspace;
 import com.ff1.editor.data.SkillEffectEdit;
+import com.ff1.editor.data.SkillTarget;
+import com.ff1.editor.data.SkillTargetScope;
 import com.ff1.editor.service.SkillDiscoveryService;
 import com.ff1.editor.view.FxEditorState;
 import java.util.List;
@@ -14,7 +16,11 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -87,7 +93,9 @@ public final class FxSkillsView extends BorderPane {
                 intColumn("ID", FxSkillRowViewModel::id, 56),
                 textColumn("Name", FxSkillRowViewModel::name, 140),
                 textColumn("Learnable", FxSkillRowViewModel::learnableLabel, 110),
-                intColumn("Effect ID", FxSkillRowViewModel::effectId, 82),
+                intColumn("Target ID", FxSkillRowViewModel::targetMode, 82),
+                targetColumn(table),
+                affectsColumn(table),
                 intColumn("Kind ID", FxSkillRowViewModel::effectKind, 78),
                 textColumn("Kind Name", FxSkillRowViewModel::effectKindName, 150),
                 editableIntColumn("Price", FxSkillRowViewModel::priceProperty, 92, 0, 65535),
@@ -103,5 +111,117 @@ public final class FxSkillsView extends BorderPane {
                 textColumn("Invokers", FxSkillRowViewModel::invokers, 380),
                 textColumn("Source", FxSkillRowViewModel::source, 170)));
     return table;
+  }
+
+  private TableColumn<FxSkillRowViewModel, SkillTarget> targetColumn(
+      TableView<FxSkillRowViewModel> table) {
+    TableColumn<FxSkillRowViewModel, SkillTarget> column = new TableColumn<>("Target");
+    column.setCellValueFactory(cell -> cell.getValue().targetProperty());
+    column.setCellFactory(_ -> new TargetCell(table));
+    column.setPrefWidth(90);
+    return column;
+  }
+
+  private TableColumn<FxSkillRowViewModel, SkillTargetScope> affectsColumn(
+      TableView<FxSkillRowViewModel> table) {
+    TableColumn<FxSkillRowViewModel, SkillTargetScope> column = new TableColumn<>("Affects");
+    column.setCellValueFactory(cell -> cell.getValue().targetScopeProperty());
+    column.setCellFactory(_ -> new AffectsCell(table));
+    column.setPrefWidth(116);
+    return column;
+  }
+
+  private static final class TargetCell extends TableCell<FxSkillRowViewModel, SkillTarget> {
+
+    private final TableView<FxSkillRowViewModel> table;
+    private final ComboBox<SkillTarget> editor = new ComboBox<>();
+
+    private TargetCell(TableView<FxSkillRowViewModel> table) {
+      this.table = table;
+      editor.getItems().setAll(SkillTarget.SELF, SkillTarget.PARTY);
+      editor.setMaxWidth(Double.MAX_VALUE);
+      editor.setOnAction(_ -> commitSelection());
+    }
+
+    @Override
+    protected void updateItem(SkillTarget target, boolean empty) {
+      super.updateItem(target, empty);
+      FxSkillRowViewModel row = row();
+      if (empty || row == null) {
+        setText(null);
+        setGraphic(null);
+        return;
+      }
+      if (!row.targetEditable()) {
+        setText(target == null ? "" : target.label());
+        setGraphic(null);
+        setContentDisplay(ContentDisplay.TEXT_ONLY);
+        return;
+      }
+      editor.setValue(target);
+      setText(null);
+      setGraphic(editor);
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    }
+
+    private void commitSelection() {
+      FxSkillRowViewModel row = row();
+      if (row == null) {
+        return;
+      }
+      row.target(editor.getValue());
+      table.refresh();
+    }
+
+    private FxSkillRowViewModel row() {
+      return getTableRow() == null ? null : getTableRow().getItem();
+    }
+  }
+
+  private static final class AffectsCell extends TableCell<FxSkillRowViewModel, SkillTargetScope> {
+
+    private final TableView<FxSkillRowViewModel> table;
+    private final ComboBox<SkillTargetScope> editor = new ComboBox<>();
+
+    private AffectsCell(TableView<FxSkillRowViewModel> table) {
+      this.table = table;
+      editor.getItems().setAll(SkillTargetScope.SINGLE, SkillTargetScope.OMNI);
+      editor.setMaxWidth(Double.MAX_VALUE);
+      editor.setOnAction(_ -> commitSelection());
+    }
+
+    @Override
+    protected void updateItem(SkillTargetScope scope, boolean empty) {
+      super.updateItem(scope, empty);
+      FxSkillRowViewModel row = row();
+      if (empty || row == null) {
+        setText(null);
+        setGraphic(null);
+        return;
+      }
+      if (!row.affectsEditable()) {
+        setText(scope == null ? "" : scope.label());
+        setGraphic(null);
+        setContentDisplay(ContentDisplay.TEXT_ONLY);
+        return;
+      }
+      editor.setValue(scope);
+      setText(null);
+      setGraphic(editor);
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    }
+
+    private void commitSelection() {
+      FxSkillRowViewModel row = row();
+      if (row == null) {
+        return;
+      }
+      row.targetScope(editor.getValue());
+      table.refresh();
+    }
+
+    private FxSkillRowViewModel row() {
+      return getTableRow() == null ? null : getTableRow().getItem();
+    }
   }
 }
