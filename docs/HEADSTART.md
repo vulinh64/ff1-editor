@@ -96,11 +96,13 @@ The JavaFX app currently follows the VDDOH split between `view`, `data`, and
 data tabs: the command bar has a single `Build Patched JAR` action that opens a
 VDDOH-style modal for optional global patches, then builds the patched output.
 
-The Heroes tab allows HP/STR/AGL/INT/STA/LCK values to be edited for base
-classes and builds a patched JAR by replacing `cp0`. The confirmed table is
-byte-backed and reads HP as a signed byte, so the safe editor range is `0..127`.
-STR/AGL/INT/STA/LCK use FF1's visible stat cap of `0..99`. Upgraded class rows
-are read-only because class change inherits live character stats.
+The Heroes tab allows HP/STR/AGL/INT/STA/LCK plus starting ACC/EVA values to be
+edited for base classes and builds a patched JAR by replacing `cp0`. The
+confirmed table is byte-backed and reads HP as a signed byte, so the safe editor
+range is `0..127`. STR/AGL/INT/STA/LCK use FF1's visible stat cap of `0..99`.
+Starting ACC/EVA are capped at `0..127` until direct template values above `127`
+are tested. Upgraded class rows are read-only because class change inherits live
+character stats.
 
 Future optional engine patch: change the game's starting-HP read path to treat
 the `cp0` HP byte as unsigned. Keep this separate from normal data editing.

@@ -60,6 +60,8 @@ public final class HeroClassDiscoveryService {
         .intelligence(cp0[offset + 3])
         .stamina(cp0[offset + 4])
         .luck(cp0[offset + 5])
+        .accuracy(cp0[offset + 6])
+        .evasion(cp0[offset + 7])
         .sourceNote(sourceNote(heroClass))
         .build();
   }

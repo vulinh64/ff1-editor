@@ -6,4 +6,12 @@ import lombok.With;
 @Builder
 @With
 public record HeroClassStatsEdit(
-    int classId, int hp, int strength, int agility, int intelligence, int stamina, int luck) {}
+    int classId,
+    int hp,
+    int strength,
+    int agility,
+    int intelligence,
+    int stamina,
+    int luck,
+    int accuracy,
+    int evasion) {}

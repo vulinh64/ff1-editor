@@ -3,7 +3,7 @@ package com.ff1.editor.service.patcher.data;
 import com.ff1.editor.data.HeroClassStatsEdit;
 import com.ff1.editor.service.*;
 
-/** Patches cp0 base-class starting HP and body stats from the Heroes editor tab. */
+/** Patches cp0 base-class starting HP, body stats, and hidden battle stats. */
 public final class HeroClassStatsPatcher {
 
   public static final String ENTRY_NAME = "cp0";
@@ -25,6 +25,8 @@ public final class HeroClassStatsPatcher {
     cp0[offset + 3] = checkedByte(edit.intelligence(), 99, "INT");
     cp0[offset + 4] = checkedByte(edit.stamina(), 99, "STA");
     cp0[offset + 5] = checkedByte(edit.luck(), 99, "LCK");
+    cp0[offset + 6] = checkedByte(edit.accuracy(), 127, "ACC");
+    cp0[offset + 7] = checkedByte(edit.evasion(), 127, "EVA");
   }
 
   private static byte checkedByte(int value, int max, String label) {

@@ -20,7 +20,7 @@ This is the quick landing page for the FF1 J2ME editor project.
   `EditorWorkspace`.
 - Heroes tab:
   - shows the 12 known classes;
-  - edits base-class starting HP/STR/AGL/INT/STA/LCK;
+  - edits base-class starting HP/STR/AGL/INT/STA/LCK and starting ACC/EVA;
   - keeps upgraded classes read-only and mirrors their base-class row values.
 - Magic Permissions tab:
   - splits White Magic and Black Magic into sub-tabs;
@@ -175,7 +175,8 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Class names: `PACK0_1`, offsets documented in `HERO-CLASSES.md`.
 - Base starting class templates: `cp0` offset `0x00003f05`, six records,
   10 bytes each. The Heroes tab reads these bytes directly when loading a jar
-  and writes the same table when building patched output.
+  and writes the same table when building patched output. Bytes `6..7` are
+  starting/base ACC and EVA.
 - Growth matrix: `cp0` chunk 4, shape `6 x 49 x 14`.
 - Spell metadata: `cp0` chunk 1, 94 records, 13 bytes each.
 - Spell names/descriptions: `PACK0_4`, a length-prefixed text table whose first
@@ -315,6 +316,8 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Starting HP is read as a signed byte. Setting HP to `200` displayed `-56/-56`.
 - Starting HP is therefore capped to `0..127` in the normal Heroes UI.
 - STR/AGL/INT/STA/LCK display cleanly at `99`; the editor caps them at `0..99`.
+- Starting ACC/EVA are editable from the class template and capped at `0..127`
+  until direct template values above `127` are tested.
 - Class upgrade does not load separate starting stats. Upgraded classes inherit
   live character stats. In the Heroes tab, upgraded rows mirror the editable
   base row to make that inheritance visible.

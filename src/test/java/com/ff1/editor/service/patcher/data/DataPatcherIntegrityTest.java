@@ -40,13 +40,16 @@ class DataPatcherIntegrityTest {
             .intelligence(66)
             .stamina(77)
             .luck(88)
+            .accuracy(99)
+            .evasion(100)
             .build());
 
     int offset = HeroClassStatsPatcher.TABLE_OFFSET + 2 * HeroClassStatsPatcher.RECORD_SIZE;
     assertArrayEquals(
-        new byte[] {33, 44, 55, 66, 77, 88}, Arrays.copyOfRange(cp0, offset, offset + 6));
+        new byte[] {33, 44, 55, 66, 77, 88, 99, 100},
+        Arrays.copyOfRange(cp0, offset, offset + 8));
     assertEquals(0x7f, cp0[offset - 1] & 0xff);
-    assertEquals(0x7f, cp0[offset + 6] & 0xff);
+    assertEquals(0x7f, cp0[offset + 8] & 0xff);
   }
 
   @Test
@@ -67,6 +70,8 @@ class DataPatcherIntegrityTest {
                     .intelligence(1)
                     .stamina(1)
                     .luck(1)
+                    .accuracy(1)
+                    .evasion(1)
                     .build()));
   }
 

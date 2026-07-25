@@ -71,8 +71,8 @@ Record layout confirmed from `j.a(int)`:
 |    3 | Intelligence                          |
 |    4 | Stamina                               |
 |    5 | Luck                                  |
-|    6 | Unknown short-ish template byte       |
-|    7 | Unknown short-ish template byte       |
+|    6 | Starting/base accuracy                |
+|    7 | Starting/base evasion                 |
 |    8 | Unknown short-ish template byte       |
 |    9 | Initial spell charge byte for level 1 |
 
@@ -85,6 +85,15 @@ Body stats were also tested at `99`; the game displays `99` for STR/AGL/INT/STA/
 These fields are one byte in the source table, but the editor intentionally caps
 them at the familiar FF1 visible maximum instead of allowing signed-byte overflow
 experiments through the normal UI.
+
+Starting/base accuracy and evasion are also stored in this table. In-game
+level-1 testing with a Warrior whose visible stats were patched to `50` and no
+equipment showed `ATK 25`, `ACC 10`, `DEF 0`, and `EVA 53`. That matches byte
+`6` (`0x0a`) as base accuracy and byte `7` (`0x35`) as base evasion. The normal
+Heroes UI caps starting ACC/EVA at `0..127` until direct template values above
+`127` are tested for signed-byte behavior. Runtime level-up can still raise
+these hidden battle stats above `127`; a level-50 Knight with no equipment was
+observed at `ACC 157` and `EVA 102`.
 
 Future patch idea: add an optional in-game/bytecode patch that treats this
 starting HP byte as unsigned. That should remain separate from the normal
@@ -117,6 +126,6 @@ Patched jars are built by replacing `cp0`; the input jar is never mutated.
 
 ## Next Target
 
-Identify bytes `6..9` well enough to decide whether initial spell charges should
-be exposed in the Heroes tab, a later Magic tab, or left as internal template
-data.
+Identify byte `8` and initial spell-charge byte `9` well enough to decide
+whether they should be exposed in the Heroes tab, a later Magic tab, or left as
+internal template data.

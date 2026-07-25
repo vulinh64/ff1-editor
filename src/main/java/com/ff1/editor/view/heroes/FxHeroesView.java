@@ -144,6 +144,20 @@ public final class FxHeroesView extends BorderPane {
                     0,
                     99,
                     FxHeroClassViewModel::baseClass),
+                editableIntColumn(
+                    "ACC",
+                    FxHeroClassViewModel::accuracyProperty,
+                    88,
+                    0,
+                    127,
+                    FxHeroClassViewModel::baseClass),
+                editableIntColumn(
+                    "EVA",
+                    FxHeroClassViewModel::evasionProperty,
+                    88,
+                    0,
+                    127,
+                    FxHeroClassViewModel::baseClass),
                 textColumn("Source", FxHeroClassViewModel::source, 170),
                 textColumn("Notes", FxHeroClassViewModel::notes, 420)));
     return table;

@@ -17,7 +17,9 @@ public record FxHeroClassViewModel(
     IntegerProperty agility,
     IntegerProperty intelligence,
     IntegerProperty stamina,
-    IntegerProperty luck) {
+    IntegerProperty luck,
+    IntegerProperty accuracy,
+    IntegerProperty evasion) {
 
   public FxHeroClassViewModel(HeroClassSnapshot hero) {
     this(
@@ -27,7 +29,9 @@ public record FxHeroClassViewModel(
         new SimpleIntegerProperty(hero.stats().agility()),
         new SimpleIntegerProperty(hero.stats().intelligence()),
         new SimpleIntegerProperty(hero.stats().stamina()),
-        new SimpleIntegerProperty(hero.stats().luck()));
+        new SimpleIntegerProperty(hero.stats().luck()),
+        new SimpleIntegerProperty(hero.stats().accuracy()),
+        new SimpleIntegerProperty(hero.stats().evasion()));
   }
 
   public FxHeroClassViewModel mirrorStatsFrom(FxHeroClassViewModel baseClass) {
@@ -39,7 +43,9 @@ public record FxHeroClassViewModel(
         .withAgility(baseClass.agility)
         .withIntelligence(baseClass.intelligence)
         .withStamina(baseClass.stamina)
-        .withLuck(baseClass.luck);
+        .withLuck(baseClass.luck)
+        .withAccuracy(baseClass.accuracy)
+        .withEvasion(baseClass.evasion);
   }
 
   public int id() {
@@ -86,6 +92,14 @@ public record FxHeroClassViewModel(
     return luck;
   }
 
+  public IntegerProperty accuracyProperty() {
+    return accuracy;
+  }
+
+  public IntegerProperty evasionProperty() {
+    return evasion;
+  }
+
   public void resetStats() {
     if (!baseClass()) {
       return;
@@ -96,6 +110,8 @@ public record FxHeroClassViewModel(
     intelligence.set(hero.stats().intelligence());
     stamina.set(hero.stats().stamina());
     luck.set(hero.stats().luck());
+    accuracy.set(hero.stats().accuracy());
+    evasion.set(hero.stats().evasion());
   }
 
   public boolean changed() {
@@ -104,7 +120,9 @@ public record FxHeroClassViewModel(
         || agility.get() != hero.stats().agility()
         || intelligence.get() != hero.stats().intelligence()
         || stamina.get() != hero.stats().stamina()
-        || luck.get() != hero.stats().luck();
+        || luck.get() != hero.stats().luck()
+        || accuracy.get() != hero.stats().accuracy()
+        || evasion.get() != hero.stats().evasion();
   }
 
   public HeroClassStatsEdit toEdit() {
@@ -116,6 +134,8 @@ public record FxHeroClassViewModel(
         .intelligence(intelligence.get())
         .stamina(stamina.get())
         .luck(luck.get())
+        .accuracy(accuracy.get())
+        .evasion(evasion.get())
         .build();
   }
 
