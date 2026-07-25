@@ -26,9 +26,4 @@ public record SkillSnapshot(
     int permissionMask,
     String invokers,
     String sourceEntry,
-    int sourceOffset) {
-
-  public String targetName() {
-    return target.label();
-  }
-}
+    int sourceOffset) {}

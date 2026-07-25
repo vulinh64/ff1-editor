@@ -1,10 +1,11 @@
 package com.ff1.editor.service.patcher.bytecode;
 
-import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.Label;
 import java.lang.classfile.MethodModel;
@@ -13,7 +14,6 @@ import java.lang.classfile.instruction.ConstantInstruction;
 import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,61 +47,78 @@ public final class IntelligenceSpellHealingClassPatcher {
   public static PatcherState state(byte[] data) {
     try {
       ClassModel model = ClassFile.of().parse(data);
+
       int targetMethods = 0;
       int healingScaleGuards = 0;
       int healingScaleSites = 0;
+
       for (MethodModel method : model.methods()) {
         if (!isSpellEffectMethod(method)) {
           continue;
         }
+
         targetMethods++;
         healingScaleGuards += healingScaleGuards(method);
         healingScaleSites += healingScaleSites(method);
       }
+
       if (targetMethods == 1 && healingScaleGuards == 0 && healingScaleSites == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (targetMethods == 1 && healingScaleGuards > 0 && healingScaleSites > 0) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "INT spell-healing class patch state unknown; targetMethods={}, healingScaleGuards={}, healingScaleSites={}",
           targetMethods,
           healingScaleGuards,
           healingScaleSites);
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Intelligence scaling magical healing patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] data) {
     PatcherState state = state(data);
+
     log.info("Applying INT spell-healing class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return data.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException("Unsupported g.class layout for INT spell-healing patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(data);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 IntelligenceSpellHealingClassPatcher::isSpellEffectMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new IntelligenceHealingCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new IntelligenceHealingCodeTransform(counter))));
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() == 0 || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "INT spell-healing patch did not produce the expected g.class bytecode; counter=%d, state=%s"
               .formatted(counter.count(), patchedState));
     }
+
     log.info("INT spell-healing class patch applied at {} return sites", counter.count());
+
     return patched;
   }
 
@@ -112,12 +129,15 @@ public final class IntelligenceSpellHealingClassPatcher {
 
   private static int healingScaleGuards(MethodModel method) {
     int matches = 0;
-    List<Instruction> instructions = instructions(method);
+
+    List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
     for (int i = 0; i + 6 < instructions.size(); i++) {
       if (isHealingScaleGuard(instructions, i)) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -133,12 +153,15 @@ public final class IntelligenceSpellHealingClassPatcher {
 
   private static int healingScaleSites(MethodModel method) {
     int matches = 0;
-    List<Instruction> instructions = instructions(method);
+
+    List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
     for (int i = 0; i + 4 < instructions.size(); i++) {
       if (isHealingScaleSite(instructions, i)) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -148,19 +171,6 @@ public final class IntelligenceSpellHealingClassPatcher {
         && isPush(instructions.get(offset + 2), INT_DIVISOR)
         && instructions.get(offset + 3).opcode() == Opcode.IDIV
         && instructions.get(offset + 4).opcode() == Opcode.ISUB;
-  }
-
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
   }
 
   private static boolean isSpellDataRead(Instruction instruction) {
@@ -185,25 +195,8 @@ public final class IntelligenceSpellHealingClassPatcher {
         && integer == value;
   }
 
-  private static final class PatchCounter {
-    private int count;
-
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class IntelligenceHealingCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
-
-    private IntelligenceHealingCodeTransform(PatchCounter counter) {
-      this.counter = counter;
-    }
+  private record IntelligenceHealingCodeTransform(PatchSiteCounter counter)
+      implements CodeTransform {
 
     @Override
     public void accept(CodeBuilder builder, CodeElement element) {

@@ -24,6 +24,7 @@ public enum ShopInventoryType {
         return type;
       }
     }
+
     throw new IllegalArgumentException("Shop type must be 0..5.");
   }
 }

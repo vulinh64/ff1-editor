@@ -3,8 +3,10 @@ package com.ff1.editor.service.patcher.bytecode;
 import com.ff1.editor.utils.CldcStackMapStripper;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.Label;
 import java.lang.classfile.MethodModel;
@@ -12,10 +14,7 @@ import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.IncrementInstruction;
 import java.lang.classfile.instruction.LoadInstruction;
 import java.lang.classfile.instruction.StoreInstruction;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,58 +37,77 @@ public final class EnemyCriticalDefenseClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       List<Instruction> instructions = physicalDamageInstructions(model);
+
       if (instructions.isEmpty()) {
         log.info("Enemy critical-defense patch state unknown; physical damage method not found");
+
         return PatcherState.UNKNOWN;
       }
+
       int originalSites = originalCritBonusSites(instructions);
       int patchedSites = patchedCritBonusSites(instructions);
+
       if (originalSites == 1 && patchedSites == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (originalSites == 1 && patchedSites == 1) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "Enemy critical-defense patch state unknown; originalSites={}, patchedSites={}",
           originalSites,
           patchedSites);
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Critical damage against defense patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying enemy critical-defense class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException(
           "Unsupported g.class layout for enemy critical-defense patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(classBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 EnemyCriticalDefenseClassPatcher::isPhysicalDamageMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new EnemyCriticalDefenseCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new EnemyCriticalDefenseCodeTransform(counter))));
+
     patched = stripStaleStackMap(patched);
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() != 1 || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "Expected one enemy critical-defense site in %s but patched %d; state=%s."
               .formatted(ENTRY_NAME, counter.count(), patchedState));
     }
+
     log.info("Enemy critical-defense class patch applied");
+
     return patched;
   }
 
@@ -101,10 +119,11 @@ public final class EnemyCriticalDefenseClassPatcher {
   private static List<Instruction> physicalDamageInstructions(ClassModel model) {
     for (MethodModel method : model.methods()) {
       if (isPhysicalDamageMethod(method)) {
-        return instructions(method);
+        return BytecodeInstructions.instructions(method);
       }
     }
-    return List.of();
+
+    return Collections.emptyList();
   }
 
   private static boolean isPhysicalDamageMethod(MethodModel method) {
@@ -112,36 +131,27 @@ public final class EnemyCriticalDefenseClassPatcher {
         && PHYSICAL_DAMAGE_DESCRIPTOR.equals(method.methodType().stringValue());
   }
 
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
-  }
-
   private static int originalCritBonusSites(List<Instruction> instructions) {
     int matches = 0;
+
     for (int i = 0; i <= instructions.size() - 5; i++) {
       if (isOriginalCritBonusWindow(instructions.subList(i, i + 5))) {
         matches++;
       }
     }
+
     return matches;
   }
 
   private static int patchedCritBonusSites(List<Instruction> instructions) {
     int matches = 0;
+
     for (int i = 0; i <= instructions.size() - 4; i++) {
       if (isPatchedDefenseCritBonusWindow(instructions.subList(i, i + 4))) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -180,25 +190,12 @@ public final class EnemyCriticalDefenseClassPatcher {
         && increment.constant() == 1;
   }
 
-  private static final class PatchCounter {
-    private int count;
-
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class EnemyCriticalDefenseCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
+  private static final class EnemyCriticalDefenseCodeTransform implements CodeTransform {
+    private final PatchSiteCounter counter;
     private final Deque<CodeElement> pending = new ArrayDeque<>();
     private boolean patched;
 
-    private EnemyCriticalDefenseCodeTransform(PatchCounter counter) {
+    private EnemyCriticalDefenseCodeTransform(PatchSiteCounter counter) {
       this.counter = counter;
     }
 
@@ -210,12 +207,15 @@ public final class EnemyCriticalDefenseClassPatcher {
       }
 
       pending.addLast(element);
+
       if (pending.size() < 5) {
         return;
       }
+
       if (pending.size() > 5) {
         builder.with(pending.removeFirst());
       }
+
       if (isOriginalCritBonusWindow(pendingInstructions())) {
         emitEnemyDefenseCritBonus(builder);
         pending.clear();
@@ -233,19 +233,22 @@ public final class EnemyCriticalDefenseClassPatcher {
 
     private List<Instruction> pendingInstructions() {
       List<Instruction> instructions = new ArrayList<>(5);
+
       for (CodeElement element : pending) {
         if (element instanceof Instruction instruction) {
           instructions.add(instruction);
         } else {
-          return List.of();
+          return Collections.emptyList();
         }
       }
+
       return instructions;
     }
 
     private static void emitEnemyDefenseCritBonus(CodeBuilder builder) {
       Label originalBonus = builder.newLabel();
       Label afterBonus = builder.newLabel();
+
       builder
           .iload(0)
           .ifne(originalBonus)

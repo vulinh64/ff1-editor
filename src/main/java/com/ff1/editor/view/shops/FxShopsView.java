@@ -92,7 +92,7 @@ public final class FxShopsView extends BorderPane {
     stashCurrentEdits();
     slots.clear();
     prices.clear();
-    services.setAll(selected == null ? List.of() : selected.services());
+    services.setAll(selected.services());
     service.getSelectionModel().selectFirst();
   }
 

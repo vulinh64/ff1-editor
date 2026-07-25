@@ -3,8 +3,10 @@ package com.ff1.editor.service.patcher.bytecode;
 import com.ff1.editor.utils.CldcStackMapStripper;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.Label;
 import java.lang.classfile.MethodModel;
@@ -13,7 +15,7 @@ import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.classfile.instruction.InvokeInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,57 +49,77 @@ public final class PartyActionOrderClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       List<Instruction> instructions = orderInstructions(model);
+
       if (instructions.isEmpty()) {
         log.info("Party action-order patch state unknown; order method not found");
+
         return PatcherState.UNKNOWN;
       }
+
       int randomCalls = randomNextIntCalls(instructions);
       int commandReads = commandReads(instructions);
+
       if (randomCalls == ORIGINAL_RANDOM_CALLS && commandReads == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (commandReads > 0) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "Party action-order patch state unknown; randomCalls={}, commandReads={}",
           randomCalls,
           commandReads);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Party battle order patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying party action-order class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException("Unsupported g.class layout for party action-order patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(classBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 PartyActionOrderClassPatcher::isOrderMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new PartyActionOrderCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new PartyActionOrderCodeTransform(counter))));
+
     patched = stripStaleStackMap(patched);
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() != 1 || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "Expected one action-order method in %s but patched %d; state=%s."
               .formatted(ENTRY_NAME, counter.count(), patchedState));
     }
+
     log.info("Party action-order class patch applied");
+
     return patched;
   }
 
@@ -108,10 +130,11 @@ public final class PartyActionOrderClassPatcher {
   private static List<Instruction> orderInstructions(ClassModel model) {
     for (MethodModel method : model.methods()) {
       if (isOrderMethod(method)) {
-        return instructions(method);
+        return BytecodeInstructions.instructions(method);
       }
     }
-    return List.of();
+
+    return Collections.emptyList();
   }
 
   private static boolean isOrderMethod(MethodModel method) {
@@ -119,36 +142,27 @@ public final class PartyActionOrderClassPatcher {
         && ORDER_DESCRIPTOR.equals(method.methodType().stringValue());
   }
 
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
-  }
-
   private static int randomNextIntCalls(List<Instruction> instructions) {
     int matches = 0;
+
     for (Instruction instruction : instructions) {
       if (isRandomNextInt(instruction)) {
         matches++;
       }
     }
+
     return matches;
   }
 
   private static int commandReads(List<Instruction> instructions) {
     int matches = 0;
+
     for (Instruction instruction : instructions) {
       if (isCommandRead(instruction)) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -168,24 +182,12 @@ public final class PartyActionOrderClassPatcher {
         && COMMAND_DESCRIPTOR.equals(field.type().stringValue());
   }
 
-  private static final class PatchCounter {
-    private int count;
+  private static final class PartyActionOrderCodeTransform implements CodeTransform {
 
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class PartyActionOrderCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
+    private final PatchSiteCounter counter;
     private boolean emitted;
 
-    private PartyActionOrderCodeTransform(PatchCounter counter) {
+    private PartyActionOrderCodeTransform(PatchSiteCounter counter) {
       this.counter = counter;
     }
 
@@ -194,9 +196,12 @@ public final class PartyActionOrderClassPatcher {
       if (emitted) {
         return;
       }
+
       if (element instanceof Instruction) {
         emitReplacement(builder);
+
         emitted = true;
+
         counter.increment();
       } else {
         builder.with(element);
@@ -204,70 +209,65 @@ public final class PartyActionOrderClassPatcher {
     }
 
     private static void emitReplacement(CodeBuilder builder) {
-      Label customOrder = builder.newLabel();
-      Label startOriginalFill = builder.newLabel();
-      Label originalFillLoop = builder.newLabel();
-      Label originalShuffleStart = builder.newLabel();
-      Label originalShuffleLoop = builder.newLabel();
-      Label originalReturn = builder.newLabel();
-      Label commandTwo = builder.newLabel();
-      Label commandZero = builder.newLabel();
-      Label commandThree = builder.newLabel();
-      Label commandOtherPass = builder.newLabel();
-      Label commandOther = builder.newLabel();
-      Label heroesDone = builder.newLabel();
-      Label commandLoop = builder.newLabel();
-      Label heroLoop = builder.newLabel();
-      Label skipHero = builder.newLabel();
-      Label addHero = builder.newLabel();
-      Label nextCommand = builder.newLabel();
-      Label enemyFillLoop = builder.newLabel();
-      Label enemyShuffleStart = builder.newLabel();
-      Label enemyShuffleLoop = builder.newLabel();
+      PartyOrderLabels labels = PartyOrderLabels.create(builder);
 
       builder.iconst_0().putstatic(battle(), QUEUE_INDEX_FIELD, ConstantDescs.CD_int);
-      builder.getstatic(battle(), "b", ConstantDescs.CD_boolean).ifne(startOriginalFill);
-      builder.goto_(customOrder);
 
-      builder.labelBinding(startOriginalFill).iconst_0().istore(0);
+      builder.getstatic(battle(), "b", ConstantDescs.CD_boolean).ifne(labels.startOriginalFill());
+
+      builder.goto_(labels.customOrder());
+
+      builder.labelBinding(labels.startOriginalFill()).iconst_0().istore(0);
+
       builder
-          .labelBinding(originalFillLoop)
+          .labelBinding(labels.originalFillLoop())
           .iload(0)
           .getstatic(battle(), QUEUE_FIELD, ClassDesc.ofDescriptor(QUEUE_DESCRIPTOR))
           .arraylength()
-          .if_icmpge(originalShuffleStart)
+          .if_icmpge(labels.originalShuffleStart())
           .getstatic(battle(), QUEUE_FIELD, ClassDesc.ofDescriptor(QUEUE_DESCRIPTOR))
           .iload(0)
           .iload(0)
           .iastore()
           .iinc(0, 1)
-          .goto_(originalFillLoop);
+          .goto_(labels.originalFillLoop());
+
       builder
-          .labelBinding(originalShuffleStart)
+          .labelBinding(labels.originalShuffleStart())
           .iconst_0()
           .istore(0)
-          .labelBinding(originalShuffleLoop)
+          .labelBinding(labels.originalShuffleLoop())
           .iload(0)
           .bipush(17)
-          .if_icmpge(originalReturn);
-      emitRandomQueueIndex(builder, 2, 0);
-      emitRandomQueueIndex(builder, 3, 0);
-      emitQueueSwap(builder);
-      builder.iinc(0, 1).goto_(originalShuffleLoop).labelBinding(originalReturn).return_();
+          .if_icmpge(labels.originalReturn());
 
-      builder.labelBinding(customOrder).iconst_0().istore(1).iconst_1().istore(0);
+      emitRandomQueueIndex(builder, 2, 0);
+
+      emitRandomQueueIndex(builder, 3, 0);
+
+      emitQueueSwap(builder);
+
       builder
-          .labelBinding(commandLoop)
+          .iinc(0, 1)
+          .goto_(labels.originalShuffleLoop())
+          .labelBinding(labels.originalReturn())
+          .return_();
+
+      builder.labelBinding(labels.customOrder()).iconst_0().istore(1).iconst_1().istore(0);
+
+      builder
+          .labelBinding(labels.commandLoop())
           .iload(0)
           .iconst_m1()
-          .if_icmpeq(heroesDone)
+          .if_icmpeq(labels.heroesDone())
           .iconst_0()
           .istore(2);
+
       builder
-          .labelBinding(heroLoop)
+          .labelBinding(labels.heroLoop())
           .iload(2)
           .iconst_4()
-          .if_icmpge(nextCommand)
+          .if_icmpge(labels.nextCommand())
           .getstatic(battle(), COMMAND_FIELD, ClassDesc.ofDescriptor(COMMAND_DESCRIPTOR))
           .iload(2)
           .aaload()
@@ -276,83 +276,99 @@ public final class PartyActionOrderClassPatcher {
           .istore(3)
           .iload(0)
           .iconst_4()
-          .if_icmpeq(commandOther)
+          .if_icmpeq(labels.commandOther())
           .iload(3)
           .iload(0)
-          .if_icmpeq(addHero)
-          .goto_(skipHero);
+          .if_icmpeq(labels.addHero())
+          .goto_(labels.skipHero());
+
       builder
-          .labelBinding(commandOther)
+          .labelBinding(labels.commandOther())
           .iload(3)
           .iconst_1()
-          .if_icmpeq(skipHero)
+          .if_icmpeq(labels.skipHero())
           .iload(3)
           .iconst_2()
-          .if_icmpeq(skipHero)
+          .if_icmpeq(labels.skipHero())
           .iload(3)
           .iconst_0()
-          .if_icmpeq(skipHero)
+          .if_icmpeq(labels.skipHero())
           .iload(3)
           .iconst_3()
-          .if_icmpeq(skipHero);
+          .if_icmpeq(labels.skipHero());
       builder
-          .labelBinding(addHero)
+          .labelBinding(labels.addHero())
           .getstatic(battle(), QUEUE_FIELD, ClassDesc.ofDescriptor(QUEUE_DESCRIPTOR))
           .iload(1)
           .iinc(1, 1)
           .iload(2)
           .iastore();
-      builder.labelBinding(skipHero).iinc(2, 1).goto_(heroLoop);
-      builder
-          .labelBinding(nextCommand)
-          .iload(0)
-          .iconst_1()
-          .if_icmpeq(commandTwo)
-          .iload(0)
-          .iconst_2()
-          .if_icmpeq(commandZero)
-          .iload(0)
-          .iconst_0()
-          .if_icmpeq(commandThree)
-          .iload(0)
-          .iconst_3()
-          .if_icmpeq(commandOtherPass)
-          .iconst_m1()
-          .istore(0)
-          .goto_(commandLoop);
-      builder.labelBinding(commandTwo).iconst_2().istore(0).goto_(commandLoop);
-      builder.labelBinding(commandZero).iconst_0().istore(0).goto_(commandLoop);
-      builder.labelBinding(commandThree).iconst_3().istore(0).goto_(commandLoop);
-      builder.labelBinding(commandOtherPass).iconst_4().istore(0).goto_(commandLoop);
+
+      builder.labelBinding(labels.skipHero()).iinc(2, 1).goto_(labels.heroLoop());
 
       builder
-          .labelBinding(heroesDone)
+          .labelBinding(labels.nextCommand())
+          .iload(0)
+          .iconst_1()
+          .if_icmpeq(labels.commandTwo())
+          .iload(0)
+          .iconst_2()
+          .if_icmpeq(labels.commandZero())
+          .iload(0)
+          .iconst_0()
+          .if_icmpeq(labels.commandThree())
+          .iload(0)
+          .iconst_3()
+          .if_icmpeq(labels.commandOtherPass())
+          .iconst_m1()
+          .istore(0)
+          .goto_(labels.commandLoop());
+
+      builder.labelBinding(labels.commandTwo()).iconst_2().istore(0).goto_(labels.commandLoop());
+
+      builder.labelBinding(labels.commandZero()).iconst_0().istore(0).goto_(labels.commandLoop());
+
+      builder.labelBinding(labels.commandThree()).iconst_3().istore(0).goto_(labels.commandLoop());
+
+      builder
+          .labelBinding(labels.commandOtherPass())
+          .iconst_4()
+          .istore(0)
+          .goto_(labels.commandLoop());
+
+      builder
+          .labelBinding(labels.heroesDone())
           .iconst_4()
           .istore(2)
-          .labelBinding(enemyFillLoop)
+          .labelBinding(labels.enemyFillLoop())
           .iload(2)
           .getstatic(battle(), QUEUE_FIELD, ClassDesc.ofDescriptor(QUEUE_DESCRIPTOR))
           .arraylength()
-          .if_icmpge(enemyShuffleStart)
+          .if_icmpge(labels.enemyShuffleStart())
           .getstatic(battle(), QUEUE_FIELD, ClassDesc.ofDescriptor(QUEUE_DESCRIPTOR))
           .iload(1)
           .iinc(1, 1)
           .iload(2)
           .iastore()
           .iinc(2, 1)
-          .goto_(enemyFillLoop);
+          .goto_(labels.enemyFillLoop());
+
       builder
-          .labelBinding(enemyShuffleStart)
+          .labelBinding(labels.enemyShuffleStart())
           .iconst_0()
           .istore(0)
-          .labelBinding(enemyShuffleLoop)
+          .labelBinding(labels.enemyShuffleLoop())
           .iload(0)
           .bipush(17)
-          .if_icmpge(originalReturn);
+          .if_icmpge(labels.originalReturn());
+
       emitRandomQueueIndex(builder, 2, 4);
+
       emitRandomQueueIndex(builder, 3, 4);
+
       emitQueueSwap(builder);
-      builder.iinc(0, 1).goto_(enemyShuffleLoop);
+
+      builder.iinc(0, 1).goto_(labels.enemyShuffleLoop());
     }
 
     private static void emitRandomQueueIndex(CodeBuilder builder, int targetLocal, int base) {
@@ -369,13 +385,17 @@ public final class PartyActionOrderClassPatcher {
           .iushr()
           .getstatic(battle(), QUEUE_FIELD, ClassDesc.ofDescriptor(QUEUE_DESCRIPTOR))
           .arraylength();
+
       if (base > 0) {
         builder.iconst_4().isub();
       }
+
       builder.irem();
+
       if (base > 0) {
         builder.iconst_4().iadd();
       }
+
       builder.istore(targetLocal);
     }
 
@@ -399,6 +419,53 @@ public final class PartyActionOrderClassPatcher {
 
     private static ClassDesc battle() {
       return ClassDesc.of(BATTLE_CLASS_NAME);
+    }
+  }
+
+  private record PartyOrderLabels(
+      Label customOrder,
+      Label startOriginalFill,
+      Label originalFillLoop,
+      Label originalShuffleStart,
+      Label originalShuffleLoop,
+      Label originalReturn,
+      Label commandTwo,
+      Label commandZero,
+      Label commandThree,
+      Label commandOtherPass,
+      Label commandOther,
+      Label heroesDone,
+      Label commandLoop,
+      Label heroLoop,
+      Label skipHero,
+      Label addHero,
+      Label nextCommand,
+      Label enemyFillLoop,
+      Label enemyShuffleStart,
+      Label enemyShuffleLoop) {
+
+    private static PartyOrderLabels create(CodeBuilder builder) {
+      return new PartyOrderLabels(
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel(),
+          builder.newLabel());
     }
   }
 }

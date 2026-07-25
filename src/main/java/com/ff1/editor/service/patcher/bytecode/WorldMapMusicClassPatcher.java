@@ -52,30 +52,40 @@ public final class WorldMapMusicClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     int original = count(classBytes, STOCK_WORLD_MAP_OPEN_MUSIC_STOP);
     int patched = count(classBytes, PATCHED_WORLD_MAP_OPEN_MUSIC_CONTINUES);
+
     if (original == 1 && patched == 0) {
       return PatcherState.ORIGINAL;
     }
+
     if (patched == 1 && original == 0) {
       return PatcherState.PATCHED;
     }
+
     log.info(
         "World-map music patch state unknown; originalSites={}, patchedSites={}",
         original,
         patched);
+
     return PatcherState.UNKNOWN;
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying world-map music patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException("Unsupported i.class layout for world-map music patch.");
     }
+
     byte[] patched = classBytes.clone();
+
     int offset = indexOf(patched, STOCK_WORLD_MAP_OPEN_MUSIC_STOP, 0);
+
     System.arraycopy(
         PATCHED_WORLD_MAP_OPEN_MUSIC_CONTINUES,
         0,
@@ -86,7 +96,9 @@ public final class WorldMapMusicClassPatcher {
       throw new IllegalStateException(
           "World-map music patch did not produce the expected bytecode.");
     }
+
     log.info("World-map music patch applied");
+
     return patched;
   }
 }

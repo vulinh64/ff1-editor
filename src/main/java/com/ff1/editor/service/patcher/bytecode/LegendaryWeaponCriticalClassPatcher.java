@@ -2,9 +2,14 @@ package com.ff1.editor.service.patcher.bytecode;
 
 import com.ff1.editor.utils.CldcStackMapStripper;
 import java.lang.classfile.ClassFile;
+import java.lang.classfile.ClassFile.DebugElementsOption;
+import java.lang.classfile.ClassFile.LineNumbersOption;
+import java.lang.classfile.ClassFile.StackMapsOption;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
@@ -13,10 +18,7 @@ import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.classfile.instruction.LoadInstruction;
 import java.lang.classfile.instruction.StoreInstruction;
 import java.lang.constant.ClassDesc;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 /** Patches g.class so Excalibur and Masamune never miss and always crit. */
@@ -53,35 +55,47 @@ public final class LegendaryWeaponCriticalClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       List<Instruction> instructions = physicalDamageInstructions(model);
+
       if (instructions.isEmpty()) {
         log.info("Legendary weapon critical patch state unknown; physical damage method not found");
         return PatcherState.UNKNOWN;
       }
+
       int hitCountCopySites = hitCountCopySites(instructions);
       int patchedSites = patchedLegendaryWeaponSites(instructions);
+
       if (hitCountCopySites == 1 && patchedSites == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (hitCountCopySites == 1 && patchedSites == 1) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "Legendary weapon critical patch state unknown; hitCountCopySites={}, patchedSites={}",
           hitCountCopySites,
           patchedSites);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("OP legendary weapons patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying legendary weapon critical class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException(
           "Unsupported g.class layout for legendary weapon critical patch.");
@@ -89,61 +103,81 @@ public final class LegendaryWeaponCriticalClassPatcher {
 
     ClassFile classFile =
         ClassFile.of(
-            ClassFile.StackMapsOption.DROP_STACK_MAPS,
-            ClassFile.DebugElementsOption.DROP_DEBUG,
-            ClassFile.LineNumbersOption.DROP_LINE_NUMBERS);
+            StackMapsOption.DROP_STACK_MAPS,
+            DebugElementsOption.DROP_DEBUG,
+            LineNumbersOption.DROP_LINE_NUMBERS);
+
     ClassModel model = classFile.parse(classBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 LegendaryWeaponCriticalClassPatcher::isPhysicalDamageMethod,
-                java.lang.classfile.CodeTransform.ofStateful(() -> new ApplyTransform(counter))));
+                CodeTransform.ofStateful(() -> new ApplyTransform(counter))));
+
     patched = stripStaleStackMap(patched);
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() != 1 || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "Expected one legendary weapon critical site in %s but patched %d; state=%s."
               .formatted(ENTRY_NAME, counter.count(), patchedState));
     }
+
     log.info("Legendary weapon critical class patch applied");
+
     return patched;
   }
 
   public static byte[] remove(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Removing legendary weapon critical class patch; current state={}", state);
+
     if (state == PatcherState.ORIGINAL) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "Unsupported g.class layout for legendary weapon critical patch removal.");
     }
 
     byte[] strippedClassBytes = stripStaleStackMap(classBytes);
+
     ClassFile classFile =
         ClassFile.of(
-            ClassFile.StackMapsOption.DROP_STACK_MAPS,
-            ClassFile.DebugElementsOption.DROP_DEBUG,
-            ClassFile.LineNumbersOption.DROP_LINE_NUMBERS);
+            StackMapsOption.DROP_STACK_MAPS,
+            DebugElementsOption.DROP_DEBUG,
+            LineNumbersOption.DROP_LINE_NUMBERS);
+
     ClassModel model = classFile.parse(strippedClassBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] restored =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 LegendaryWeaponCriticalClassPatcher::isPhysicalDamageMethod,
-                java.lang.classfile.CodeTransform.ofStateful(() -> new RemoveTransform(counter))));
+                CodeTransform.ofStateful(() -> new RemoveTransform(counter))));
+
     restored = stripStaleStackMap(restored);
+
     PatcherState restoredState = state(restored);
+
     if (counter.count() != 1 || restoredState != PatcherState.ORIGINAL) {
       throw new IllegalStateException(
           "Expected one legendary weapon critical removal site in %s but removed %d; state=%s."
               .formatted(ENTRY_NAME, counter.count(), restoredState));
     }
+
     log.info("Legendary weapon critical class patch removed");
+
     return restored;
   }
 
@@ -155,10 +189,11 @@ public final class LegendaryWeaponCriticalClassPatcher {
   private static List<Instruction> physicalDamageInstructions(ClassModel model) {
     for (MethodModel method : model.methods()) {
       if (isPhysicalDamageMethod(method)) {
-        return instructions(method);
+        return BytecodeInstructions.instructions(method);
       }
     }
-    return List.of();
+
+    return Collections.emptyList();
   }
 
   private static boolean isPhysicalDamageMethod(MethodModel method) {
@@ -166,37 +201,28 @@ public final class LegendaryWeaponCriticalClassPatcher {
         && PHYSICAL_DAMAGE_DESCRIPTOR.equals(method.methodType().stringValue());
   }
 
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
-  }
-
   private static int hitCountCopySites(List<Instruction> instructions) {
     int matches = 0;
+
     for (int i = 0; i <= instructions.size() - 2; i++) {
       if (isIntLoad(instructions.get(i), BASE_HIT_COUNT_LOCAL)
           && isIntStore(instructions.get(i + 1), LOOP_HIT_COUNT_LOCAL)) {
         matches++;
       }
     }
+
     return matches;
   }
 
   private static int patchedLegendaryWeaponSites(List<Instruction> instructions) {
     int matches = 0;
+
     for (int i = 0; i <= instructions.size() - PATCHED_WINDOW_SIZE; i++) {
       if (isPatchedLegendaryWeaponWindow(instructions.subList(i, i + PATCHED_WINDOW_SIZE))) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -266,30 +292,20 @@ public final class LegendaryWeaponCriticalClassPatcher {
         && integer == value;
   }
 
-  private static final class PatchCounter {
-    private int count;
+  private static final class ApplyTransform implements CodeTransform {
 
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class ApplyTransform implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
+    private final PatchSiteCounter counter;
     private CodeElement held;
     private boolean patched;
 
-    private ApplyTransform(PatchCounter counter) {
+    private ApplyTransform(PatchSiteCounter counter) {
       this.counter = counter;
     }
 
     public static void emitLegendaryWeaponPatch(CodeBuilder builder) {
       var notLegendary = builder.newLabel();
       var legendary = builder.newLabel();
+
       builder
           .iload(ATTACKER_IS_PARTY_LOCAL)
           .ifeq(notLegendary)
@@ -331,6 +347,7 @@ public final class LegendaryWeaponCriticalClassPatcher {
         builder.with(element);
         return;
       }
+
       if (held == null) {
         if (element instanceof Instruction instruction
             && isIntLoad(instruction, BASE_HIT_COUNT_LOCAL)) {
@@ -340,18 +357,27 @@ public final class LegendaryWeaponCriticalClassPatcher {
         }
         return;
       }
+
       if (element instanceof Instruction instruction
           && isIntStore(instruction, LOOP_HIT_COUNT_LOCAL)) {
         emitLegendaryWeaponPatch(builder);
+
         builder.with(held);
+
         builder.with(element);
+
         held = null;
         patched = true;
+
         counter.increment();
+
         return;
       }
+
       builder.with(held);
+
       held = null;
+
       accept(builder, element);
     }
 
@@ -363,13 +389,14 @@ public final class LegendaryWeaponCriticalClassPatcher {
     }
   }
 
-  private static final class RemoveTransform implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
+  private static final class RemoveTransform implements CodeTransform {
+
+    private final PatchSiteCounter counter;
     private final Deque<CodeElement> pending = new ArrayDeque<>();
     private boolean removed;
     private boolean skippingInjectedLabels;
 
-    private RemoveTransform(PatchCounter counter) {
+    private RemoveTransform(PatchSiteCounter counter) {
       this.counter = counter;
     }
 
@@ -379,21 +406,31 @@ public final class LegendaryWeaponCriticalClassPatcher {
         if (skippingInjectedLabels && !(element instanceof Instruction)) {
           return;
         }
+
         skippingInjectedLabels = false;
+
         builder.with(element);
+
         return;
       }
+
       pending.addLast(element);
+
       while (!pending.isEmpty() && !(pending.peekFirst() instanceof Instruction)) {
         builder.with(pending.removeFirst());
       }
+
       if (matchesPending()) {
         removePatchedWindow();
+
         removed = true;
         skippingInjectedLabels = true;
+
         counter.increment();
+
         return;
       }
+
       while (instructionCount() > PATCHED_WINDOW_SIZE) {
         builder.with(pending.removeFirst());
       }
@@ -408,16 +445,17 @@ public final class LegendaryWeaponCriticalClassPatcher {
 
     private boolean matchesPending() {
       List<Instruction> instructions = pendingInstructions();
-      if (instructions.size() < PATCHED_WINDOW_SIZE) {
-        return false;
-      }
-      return isPatchedLegendaryWeaponWindow(instructions.subList(0, PATCHED_WINDOW_SIZE));
+
+      return instructions.size() >= PATCHED_WINDOW_SIZE
+          && isPatchedLegendaryWeaponWindow(instructions.subList(0, PATCHED_WINDOW_SIZE));
     }
 
     private void removePatchedWindow() {
       int instructionsRemoved = 0;
+
       while (!pending.isEmpty() && instructionsRemoved < PATCHED_WINDOW_SIZE) {
         CodeElement element = pending.removeFirst();
+
         if (element instanceof Instruction) {
           instructionsRemoved++;
         }
@@ -426,21 +464,25 @@ public final class LegendaryWeaponCriticalClassPatcher {
 
     private int instructionCount() {
       int count = 0;
+
       for (CodeElement element : pending) {
         if (element instanceof Instruction) {
           count++;
         }
       }
+
       return count;
     }
 
     private List<Instruction> pendingInstructions() {
       List<Instruction> instructions = new ArrayList<>(pending.size());
+
       for (CodeElement element : pending) {
         if (element instanceof Instruction instruction) {
           instructions.add(instruction);
         }
       }
+
       return instructions;
     }
   }

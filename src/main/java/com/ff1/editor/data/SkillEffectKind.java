@@ -37,6 +37,7 @@ public enum SkillEffectKind implements LabeledValue {
         return kind.label;
       }
     }
+
     return "Unknown";
   }
 }

@@ -32,20 +32,27 @@ public enum MagicClassBit implements MaskOption {
 
   public static String namesForMask(int mask) {
     StringBuilder out = new StringBuilder();
+
     int count = 0;
+
     for (MagicClassBit bit : values()) {
       if ((mask & bit.bit()) == 0) {
         continue;
       }
+
       if (!out.isEmpty()) {
         out.append(", ");
       }
+
       out.append(bit.label());
+
       count++;
     }
+
     if (count == 0) {
       return StringUtils.EMPTY;
     }
+
     return count == values().length ? "All" : out.toString();
   }
 }

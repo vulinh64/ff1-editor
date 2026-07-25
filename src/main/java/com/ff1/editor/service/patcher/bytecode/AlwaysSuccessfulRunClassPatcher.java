@@ -3,13 +3,15 @@ package com.ff1.editor.service.patcher.bytecode;
 import com.ff1.editor.utils.CldcStackMapStripper;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.InvokeInstruction;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,68 +34,89 @@ public final class AlwaysSuccessfulRunClassPatcher {
 
   public static PatcherState state(byte[] classBytes) {
     try {
+
       ClassModel model = ClassFile.of().parse(classBytes);
+
       List<Instruction> instructions = runCheckInstructions(model);
+
       if (instructions.isEmpty()) {
         log.info("Always-run class patch state unknown; run check method not found");
+
         return PatcherState.UNKNOWN;
       }
+
       int randomCalls = randomNextIntCalls(instructions);
       int returns = returns(instructions);
+
       if (randomCalls == ORIGINAL_RANDOM_CALLS && returns == ORIGINAL_RETURN_COUNT) {
         return PatcherState.ORIGINAL;
       }
+
       if (randomCalls == 0 && returns == PATCHED_RETURN_COUNT) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "Always-run class patch state unknown; randomCalls={}, returns={}", randomCalls, returns);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Always successful running patcher state error", e);
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying always-successful run class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException(
           "Unsupported g.class layout for always-successful run patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(classBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 AlwaysSuccessfulRunClassPatcher::isRunCheckMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new AlwaysSuccessfulRunCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new AlwaysSuccessfulRunCodeTransform(counter))));
+
     patched =
         CldcStackMapStripper.stripMethodStackMap(patched, RUN_CHECK_METHOD, RUN_CHECK_DESCRIPTOR);
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() != 1 || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "Expected one run-check tail in %s but patched %d; state=%s."
               .formatted(ENTRY_NAME, counter.count(), patchedState));
     }
+
     log.info("Always-successful run class patch applied");
+
     return patched;
   }
 
   private static List<Instruction> runCheckInstructions(ClassModel model) {
     for (MethodModel method : model.methods()) {
       if (isRunCheckMethod(method)) {
-        return instructions(method);
+        return BytecodeInstructions.instructions(method);
       }
     }
-    return List.of();
+
+    return Collections.emptyList();
   }
 
   private static boolean isRunCheckMethod(MethodModel method) {
@@ -101,36 +124,27 @@ public final class AlwaysSuccessfulRunClassPatcher {
         && RUN_CHECK_DESCRIPTOR.equals(method.methodType().stringValue());
   }
 
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
-  }
-
   private static int randomNextIntCalls(List<Instruction> instructions) {
     int matches = 0;
+
     for (Instruction instruction : instructions) {
       if (isRandomNextInt(instruction)) {
         matches++;
       }
     }
+
     return matches;
   }
 
   private static int returns(List<Instruction> instructions) {
     int matches = 0;
+
     for (Instruction instruction : instructions) {
       if (instruction.opcode() == Opcode.IRETURN) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -142,26 +156,14 @@ public final class AlwaysSuccessfulRunClassPatcher {
         && RANDOM_NEXT_INT_DESCRIPTOR.equals(invoke.type().stringValue());
   }
 
-  private static final class PatchCounter {
-    private int count;
+  private static final class AlwaysSuccessfulRunCodeTransform implements CodeTransform {
 
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class AlwaysSuccessfulRunCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
+    private final PatchSiteCounter counter;
     private int returns;
     private boolean emitPatchedTail;
     private boolean tailPatched;
 
-    private AlwaysSuccessfulRunCodeTransform(PatchCounter counter) {
+    private AlwaysSuccessfulRunCodeTransform(PatchSiteCounter counter) {
       this.counter = counter;
     }
 
@@ -170,20 +172,27 @@ public final class AlwaysSuccessfulRunClassPatcher {
       if (tailPatched) {
         return;
       }
+
       if (emitPatchedTail) {
         if (element instanceof Instruction) {
           builder.iconst_1().ireturn();
+
           tailPatched = true;
           counter.increment();
+
           return;
         }
+
         builder.with(element);
+
         return;
       }
 
       builder.with(element);
+
       if (element instanceof Instruction instruction && instruction.opcode() == Opcode.IRETURN) {
         returns++;
+
         if (returns == 2) {
           emitPatchedTail = true;
         }

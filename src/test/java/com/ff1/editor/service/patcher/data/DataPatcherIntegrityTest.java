@@ -46,8 +46,7 @@ class DataPatcherIntegrityTest {
 
     int offset = HeroClassStatsPatcher.TABLE_OFFSET + 2 * HeroClassStatsPatcher.RECORD_SIZE;
     assertArrayEquals(
-        new byte[] {33, 44, 55, 66, 77, 88, 99, 100},
-        Arrays.copyOfRange(cp0, offset, offset + 8));
+        new byte[] {33, 44, 55, 66, 77, 88, 99, 100}, Arrays.copyOfRange(cp0, offset, offset + 8));
     assertEquals(0x7f, cp0[offset - 1] & 0xff);
     assertEquals(0x7f, cp0[offset + 8] & 0xff);
   }

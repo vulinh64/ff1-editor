@@ -1,16 +1,16 @@
 package com.ff1.editor.service.patcher.bytecode;
 
-import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.ConstantInstruction;
 import java.lang.classfile.instruction.FieldInstruction;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,87 +34,94 @@ public final class UniversalSpellChargeClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       int original = countClassGateSites(model, ORIGINAL_CLASS_GATE);
       int patched = countClassGateSites(model, PATCHED_CLASS_GATE);
+
       if (original == EXPECTED_CLASS_GATE_SITES && patched == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (patched == EXPECTED_CLASS_GATE_SITES && original == 0) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "Universal spell-charge class patch state unknown; originalSites={}, patchedSites={}",
           original,
           patched);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Everyone gaining spell charges patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying universal spell-charge class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException(
           "Unsupported g.class layout for universal spell-charge patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(classBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 UniversalSpellChargeClassPatcher::isLevelUpMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new UniversalSpellChargeCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new UniversalSpellChargeCodeTransform(counter))));
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() != EXPECTED_CLASS_GATE_SITES || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "Expected %d spell-charge class gate in %s but patched %d; state=%s."
               .formatted(EXPECTED_CLASS_GATE_SITES, ENTRY_NAME, counter.count(), patchedState));
     }
+
     log.info("Universal spell-charge class patch applied at {} site", counter.count());
+
     return patched;
   }
 
   private static int countClassGateSites(ClassModel model, int gate) {
     int matches = 0;
+
     for (MethodModel method : model.methods()) {
       if (!isLevelUpMethod(method)) {
         continue;
       }
-      List<Instruction> instructions = instructions(method);
+
+      List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
       for (int i = 0; i < instructions.size(); i++) {
         if (isClassGateSite(instructions, i, gate)) {
           matches++;
         }
       }
     }
+
     return matches;
   }
 
   private static boolean isLevelUpMethod(MethodModel method) {
     return LEVEL_UP_METHOD.equals(method.methodName().stringValue())
         && LEVEL_UP_DESCRIPTOR.equals(method.methodType().stringValue());
-  }
-
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
   }
 
   private static boolean isClassGateSite(List<Instruction> instructions, int offset, int gate) {
@@ -139,24 +146,12 @@ public final class UniversalSpellChargeClassPatcher {
         && integer == value;
   }
 
-  private static final class PatchCounter {
-    private int count;
+  private static final class UniversalSpellChargeCodeTransform implements CodeTransform {
 
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class UniversalSpellChargeCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
+    private final PatchSiteCounter counter;
     private Instruction previousInstruction;
 
-    private UniversalSpellChargeCodeTransform(PatchCounter counter) {
+    private UniversalSpellChargeCodeTransform(PatchSiteCounter counter) {
       this.counter = counter;
     }
 
@@ -166,12 +161,16 @@ public final class UniversalSpellChargeClassPatcher {
           && isHeroClassIdRead(previousInstruction)
           && isPush(instruction, ORIGINAL_CLASS_GATE)) {
         builder.iconst_0();
+
         counter.increment();
+
         previousInstruction = null;
+
         return;
       }
 
       builder.with(element);
+
       previousInstruction = element instanceof Instruction instruction ? instruction : null;
     }
   }

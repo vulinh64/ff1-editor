@@ -32,7 +32,7 @@ public final class EditorPatchService {
     return BuildResult.builder()
         .outputJar(outputJar)
         .replacedEntries(List.copyOf(replacements.keySet()))
-        .summary("replaced " + replacements.size() + " jar entries")
+        .summary("replaced %d jar entries".formatted(replacements.size()))
         .build();
   }
 

@@ -63,36 +63,47 @@ public final class HeroMagicResistanceClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       int targetMethods = 0;
       int originalChanceRolls = 0;
       int chanceResistanceSites = 0;
       int damageResistanceSites = 0;
+
       for (MethodModel method : model.methods()) {
         if (!isSpellEffectMethod(method)) {
           continue;
         }
+
         targetMethods++;
-        List<Instruction> instructions = instructions(method);
+
+        List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
         originalChanceRolls += originalChanceRolls(instructions);
         chanceResistanceSites += pushCount(instructions, CHANCE_DIVISOR);
         damageResistanceSites += pushCount(instructions, DAMAGE_DIVISOR);
       }
+
       if (targetMethods == 1 && chanceResistanceSites == 0 && damageResistanceSites == 0) {
         return originalChanceRolls == ORIGINAL_CHANCE_ROLLS
             ? PatcherState.ORIGINAL
             : PatcherState.UNKNOWN;
       }
+
       if (targetMethods == 1 && chanceResistanceSites > 0 && damageResistanceSites > 0) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "Hero magic-resistance patch state unknown; targetMethods={}, originalChanceRolls={}, chanceResistanceSites={}, damageResistanceSites={}",
           targetMethods,
           originalChanceRolls,
           chanceResistanceSites,
           damageResistanceSites);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("INT+STA magic resistance patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
@@ -139,19 +150,6 @@ public final class HeroMagicResistanceClassPatcher {
   private static boolean isSpellEffectMethod(MethodModel method) {
     return SPELL_EFFECT_METHOD.equals(method.methodName().stringValue())
         && SPELL_EFFECT_DESCRIPTOR.equals(method.methodType().stringValue());
-  }
-
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
   }
 
   private static int originalChanceRolls(List<Instruction> instructions) {

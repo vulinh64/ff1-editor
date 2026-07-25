@@ -22,38 +22,42 @@ public enum SkillTargetMode implements LabeledValue {
 
   public static String displayName(int id) {
     for (SkillTargetMode mode : values()) {
-      if (mode.id == id) {
-        return mode.label;
+      if (mode.id() == id) {
+        return mode.label();
       }
     }
+
     return "Unknown";
   }
 
   public static SkillTarget target(int id) {
     SkillTargetMode mode = fromId(id);
-    return mode == null ? SkillTarget.NONE : mode.target;
+
+    return mode == null ? SkillTarget.NONE : mode.target();
   }
 
   public static SkillTargetScope scope(int id) {
     SkillTargetMode mode = fromId(id);
-    return mode == null ? SkillTargetScope.NONE : mode.scope;
+
+    return mode == null ? SkillTargetScope.NONE : mode.scope();
   }
 
   public static int targetModeForScope(int currentTargetMode, SkillTargetScope scope) {
     SkillTargetMode current = fromId(currentTargetMode);
+
     if (current == null || current == NONE || scope == SkillTargetScope.NONE) {
-      return NONE.id;
+      return NONE.id();
     }
+
     if (scope == SkillTargetScope.SELF || current == SELF) {
-      return current.id;
+      return current.id();
     }
-    if (current.target == SkillTarget.PARTY) {
-      return scope == SkillTargetScope.OMNI ? PARTY_OMNI.id : PARTY_SINGLE.id;
-    }
-    if (current.target == SkillTarget.ENEMY) {
-      return scope == SkillTargetScope.OMNI ? ENEMY_OMNI.id : ENEMY_SINGLE.id;
-    }
-    return current.id;
+
+    return switch (current.target()) {
+      case PARTY -> scope == SkillTargetScope.OMNI ? PARTY_OMNI.id() : PARTY_SINGLE.id();
+      case ENEMY -> scope == SkillTargetScope.OMNI ? ENEMY_OMNI.id() : ENEMY_SINGLE.id();
+      case null, default -> current.id();
+    };
   }
 
   public static int targetModeForTargetAndScope(SkillTarget target, SkillTargetScope scope) {
@@ -61,16 +65,13 @@ public enum SkillTargetMode implements LabeledValue {
         scope == null || scope == SkillTargetScope.NONE || scope == SkillTargetScope.SELF
             ? SkillTargetScope.SINGLE
             : scope;
-    if (target == SkillTarget.SELF) {
-      return SELF.id;
-    }
-    if (target == SkillTarget.PARTY) {
-      return selectedScope == SkillTargetScope.OMNI ? PARTY_OMNI.id : PARTY_SINGLE.id;
-    }
-    if (target == SkillTarget.ENEMY) {
-      return selectedScope == SkillTargetScope.OMNI ? ENEMY_OMNI.id : ENEMY_SINGLE.id;
-    }
-    return NONE.id;
+
+    return switch (target) {
+      case SELF -> SELF.id;
+      case PARTY -> selectedScope == SkillTargetScope.OMNI ? PARTY_OMNI.id : PARTY_SINGLE.id;
+      case ENEMY -> selectedScope == SkillTargetScope.OMNI ? ENEMY_OMNI.id : ENEMY_SINGLE.id;
+      case null, default -> NONE.id;
+    };
   }
 
   private static SkillTargetMode fromId(int id) {
@@ -79,6 +80,7 @@ public enum SkillTargetMode implements LabeledValue {
         return mode;
       }
     }
+
     return null;
   }
 }

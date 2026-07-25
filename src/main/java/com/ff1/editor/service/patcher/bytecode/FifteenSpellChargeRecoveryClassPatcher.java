@@ -4,13 +4,14 @@ import com.ff1.editor.service.*;
 import com.ff1.editor.service.patcher.data.FifteenSpellChargeGrowthPatcher;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.ConstantInstruction;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,46 +32,60 @@ public final class FifteenSpellChargeRecoveryClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       int original = countRecoveryConstants(model, ORIGINAL_RECOVERY_AMOUNT);
       int patched = countRecoveryConstants(model, PATCHED_RECOVERY_AMOUNT);
+
       if (original == EXPECTED_RECOVERY_CONSTANT_SITES && patched == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (patched == EXPECTED_RECOVERY_CONSTANT_SITES && original == 0) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "15 spell-charge recovery patch state unknown; originalSites={}, patchedSites={}",
           original,
           patched);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("9-15 spell charges patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying 15 spell-charge recovery patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException(
           "Unsupported i.class layout for 15 spell-charge recovery patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(classBytes);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 FifteenSpellChargeRecoveryClassPatcher::isRecoveryMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new FifteenChargeRecoveryCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new FifteenChargeRecoveryCodeTransform(counter))));
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() != EXPECTED_RECOVERY_CONSTANT_SITES
         || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
@@ -78,42 +93,35 @@ public final class FifteenSpellChargeRecoveryClassPatcher {
               .formatted(
                   EXPECTED_RECOVERY_CONSTANT_SITES, ENTRY_NAME, counter.count(), patchedState));
     }
+
     log.info("15 spell-charge recovery class patch applied at {} site", counter.count());
+
     return patched;
   }
 
   private static int countRecoveryConstants(ClassModel model, int value) {
     int matches = 0;
+
     for (MethodModel method : model.methods()) {
       if (!isRecoveryMethod(method)) {
         continue;
       }
-      List<Instruction> instructions = instructions(method);
+
+      List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
       for (int i = 0; i < instructions.size(); i++) {
         if (isRecoveryConstantSite(instructions, i, value)) {
           matches++;
         }
       }
     }
+
     return matches;
   }
 
   private static boolean isRecoveryMethod(MethodModel method) {
     return RECOVERY_METHOD.equals(method.methodName().stringValue())
         && RECOVERY_DESCRIPTOR.equals(method.methodType().stringValue());
-  }
-
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
   }
 
   private static boolean isRecoveryConstantSite(
@@ -129,34 +137,20 @@ public final class FifteenSpellChargeRecoveryClassPatcher {
         && integer == value;
   }
 
-  private static final class PatchCounter {
-    private int count;
-
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class FifteenChargeRecoveryCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
-
-    private FifteenChargeRecoveryCodeTransform(PatchCounter counter) {
-      this.counter = counter;
-    }
+  private record FifteenChargeRecoveryCodeTransform(PatchSiteCounter counter)
+      implements CodeTransform {
 
     @Override
     public void accept(CodeBuilder builder, CodeElement element) {
       if (element instanceof Instruction instruction
           && isPush(instruction, ORIGINAL_RECOVERY_AMOUNT)) {
         builder.bipush(PATCHED_RECOVERY_AMOUNT);
+
         counter.increment();
+
         return;
       }
+
       builder.with(element);
     }
   }

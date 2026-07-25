@@ -1,10 +1,11 @@
 package com.ff1.editor.service.patcher.bytecode;
 
-import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.Label;
 import java.lang.classfile.MethodModel;
@@ -13,7 +14,6 @@ import java.lang.classfile.instruction.ConstantInstruction;
 import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,58 +46,76 @@ public final class IntelligenceSpellDamageClassPatcher {
   public static PatcherState state(byte[] data) {
     try {
       ClassModel model = ClassFile.of().parse(data);
+
       int targetMethods = 0;
       int damageScaleSites = 0;
+
       for (MethodModel method : model.methods()) {
         if (!isSpellEffectMethod(method)) {
           continue;
         }
+
         targetMethods++;
         damageScaleSites += damageScaleSites(method);
       }
+
       if (targetMethods == 1 && damageScaleSites == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (targetMethods == 1 && damageScaleSites > 0) {
         return PatcherState.PATCHED;
       }
+
       log.info(
           "INT spell-damage class patch state unknown; targetMethods={}, damageScaleSites={}",
           targetMethods,
           damageScaleSites);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Intelligence scaling magical damage patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] data) {
     PatcherState state = state(data);
+
     log.info("Applying INT spell-damage class patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return data.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException("Unsupported g.class layout for INT spell-damage patch.");
     }
 
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(data);
-    PatchCounter counter = new PatchCounter();
+
+    PatchSiteCounter counter = PatchSiteCounter.create();
+
     byte[] patched =
         classFile.transformClass(
             model,
-            java.lang.classfile.ClassTransform.transformingMethodBodies(
+            ClassTransform.transformingMethodBodies(
                 IntelligenceSpellDamageClassPatcher::isSpellEffectMethod,
-                java.lang.classfile.CodeTransform.ofStateful(
-                    () -> new IntelligenceDamageCodeTransform(counter))));
+                CodeTransform.ofStateful(() -> new IntelligenceDamageCodeTransform(counter))));
+
     PatcherState patchedState = state(patched);
+
     if (counter.count() == 0 || patchedState != PatcherState.PATCHED) {
       throw new IllegalStateException(
           "INT spell-damage patch did not produce the expected g.class bytecode; counter=%d, state=%s"
               .formatted(counter.count(), patchedState));
     }
+
     log.info("INT spell-damage class patch applied at {} return sites", counter.count());
+
     return patched;
   }
 
@@ -108,12 +126,15 @@ public final class IntelligenceSpellDamageClassPatcher {
 
   private static int damageScaleSites(MethodModel method) {
     int matches = 0;
-    List<Instruction> instructions = instructions(method);
+
+    List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
     for (int i = 0; i + 7 < instructions.size(); i++) {
       if (isDamageScaleSite(instructions, i)) {
         matches++;
       }
     }
+
     return matches;
   }
 
@@ -126,19 +147,6 @@ public final class IntelligenceSpellDamageClassPatcher {
         && instructions.get(offset + 5).opcode() == Opcode.ISTORE
         && instructions.get(offset + 6).opcode() == Opcode.ILOAD
         && isPush(instructions.get(offset + 7), DAMAGE_CAP);
-  }
-
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
   }
 
   private static boolean isIntelligenceRead(Instruction instruction) {
@@ -155,25 +163,8 @@ public final class IntelligenceSpellDamageClassPatcher {
         && integer == value;
   }
 
-  private static final class PatchCounter {
-    private int count;
-
-    void increment() {
-      count++;
-    }
-
-    int count() {
-      return count;
-    }
-  }
-
-  private static final class IntelligenceDamageCodeTransform
-      implements java.lang.classfile.CodeTransform {
-    private final PatchCounter counter;
-
-    private IntelligenceDamageCodeTransform(PatchCounter counter) {
-      this.counter = counter;
-    }
+  private record IntelligenceDamageCodeTransform(PatchSiteCounter counter)
+      implements CodeTransform {
 
     @Override
     public void accept(CodeBuilder builder, CodeElement element) {
@@ -182,6 +173,7 @@ public final class IntelligenceSpellDamageClassPatcher {
         counter.increment();
         return;
       }
+
       builder.with(element);
     }
 

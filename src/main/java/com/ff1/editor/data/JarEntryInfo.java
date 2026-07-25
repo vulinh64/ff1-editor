@@ -13,10 +13,10 @@ public record JarEntryInfo(String name, long size, long compressedSize, long crc
   }
 
   public boolean isLikelyBinaryData() {
-    return !isClass()
-        && !name.startsWith("META-INF/")
-        && !name.endsWith(".png")
-        && !name.contains(".");
+    return !(isClass()
+        || name.startsWith("META-INF/")
+        || name.endsWith(".png")
+        || name.contains("."));
   }
 
   @Override

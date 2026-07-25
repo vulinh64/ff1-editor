@@ -6,8 +6,10 @@ import static com.ff1.editor.utils.BytePatternSearch.indexOf;
 import com.ff1.editor.service.*;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeTransform;
 import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
@@ -31,6 +33,26 @@ public final class AirshipLandingClassPatcher {
   private static final int STOCK_LANDING_UPPER_BOUND = 14;
   private static final int PATCHED_LANDING_UPPER_BOUND = 33;
   private static final int SAFE_LANDING_LOWER_BOUND = 10;
+
+  private static final byte[] REPLACEMENT = {
+    (byte) 0x59, // dup
+    (byte) 0x3c, // istore_1
+    (byte) 0x99, // ifeq success
+    (byte) 0x00,
+    (byte) 0x0f,
+    (byte) 0x10, // bipush 10
+    (byte) SAFE_LANDING_LOWER_BOUND,
+    (byte) 0x1b, // iload_1
+    (byte) 0xa3, // if_icmpgt fail
+    (byte) 0x00,
+    (byte) 0x43,
+    (byte) 0x1b, // iload_1
+    (byte) 0x10, // bipush upperBound
+    (byte) AirshipLandingClassPatcher.PATCHED_LANDING_UPPER_BOUND,
+    (byte) 0xa3, // if_icmpgt fail
+    (byte) 0x00,
+    (byte) 0x3d
+  };
 
   // Earlier local draft patch. Keep only so experimental jars can be upgraded
   // to the final Class-File API patch shape.
@@ -79,131 +101,127 @@ public final class AirshipLandingClassPatcher {
   public static PatcherState state(byte[] classBytes) {
     try {
       ClassModel model = ClassFile.of().parse(classBytes);
+
       int original = countLandingUpperBoundSites(model, STOCK_LANDING_UPPER_BOUND);
       int patched = countLandingUpperBoundSites(model, PATCHED_LANDING_UPPER_BOUND);
+
       if (original == 1 && patched == 0) {
         return PatcherState.ORIGINAL;
       }
+
       if (patched == 1 && original == 0) {
         return PatcherState.PATCHED;
       }
+
       int permissive = count(classBytes, PERMISSIVE_LANDING_CHECK);
       int walkableThreshold = count(classBytes, WALKABLE_THRESHOLD_LANDING_CHECK);
+
       if ((permissive == 1 || walkableThreshold == 1) && patched == 0) {
         return PatcherState.ORIGINAL;
       }
+
       log.info(
           "Airship landing patch state unknown; originalSites={}, permissiveSites={}, walkableThresholdSites={}, patchedSites={}",
           original,
           permissive,
           walkableThreshold,
           patched);
+
       return PatcherState.UNKNOWN;
-    } catch (RuntimeException | LinkageError _) {
+    } catch (RuntimeException | LinkageError e) {
+      log.warn("Airship landing patcher state error", e);
+
       return PatcherState.UNKNOWN;
     }
   }
 
   public static byte[] apply(byte[] classBytes) {
     PatcherState state = state(classBytes);
+
     log.info("Applying airship landing patch; current state={}", state);
+
     if (state == PatcherState.PATCHED) {
       return classBytes.clone();
     }
+
     if (state != PatcherState.ORIGINAL) {
       throw new IllegalStateException("Unsupported i.class layout for airship landing patch.");
     }
+
     byte[] patched = applyClassFilePatch(classBytes);
+
     if (state(patched) != PatcherState.PATCHED) {
       patched = applyLegacyDraftUpgrade(classBytes);
+
       if (state(patched) != PatcherState.PATCHED) {
         throw new IllegalStateException(
             "Airship landing patch did not produce the expected bytecode.");
       }
     }
+
     log.info("Airship landing patch applied");
+
     return patched;
   }
 
   private static byte[] applyClassFilePatch(byte[] classBytes) {
     ClassFile classFile = ClassFile.of();
+
     ClassModel model = classFile.parse(classBytes);
+
     return classFile.transformClass(
         model,
-        java.lang.classfile.ClassTransform.transformingMethodBodies(
+        ClassTransform.transformingMethodBodies(
             AirshipLandingClassPatcher::isLandingMethod,
-            java.lang.classfile.CodeTransform.ofStateful(LandingCheckTransform::new)));
+            CodeTransform.ofStateful(LandingCheckTransform::new)));
   }
 
   private static byte[] applyLegacyDraftUpgrade(byte[] classBytes) {
     byte[] upgraded = classBytes.clone();
+
     int offset = indexOf(upgraded, PERMISSIVE_LANDING_CHECK, 0);
+
     if (offset >= 0) {
       copyStockLandingCheck(upgraded, offset);
       return upgraded;
     }
+
     offset = indexOf(upgraded, WALKABLE_THRESHOLD_LANDING_CHECK, 0);
+
     if (offset >= 0) {
       copyStockLandingCheck(upgraded, offset);
     }
+
     return upgraded;
   }
 
   private static void copyStockLandingCheck(byte[] data, int offset) {
-    byte[] replacement = {
-      (byte) 0x59, // dup
-      (byte) 0x3c, // istore_1
-      (byte) 0x99, // ifeq success
-      (byte) 0x00,
-      (byte) 0x0f,
-      (byte) 0x10, // bipush 10
-      (byte) SAFE_LANDING_LOWER_BOUND,
-      (byte) 0x1b, // iload_1
-      (byte) 0xa3, // if_icmpgt fail
-      (byte) 0x00,
-      (byte) 0x43,
-      (byte) 0x1b, // iload_1
-      (byte) 0x10, // bipush upperBound
-      (byte) AirshipLandingClassPatcher.PATCHED_LANDING_UPPER_BOUND,
-      (byte) 0xa3, // if_icmpgt fail
-      (byte) 0x00,
-      (byte) 0x3d
-    };
-    System.arraycopy(replacement, 0, data, offset, replacement.length);
+    System.arraycopy(REPLACEMENT, 0, data, offset, REPLACEMENT.length);
   }
 
   private static int countLandingUpperBoundSites(ClassModel model, int upperBound) {
     int matches = 0;
+
     for (MethodModel method : model.methods()) {
       if (!isLandingMethod(method)) {
         continue;
       }
-      List<Instruction> instructions = instructions(method);
+
+      List<Instruction> instructions = BytecodeInstructions.instructions(method);
+
       for (int i = 0; i < instructions.size(); i++) {
         if (isLandingUpperBoundSite(instructions, i, upperBound)) {
           matches++;
         }
       }
     }
+
     return matches;
   }
 
   private static boolean isLandingMethod(MethodModel method) {
     return LANDING_METHOD.equals(method.methodName().stringValue())
         && LANDING_DESCRIPTOR.equals(method.methodType().stringValue());
-  }
-
-  private static List<Instruction> instructions(MethodModel method) {
-    List<Instruction> instructions = new ArrayList<>();
-    if (method.code().isEmpty()) {
-      return instructions;
-    }
-    for (CodeElement element : method.code().orElseThrow()) {
-      if (element instanceof Instruction instruction) {
-        instructions.add(instruction);
-      }
-    }
-    return instructions;
   }
 
   private static boolean isLandingUpperBoundSite(
@@ -227,7 +245,7 @@ public final class AirshipLandingClassPatcher {
         && integer == value;
   }
 
-  private static final class LandingCheckTransform implements java.lang.classfile.CodeTransform {
+  private static final class LandingCheckTransform implements CodeTransform {
     private final List<Instruction> recentInstructions = new ArrayList<>();
 
     @Override
@@ -236,10 +254,14 @@ public final class AirshipLandingClassPatcher {
           && isPush(instruction, STOCK_LANDING_UPPER_BOUND)
           && isRecentLandingUpperBoundContext()) {
         builder.bipush(PATCHED_LANDING_UPPER_BOUND);
+
         remember(instruction);
+
         return;
       }
+
       builder.with(element);
+
       if (element instanceof Instruction instruction) {
         remember(instruction);
       } else {
@@ -249,6 +271,7 @@ public final class AirshipLandingClassPatcher {
 
     private boolean isRecentLandingUpperBoundContext() {
       int size = recentInstructions.size();
+
       return size >= 7
           && recentInstructions.get(size - 7).opcode() == Opcode.DUP
           && recentInstructions.get(size - 6).opcode() == Opcode.ISTORE_1
