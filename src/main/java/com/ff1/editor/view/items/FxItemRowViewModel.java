@@ -1,5 +1,6 @@
 package com.ff1.editor.view.items;
 
+import com.ff1.editor.data.ArmorCastSpellEdit;
 import com.ff1.editor.data.ArmorResistance;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EquipmentPermissionEdit;
@@ -210,6 +211,14 @@ public final class FxItemRowViewModel {
 
   public WeaponCastSpellEdit toWeaponCastSpellEdit() {
     return WeaponCastSpellEdit.builder().weaponItemId(id()).castSpellId(castSpellId.get()).build();
+  }
+
+  public boolean armorCastChanged() {
+    return category() == ItemCategory.ARMOR && castSpellId.get() != originalCastSpellId();
+  }
+
+  public ArmorCastSpellEdit toArmorCastSpellEdit() {
+    return ArmorCastSpellEdit.builder().armorItemId(id()).castSpellId(castSpellId.get()).build();
   }
 
   public String resistanceMask() {

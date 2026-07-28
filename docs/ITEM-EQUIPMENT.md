@@ -298,7 +298,8 @@ evasion = baseEvasion - sum equippedArmor[2]
 ```
 
 The table labels this byte as `Evasion Lower` because larger values reduce the hero's evasion; heavy armor such as
-Knight's Armor carries a large penalty. The editor writes absorb and evasion lower from the Armor table.
+Knight's Armor carries a large penalty. The editor writes absorb, evasion lower, and cast skill ids from the Armor
+table.
 
 Armor resistance is confirmed by `j.g(hero)`: the game ORs byte `5` from all four equipped armor slots into one hero
 resistance mask.

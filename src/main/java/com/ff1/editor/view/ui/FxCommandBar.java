@@ -1,5 +1,6 @@
 package com.ff1.editor.view.ui;
 
+import com.ff1.editor.data.ArmorCastSpellEdit;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.AudioResource;
 import com.ff1.editor.data.BuildResult;
@@ -36,6 +37,7 @@ import com.ff1.editor.service.patcher.bytecode.PartyActionOrderClassPatcher;
 import com.ff1.editor.service.patcher.bytecode.UniversalSpellChargeClassPatcher;
 import com.ff1.editor.service.patcher.bytecode.WeaponAffinityDamageClassPatcher;
 import com.ff1.editor.service.patcher.bytecode.WorldMapMusicClassPatcher;
+import com.ff1.editor.service.patcher.data.ArmorCastSpellPatcher;
 import com.ff1.editor.service.patcher.data.FifteenSpellChargeGrowthPatcher;
 import com.ff1.editor.service.patcher.data.HeroClassStatsPatcher;
 import com.ff1.editor.service.patcher.data.ItemEquipmentPatcher;
@@ -544,6 +546,7 @@ public final class FxCommandBar extends VBox {
             || !state.skillEffectEdits().isEmpty()
             || !state.itemPriceEdits().isEmpty()
             || !state.weaponCastSpellEdits().isEmpty()
+            || !state.armorCastSpellEdits().isEmpty()
             || !state.weaponStatsEdits().isEmpty()
             || !state.armorStatsEdits().isEmpty()
             || !state.monsterStatsEdits().isEmpty()
@@ -648,6 +651,7 @@ public final class FxCommandBar extends VBox {
     List<SkillEffectEdit> skillEdits = state.skillEffectEdits();
     List<ItemPriceEdit> itemPriceEdits = state.itemPriceEdits();
     List<WeaponCastSpellEdit> weaponCastEdits = state.weaponCastSpellEdits();
+    List<ArmorCastSpellEdit> armorCastEdits = state.armorCastSpellEdits();
     List<WeaponStatsEdit> weaponStatsEdits = state.weaponStatsEdits();
     List<ArmorStatsEdit> armorStatsEdits = state.armorStatsEdits();
     List<MonsterStatsEdit> monsterStatsEdits = state.monsterStatsEdits();
@@ -697,6 +701,7 @@ public final class FxCommandBar extends VBox {
         && skillEdits.isEmpty()
         && itemPriceEdits.isEmpty()
         && weaponCastEdits.isEmpty()
+        && armorCastEdits.isEmpty()
         && weaponStatsEdits.isEmpty()
         && armorStatsEdits.isEmpty()
         && monsterStatsEdits.isEmpty()
@@ -733,6 +738,7 @@ public final class FxCommandBar extends VBox {
                 && skillEdits.isEmpty()
                 && itemPriceEdits.isEmpty()
                 && weaponCastEdits.isEmpty()
+                && armorCastEdits.isEmpty()
                 && weaponStatsEdits.isEmpty()
                 && armorStatsEdits.isEmpty()
                 && monsterStatsEdits.isEmpty()
@@ -791,6 +797,14 @@ public final class FxCommandBar extends VBox {
                     table.chunkOffset(ItemEquipmentDiscoveryService.WEAPON_CHUNK_INDEX);
                 for (WeaponCastSpellEdit edit : weaponCastEdits) {
                   WeaponCastSpellPatcher.apply(cp0, chunkOffset, edit);
+                }
+              }
+              if (!armorCastEdits.isEmpty()) {
+                Cp0ChunkTable table = new Cp0ChunkTable(cp0);
+                int chunkOffset =
+                    table.chunkOffset(ItemEquipmentDiscoveryService.ARMOR_CHUNK_INDEX);
+                for (ArmorCastSpellEdit edit : armorCastEdits) {
+                  ArmorCastSpellPatcher.apply(cp0, chunkOffset, edit);
                 }
               }
               if (universalChargesPatch) {
@@ -891,7 +905,7 @@ public final class FxCommandBar extends VBox {
         ("""
         Building patched JAR with %d hero edit(s), %d magic permission edit(s), \
         %d equipment permission edit(s), %d skill edit(s), %d item price edit(s), \
-        %d weapon cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), \
+        %d weapon cast edit(s), %d armor cast edit(s), %d weapon stat edit(s), %d armor stat edit(s), \
         %d monster stat edit(s), %d shop inventory edit(s), %d inn price edit(s), \
         %d music replacement(s)\
         %s%s%s%s%s%s%s%s%s%s%s%s%s%s...\
@@ -903,6 +917,7 @@ public final class FxCommandBar extends VBox {
                 skillEdits.size(),
                 itemPriceEdits.size(),
                 weaponCastEdits.size(),
+                armorCastEdits.size(),
                 weaponStatsEdits.size(),
                 armorStatsEdits.size(),
                 monsterStatsEdits.size(),

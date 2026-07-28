@@ -108,10 +108,12 @@ Future optional engine patch: change the game's starting-HP read path to treat
 the `cp0` HP byte as unsigned. Keep this separate from normal data editing.
 
 The Magic Permissions tab exposes spell permission masks. It is split into
-White Magic and Black Magic sub-tabs. Each row is a spell with a compact class
-mask editor plus the decoded in-game description, and the patched jar writes the
-resulting 16-bit mask back into `cp0`. Spell labels and descriptions are decoded
-from `PACK0_4`; do not hardcode spell-name arrays in the editor.
+White Magic and Black Magic sub-tabs and can toggle between the normal editable
+spell-row view and an editable matrix view with hero classes as columns. Each
+normal-view row is a spell with a compact class mask editor plus the decoded
+in-game description, and the patched jar writes the resulting 16-bit mask back
+into `cp0`. Spell labels and descriptions are decoded from `PACK0_4`; do not
+hardcode spell-name arrays in the editor.
 
 The Equipment / Items tab is a discovery/edit surface for item/equipment data.
 It is split into Weapons, Armor, and Items tables and currently exposes names,
@@ -126,6 +128,8 @@ Weapon cast spell labels come from decoded skill/spell data. Key/quest items are
 hidden from the Items sub-tab because they are not normal balance data. Keep
 other item/equipment bytes read-only until the remaining unknown bytes are named
 or bounded.
+Armor cast spell ids use the same decoded skill/spell labels and are editable
+from the Armor table.
 
 The Skills tab exposes all 94 spell/effect records from `cp0` chunk `1`.
 Spell/effect labels come from decoded game text where available, with consumable

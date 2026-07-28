@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.ff1.editor.data.ArmorCastSpellEdit;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EquipmentPermissionEdit;
 import com.ff1.editor.data.HeroClassStatsEdit;
@@ -226,6 +227,22 @@ class DataPatcherIntegrityTest {
             + 29 * ItemEquipmentDiscoveryService.WEAPON_RECORD_SIZE
             + ItemEquipmentDiscoveryService.WEAPON_CAST_SPELL_OFFSET_IN_RECORD;
     assertEquals(10, cp0[offset] & 0xff);
+  }
+
+  @Test
+  void armorCastPatchWritesArmorCastSkillId() {
+    byte[] cp0 = standardCp0();
+    int chunkOffset =
+        new Cp0ChunkTable(cp0).chunkOffset(ItemEquipmentDiscoveryService.ARMOR_CHUNK_INDEX);
+
+    ArmorCastSpellPatcher.apply(cp0, chunkOffset, new ArmorCastSpellEdit(63, 24));
+
+    int offset =
+        chunkOffset
+            + 2
+            + 15 * ItemEquipmentDiscoveryService.ARMOR_RECORD_SIZE
+            + ItemEquipmentDiscoveryService.ARMOR_CAST_SPELL_OFFSET_IN_RECORD;
+    assertEquals(24, cp0[offset] & 0xff);
   }
 
   private static byte[] standardCp0() {

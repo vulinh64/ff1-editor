@@ -5,6 +5,7 @@ import static com.ff1.editor.view.ui.FxTableColumns.intColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.maskColumn;
 import static com.ff1.editor.view.ui.FxTableColumns.textColumn;
 
+import com.ff1.editor.data.ArmorCastSpellEdit;
 import com.ff1.editor.data.ArmorResistance;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.EditorWorkspace;
@@ -68,6 +69,7 @@ public final class FxItemsView extends BorderPane {
     state.itemPriceEditSupplier(this::itemPriceEdits);
     state.equipmentPermissionEditSupplier(this::equipmentPermissionEdits);
     state.weaponCastSpellEditSupplier(this::weaponCastSpellEdits);
+    state.armorCastSpellEditSupplier(this::armorCastSpellEdits);
     state.weaponStatsEditSupplier(this::weaponStatsEdits);
     state.armorStatsEditSupplier(this::armorStatsEdits);
     refilter();
@@ -121,6 +123,13 @@ public final class FxItemsView extends BorderPane {
     return items.stream()
         .filter(FxItemRowViewModel::weaponCastChanged)
         .map(FxItemRowViewModel::toWeaponCastSpellEdit)
+        .toList();
+  }
+
+  private List<ArmorCastSpellEdit> armorCastSpellEdits() {
+    return items.stream()
+        .filter(FxItemRowViewModel::armorCastChanged)
+        .map(FxItemRowViewModel::toArmorCastSpellEdit)
         .toList();
   }
 
@@ -190,7 +199,7 @@ public final class FxItemsView extends BorderPane {
                 priceColumn(),
                 editableIntColumn("Damage", FxItemRowViewModel::damageProperty, 78, 0, 255),
                 editableIntColumn("Accuracy", FxItemRowViewModel::accuracyProperty, 82, 0, 255),
-                weaponCastSpellColumn(),
+                castSpellColumn(),
                 maskColumn(
                     "Affinities",
                     MonsterElementAffinity.values(),
@@ -224,7 +233,7 @@ public final class FxItemsView extends BorderPane {
     return table;
   }
 
-  private TableColumn<FxItemRowViewModel, Integer> weaponCastSpellColumn() {
+  private TableColumn<FxItemRowViewModel, Integer> castSpellColumn() {
     TableColumn<FxItemRowViewModel, Integer> column = new TableColumn<>("Casts");
     column.setCellValueFactory(cell -> cell.getValue().castSpellIdProperty().asObject());
     column.setCellFactory(
@@ -267,7 +276,7 @@ public final class FxItemsView extends BorderPane {
                 editableIntColumn("Absorb", FxItemRowViewModel::absorbProperty, 78, 0, 255),
                 editableIntColumn(
                     "Evasion Lower", FxItemRowViewModel::evasionPenaltyProperty, 112, 0, 255),
-                textColumn("Casts", FxItemRowViewModel::castSpell, 122),
+                castSpellColumn(),
                 maskColumn(
                     "Resists",
                     ArmorResistance.values(),

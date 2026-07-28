@@ -161,3 +161,12 @@
 .dialog-pane .button-bar {
   -fx-background-color: -ff1-bg;
 }
+
+.radio-button,
+.radio-button .text {
+  -fx-text-fill: -ff1-text;
+}
+
+.permission-matrix-table .check-box-table-cell {
+  -fx-alignment: center;
+}

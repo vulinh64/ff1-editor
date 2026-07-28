@@ -1,5 +1,6 @@
 package com.ff1.editor.view;
 
+import com.ff1.editor.data.ArmorCastSpellEdit;
 import com.ff1.editor.data.ArmorStatsEdit;
 import com.ff1.editor.data.AudioResource;
 import com.ff1.editor.data.EditorWorkspace;
@@ -51,6 +52,7 @@ public final class FxEditorState {
   private Supplier<List<SkillEffectEdit>> skillEffectEditSupplier = List::of;
   private Supplier<List<ItemPriceEdit>> itemPriceEditSupplier = List::of;
   private Supplier<List<WeaponCastSpellEdit>> weaponCastSpellEditSupplier = List::of;
+  private Supplier<List<ArmorCastSpellEdit>> armorCastSpellEditSupplier = List::of;
   private Supplier<List<WeaponStatsEdit>> weaponStatsEditSupplier = List::of;
   private Supplier<List<ArmorStatsEdit>> armorStatsEditSupplier = List::of;
   private Supplier<List<MonsterStatsEdit>> monsterStatsEditSupplier = List::of;
@@ -284,6 +286,14 @@ public final class FxEditorState {
 
   public List<WeaponCastSpellEdit> weaponCastSpellEdits() {
     return weaponCastSpellEditSupplier.get();
+  }
+
+  public void armorCastSpellEditSupplier(Supplier<List<ArmorCastSpellEdit>> supplier) {
+    armorCastSpellEditSupplier = supplier == null ? List::of : supplier;
+  }
+
+  public List<ArmorCastSpellEdit> armorCastSpellEdits() {
+    return armorCastSpellEditSupplier.get();
   }
 
   public void weaponStatsEditSupplier(Supplier<List<WeaponStatsEdit>> supplier) {

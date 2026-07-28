@@ -24,6 +24,8 @@ This is the quick landing page for the FF1 J2ME editor project.
   - keeps upgraded classes read-only and mirrors their base-class row values.
 - Magic Permissions tab:
   - splits White Magic and Black Magic into sub-tabs;
+  - has a toggle between the normal editable spell-row view and an editable
+    matrix view with hero classes as columns;
   - reads spell names and descriptions from `PACK0_4`;
   - exposes each spell permission mask as an editable class mask;
   - writes masks back to `cp0`.
@@ -39,8 +41,8 @@ This is the quick landing page for the FF1 J2ME editor project.
     weapon descriptions, and the raw special masks;
   - shows armor subtype/absorb/evasion lower/cast spell/resistance/equip classes from
     `cp0` chunk 2.
-  - edits armor absorb, evasion lower, resistance masks, and equip class masks,
-    writing them back to `cp0` chunk 2.
+  - edits armor absorb, evasion lower, cast skill ids, resistance masks, and
+    equip class masks, writing them back to `cp0` chunk 2.
   - hides key/quest items from the Items sub-tab because those are not normal
     shop or inventory-balance data.
 - Shops tab:
@@ -230,9 +232,10 @@ This is the quick landing page for the FF1 J2ME editor project.
 - Armor records: `cp0` chunk 2, 41 records, 6 bytes each. Runtime armor item
   ids are offset by 48 and split into body armor, shields, helms, and gloves.
   Record bytes `0..1` are editable as the equip class mask. Record bytes `2`
-  and `3` are editable as absorb and evasion lower. Record byte `5` is an armor
-  resistance mask; battle setup ORs the four equipped armor masks into the hero's
-  spell/status resistance field.
+  and `3` are editable as absorb and evasion lower. Record byte `4` is editable
+  as the battle cast skill id. Record byte `5` is an armor resistance mask;
+  battle setup ORs the four equipped armor masks into the hero's spell/status
+  resistance field.
 - Shared item metadata: `cp0` chunk 0, 106 records, 4 bytes each. The first
   field is the shop price.
 - Consumable battle effects are hardcoded for item ids `1..3`: Potion routes to
